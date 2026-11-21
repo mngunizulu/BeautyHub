@@ -1,0 +1,1 @@
+- [Correlated SQL in Drizzle](drizzle-correlated-sql.md) — single-table selects may unqualify interpolated columns; prefer joins and verify aggregates against SQL.

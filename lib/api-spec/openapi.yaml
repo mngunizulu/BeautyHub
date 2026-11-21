@@ -1,0 +1,276 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: BeautyHub Stage 1 API. Public development catalog; bookings and account activation are deferred.
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+        "503":
+          description: Database unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /categories:
+    get:
+      operationId: listCategories
+      tags: [marketplace]
+      responses:
+        "200":
+          description: Service categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+  /businesses:
+    get:
+      operationId: listBusinesses
+      tags: [marketplace]
+      parameters:
+        - { name: q, in: query, schema: { type: string, maxLength: 100 } }
+        - { name: city, in: query, schema: { type: string, maxLength: 100 } }
+        - { name: category, in: query, schema: { type: string, maxLength: 60 } }
+      responses:
+        "200":
+          description: Published synthetic development businesses matching all filters
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Business"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /businesses/{slug}:
+    get:
+      operationId: getBusiness
+      tags: [marketplace]
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema: { type: string, minLength: 1, maxLength: 100, pattern: '^[a-z0-9-]+$' }
+      responses:
+        "200":
+          description: Public business profile with services
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessDetail"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          description: Business not found or not published
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+  /marketplace/summary:
+    get:
+      operationId: getMarketplaceSummary
+      tags: [marketplace]
+      responses:
+        "200":
+          description: Actual public catalog counts, never simulated reviews or availability
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MarketplaceSummary"
+  /system:
+    get:
+      operationId: getSystemStatus
+      tags: [foundation]
+      responses:
+        "200":
+          description: Public foundation capabilities and stage progress
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SystemStatus"
+  /auth/session:
+    get:
+      operationId: getSession
+      tags: [auth]
+      responses:
+        "200":
+          description: Fail-closed Stage 1 guest session; managed identity integration is Stage 2
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionStatus"
+  /business/workspace:
+    get:
+      operationId: getBusinessWorkspace
+      tags: [business]
+      responses:
+        "401":
+          description: Authentication required. No anonymous tenant data access.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+  /admin/workspace:
+    get:
+      operationId: getAdminWorkspace
+      tags: [admin]
+      responses:
+        "401":
+          description: Authentication required. No anonymous administrator access.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorResponse"
+components:
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiErrorResponse"
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [ok, degraded]
+        database:
+          type: string
+          enum: [connected, unavailable]
+        timestamp:
+          type: string
+        version:
+          type: string
+      required:
+        - status
+        - database
+        - timestamp
+        - version
+    ApiErrorResponse:
+      type: object
+      required: [error, code]
+      properties:
+        error: { type: string }
+        code: { type: string }
+    Category:
+      type: object
+      required: [id, slug, name, businessCount]
+      properties:
+        id: { type: string }
+        slug: { type: string }
+        name: { type: string }
+        businessCount: { type: integer }
+    Business:
+      type: object
+      required: [id, slug, name, description, city, district, address, postalCode, categorySlug, categoryName, imageKey, minPriceCents, serviceCount, isDemo, timezone]
+      properties:
+        id: { type: string }
+        slug: { type: string }
+        name: { type: string }
+        description: { type: string }
+        city: { type: string }
+        district: { type: string }
+        address: { type: string }
+        postalCode: { type: string }
+        categorySlug: { type: string }
+        categoryName: { type: string }
+        imageKey: { type: string, description: Local image asset mapping key, not an external placeholder URL }
+        minPriceCents: { type: ["integer", "null"] }
+        serviceCount: { type: integer }
+        isDemo: { type: boolean }
+        timezone: { type: string }
+    Service:
+      type: object
+      required: [id, name, description, durationMinutes, priceCents]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        description: { type: string }
+        durationMinutes: { type: integer }
+        priceCents: { type: integer }
+    BusinessDetail:
+      allOf:
+        - $ref: "#/components/schemas/Business"
+        - type: object
+          required: [services, openingHours]
+          properties:
+            services:
+              type: array
+              items:
+                $ref: "#/components/schemas/Service"
+            openingHours:
+              type: array
+              items:
+                $ref: "#/components/schemas/OpeningHour"
+    OpeningHour:
+      type: object
+      required: [day, opens, closes]
+      properties:
+        day: { type: string }
+        opens: { type: string }
+        closes: { type: string }
+    MarketplaceSummary:
+      type: object
+      required: [businessCount, categoryCount, serviceCount, cities, isDemo]
+      properties:
+        businessCount: { type: integer }
+        categoryCount: { type: integer }
+        serviceCount: { type: integer }
+        cities: { type: array, items: { type: string } }
+        isDemo: { type: boolean }
+    Stage:
+      type: object
+      required: [number, title, status, description]
+      properties:
+        number: { type: integer }
+        title: { type: string }
+        status: { type: string, enum: [in_progress, planned] }
+        description: { type: string }
+    SystemStatus:
+      type: object
+      required: [name, version, stage, locale, currency, timezone, developmentMode, bookingEnabled, authenticationEnabled, stages]
+      properties:
+        name: { type: string }
+        version: { type: string }
+        stage: { type: integer }
+        locale: { type: string }
+        currency: { type: string }
+        timezone: { type: string }
+        developmentMode: { type: boolean }
+        bookingEnabled: { type: boolean }
+        authenticationEnabled: { type: boolean }
+        stages:
+          type: array
+          items:
+            $ref: "#/components/schemas/Stage"
+    SessionStatus:
+      type: object
+      required: [authenticated, configured, provider, role, message]
+      properties:
+        authenticated: { type: boolean }
+        configured: { type: boolean }
+        provider: { type: string }
+        role: { type: string }
+        message: { type: string }

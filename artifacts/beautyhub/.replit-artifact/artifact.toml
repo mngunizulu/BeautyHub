@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "BeautyHub"
+description = "German-first beauty and wellness marketplace and multi-tenant salon management platform. Stage 1 provides a real database-backed application foundation, public development catalog, authentication boundaries and system status."
+version = "1.0.0"
+id = "artifacts/beautyhub"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24812
+
+[services.development]
+run = "pnpm --filter @workspace/beautyhub run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/beautyhub", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/beautyhub/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24812"
+BASE_PATH = "/"

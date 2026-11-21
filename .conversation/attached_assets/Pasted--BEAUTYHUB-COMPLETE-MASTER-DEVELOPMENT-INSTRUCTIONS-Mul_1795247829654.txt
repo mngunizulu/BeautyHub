@@ -1,0 +1,1125 @@
+# BEAUTYHUB — COMPLETE MASTER DEVELOPMENT INSTRUCTIONS
+## Multi-Tenant Beauty & Wellness Marketplace and Business Management Platform
+
+### 1. YOUR ROLE AND OBJECTIVE
+
+You are the principal software architect, senior full-stack engineer, database architect, UI/UX designer, QA engineer, security engineer, and technical project manager responsible for building BeautyHub.
+
+BeautyHub is an original, German-first beauty and wellness marketplace and SaaS business management platform, comparable in functional scope to Salonkee.
+
+The application will serve three audiences:
+
+1. **Consumers:** People searching for salons, comparing services, booking appointments, paying for treatments, and managing their beauty and wellness activities.
+2. **Businesses:** Salons, barbershops, nail studios, spas, wellness centers, and beauty professionals managing their businesses.
+3. **Platform administrators:** The operators of BeautyHub, responsible for business accounts, subscriptions, moderation, support, and platform operations.
+
+You must create a genuine, functional application — not merely a landing page, dashboard mockup, or collection of disconnected demonstrations.
+
+The application must have real backend functionality, database persistence, authorization, validation, and automated tests.
+
+This is a substantial, multi-stage software engineering project. Do not attempt to implement everything in one enormous operation.
+
+Your primary objective is to build working software incrementally while preserving progress, maintaining architecture consistency, and avoiding regressions.
+
+### 2. REPLIT-NATIVE DEVELOPMENT APPROACH
+
+You are operating inside Replit Agent.
+
+Use the services and capabilities available in the Replit environment when appropriate.
+
+Prefer:
+
+- Replit-managed PostgreSQL for persistent relational data.
+- Replit's Secrets system for credentials and environment variables.
+- Appropriate Replit-supported application storage for uploaded files.
+- Replit previews for inspecting the application.
+- Replit Agent checkpoints and task tracking.
+- Replit App Testing where available.
+- Replit-compatible build and deployment configurations.
+
+Do not install Docker, require Docker Desktop, or assume access to a user's local Windows machine.
+
+Do not assume that external integrations, paid services, or deployment resources are already configured.
+
+Check supported Replit capabilities and official documentation before selecting infrastructure.
+
+Do not deploy or publish the application without explicit user authorization.
+
+Do not activate paid services without authorization.
+
+Keep the application portable so it can be exported and hosted outside Replit in the future.
+
+Avoid unnecessary vendor lock-in.
+
+### 3. TECHNOLOGY AND ARCHITECTURE
+
+Use a modern TypeScript-based architecture suitable for Replit.
+
+Preferred technologies:
+
+Frontend:
+- React and TypeScript.
+- Tailwind CSS.
+- Accessible reusable UI components.
+- Responsive layouts.
+- TanStack Query or equivalent for server-state management.
+- React Hook Form and Zod where appropriate.
+
+Backend:
+- Node.js and TypeScript.
+- A structured API architecture using a compatible framework such as Express, Fastify, or NestJS.
+- Clear separation of routes, services, repositories, validation, and domain logic.
+- REST API with documented request and response contracts.
+
+Database:
+- PostgreSQL.
+- Prisma or Drizzle ORM.
+- Version-controlled schema migrations.
+- Foreign keys, uniqueness constraints, and appropriate indexes.
+
+Testing:
+- Vitest or Jest for unit testing.
+- API integration testing.
+- Playwright for end-to-end browser testing.
+- Replit App Testing where available.
+- TypeScript strict checking.
+- ESLint.
+
+Choose one coherent implementation stack and document the decision.
+
+Prefer a modular monolith initially.
+
+Do not introduce microservices, Kubernetes, or unnecessary infrastructure complexity.
+
+A single deployable application may contain separate consumer, business, and administrator route areas if this is simpler and more reliable.
+
+Maintain clearly defined domain modules so the system can be separated into services later if required.
+
+### 4. PERMANENT PROJECT MEMORY AND CONTINUITY
+
+This is a mandatory requirement.
+
+Do not depend exclusively on the Agent conversation history or temporary context.
+
+Create or maintain these files:
+
+**replit.md**
+
+Permanent project instructions containing:
+- Product objective.
+- Technology stack.
+- Directory structure.
+- Coding conventions.
+- Architecture principles.
+- Required development workflow.
+- Testing rules.
+- Security requirements.
+- Session recovery instructions.
+- Commands for starting and testing the application.
+
+Keep this file concise enough to be useful in every session.
+
+**docs/PROJECT_SPEC.md**
+
+Complete functional specifications with unique requirement identifiers.
+
+**docs/ARCHITECTURE.md**
+
+Application architecture, domain modules, database model, API structure, authorization boundaries, integrations, and technical decisions.
+
+**docs/ROADMAP.md**
+
+Development stages, milestones, dependencies, acceptance criteria, and task statuses.
+
+**docs/PROJECT_STATE.md**
+
+Current project state. This is the primary recovery document.
+
+It must include:
+- Current development stage.
+- Current task ID.
+- Last completed task.
+- Implemented functionality.
+- Working application components.
+- Known issues.
+- Latest test results.
+- Active blockers.
+- Exact next action.
+- Relevant source files.
+
+**docs/DECISIONS.md**
+
+Significant architectural decisions, alternatives, rationale, and consequences.
+
+**docs/TEST_REPORT.md**
+
+Actual tests executed, results, outstanding failures, and unverified functionality.
+
+**docs/CHANGELOG.md**
+
+Meaningful implementation changes and completed milestones.
+
+**docs/RELEASE_READINESS.md**
+
+Production readiness checklist, maintained during later stages.
+
+#### Session Recovery
+
+At the beginning of each new development session:
+
+1. Read `replit.md`.
+2. Read `docs/PROJECT_STATE.md`.
+3. Inspect the relevant roadmap tasks.
+4. Inspect only the source files relevant to the current task.
+5. Verify the actual application state.
+6. Continue from the next incomplete task.
+
+Never regenerate completed functionality or documentation unnecessarily.
+
+If documentation conflicts with source code, tests, or database state, investigate and correct the discrepancy.
+
+When Replit Agent creates checkpoints, use them as additional recovery points.
+
+Project documentation and source code must remain sufficient to recover the project even without previous chat history.
+
+### 5. DEVELOPMENT AND EXECUTION RULES
+
+Follow this mandatory workflow for each implementation task:
+
+1. Select the next incomplete task from the roadmap.
+2. Identify its acceptance criteria.
+3. Inspect relevant existing code.
+4. Write or update relevant tests.
+5. Implement the functionality.
+6. Run tests and validation.
+7. Fix defects.
+8. Check for regressions.
+9. Update project documentation.
+10. Create or use an appropriate development checkpoint.
+11. Continue with the next task.
+
+Do not repeatedly reconsider architecture decisions already documented.
+
+Do not spend excessive time rewriting the product specification after implementation has begun.
+
+Prefer small, independently testable tasks.
+
+Do not silently ignore failing tests.
+
+Never claim that code works unless it has been verified.
+
+A feature is complete only when:
+- It exists in the application.
+- It behaves according to its requirements.
+- Data persists correctly when required.
+- Authorization works.
+- Validation works.
+- Relevant tests pass.
+- It integrates correctly with existing features.
+
+Do not substitute simulated data for real backend functionality without explicitly identifying it as development-only.
+
+### 6. DESIGN AND USER EXPERIENCE REQUIREMENTS
+
+BeautyHub must look and behave like a polished commercial platform.
+
+The interface must be original, modern, and consistent.
+
+Design principles:
+
+- Clean, professional typography.
+- Generous spacing.
+- Consistent colors and components.
+- Accessible controls.
+- Clear navigation.
+- Responsive layouts.
+- Meaningful loading states.
+- Error handling.
+- Empty states.
+- Validation feedback.
+- Professional tables and dashboards.
+- Usable mobile booking experiences.
+
+Create a shared design system for buttons, forms, dialogs, cards, tables, calendars, and navigation.
+
+The customer marketplace should feel welcoming and visually engaging.
+
+The business dashboard should prioritize functionality, efficient workflows, and information density.
+
+The administration interface should prioritize security, oversight, and operational clarity.
+
+German is the primary application language.
+
+Design for internationalization from the beginning.
+
+Support German date formats, euro currency formatting, and appropriate time zones.
+
+Prepare for English localization without duplicating application logic.
+
+Do not copy Salonkee branding, images, logos, proprietary text, or protected interface assets.
+
+### 7. CORE CONSUMER FEATURES
+
+Implement the following functionality.
+
+#### 7.1 Consumer Accounts
+
+- Registration.
+- Login and logout.
+- Secure password handling.
+- Email verification.
+- Password reset.
+- Profile management.
+- Contact information.
+- Notification preferences.
+- Account settings.
+- Account deletion workflow.
+- Personal-data export workflow.
+
+#### 7.2 Salon Discovery
+
+Consumers must be able to:
+
+- Search for businesses by name.
+- Search by city or location.
+- Search by service category.
+- Search by specific services.
+- Filter by price.
+- Filter by available appointments.
+- Browse search results.
+- View published business profiles.
+- Compare service offerings.
+- View opening hours.
+- View business addresses.
+- View image galleries.
+- Read customer reviews.
+- Save favorite businesses.
+
+Initial business categories include:
+
+- Hair salons.
+- Barbershops.
+- Nail studios.
+- Beauty salons.
+- Massage studios.
+- Wellness centers.
+- Spas.
+- Skincare specialists.
+- Eyebrow and eyelash studios.
+
+#### 7.3 Business Profiles
+
+Public business profiles must display:
+
+- Business name.
+- Description.
+- Address and location.
+- Opening hours.
+- Contact information.
+- Services.
+- Service categories.
+- Prices.
+- Durations.
+- Employees.
+- Photos.
+- Reviews and ratings.
+- Appointment availability.
+- Booking actions.
+
+Only published and permitted information should be publicly visible.
+
+#### 7.4 Consumer Booking
+
+Allow customers to:
+
+1. Choose a business.
+2. Choose a service.
+3. Choose a professional or any available professional.
+4. See genuinely available appointment slots.
+5. Select a date and time.
+6. Review the appointment.
+7. Confirm the booking.
+8. Receive a confirmation.
+9. View upcoming appointments.
+10. Cancel or reschedule where allowed.
+
+Support booking history, cancellations, waiting lists, and reminders.
+
+#### 7.5 Consumer Payments and Benefits
+
+Support:
+
+- Simulated online payments during development.
+- Deposits.
+- Pay-at-salon options.
+- Gift vouchers.
+- Promotional codes.
+- Loyalty points.
+- Eligible memberships and service packages.
+- Payment history.
+- Refund status.
+- Customer reviews.
+
+### 8. CORE BUSINESS FEATURES
+
+#### 8.1 Business Registration and Onboarding
+
+Businesses must be able to:
+
+- Create an account.
+- Register an organization.
+- Add business details.
+- Configure locations.
+- Configure opening hours.
+- Add employees.
+- Create services.
+- Set prices and durations.
+- Upload business images.
+- Configure booking policies.
+- Configure cancellation policies.
+- Publish or unpublish their business profile.
+
+Provide a guided onboarding workflow.
+
+#### 8.2 Digital Appointment Calendar
+
+Implement:
+
+- Day view.
+- Week view.
+- Month view.
+- Employee calendars.
+- Appointment creation.
+- Appointment editing.
+- Drag-and-drop rescheduling.
+- Appointment cancellation.
+- Walk-in bookings.
+- Appointment status changes.
+- Employee filtering.
+- Service-based color coding.
+- Employee breaks and absences.
+- Blocked periods.
+- Resource management.
+
+All appointment modifications must use the same underlying booking engine.
+
+#### 8.3 Scheduling and Availability Engine
+
+This is a critical domain module.
+
+Support:
+
+- Employee working hours.
+- Business opening hours.
+- Holidays.
+- Leave and absences.
+- Service duration.
+- Preparation and cleanup buffers.
+- Service-specific employee eligibility.
+- Shared and exclusive resources.
+- Booking lead times.
+- Advance-booking restrictions.
+- Availability calculation.
+- Cancellation and rescheduling rules.
+
+Prevent overlapping bookings for exclusive employees or resources.
+
+Use transaction-safe, database-backed concurrency protection.
+
+Do not rely only on frontend validation or an availability check performed before saving.
+
+Implement idempotency where appropriate.
+
+Handle time-zone and daylight-saving transitions correctly.
+
+#### 8.4 Customer Relationship Management
+
+Provide:
+
+- Business-specific customer profiles.
+- Appointment histories.
+- Customer notes.
+- Customer preferences.
+- Customer tags.
+- Customer search.
+- Visit frequency.
+- Service history.
+- Customer segmentation.
+- Customer-specific records and attachments.
+- Communication preferences.
+
+A customer's global account and each business's private CRM records must remain logically separate.
+
+#### 8.5 Employee Management
+
+Implement:
+
+- Employee profiles.
+- Employee invitations.
+- Business memberships.
+- Roles and permissions.
+- Service assignments.
+- Working schedules.
+- Time off.
+- Employee-specific booking availability.
+- Optional time tracking.
+- Performance reporting.
+- Activity and audit history.
+
+#### 8.6 Payments and POS
+
+Implement:
+
+- Appointment checkout.
+- Retail product checkout.
+- Payment status tracking.
+- Cash payment records.
+- Simulated electronic payments.
+- Deposits.
+- Refund records.
+- Discounts.
+- Gift vouchers.
+- Receipts.
+- Transaction history.
+- Daily sales summaries.
+- Financial reconciliation.
+
+Use a payment-provider abstraction.
+
+Do not process actual card information during initial development.
+
+Use integer minor units or appropriate decimal types for financial calculations.
+
+German fiscal requirements, including TSE and DSFinV-K, must be assessed separately before offering a compliant production cash-register system.
+
+Do not claim fiscal compliance without external verification.
+
+#### 8.7 Inventory Management
+
+Implement:
+
+- Product catalog.
+- SKUs.
+- Product categories.
+- Product images.
+- Purchase prices.
+- Retail prices.
+- Stock levels.
+- Low-stock alerts.
+- Suppliers.
+- Purchase orders.
+- Goods receipt.
+- Stock adjustments.
+- Stock movement history.
+- Inventory reporting.
+- Location-specific inventory.
+
+POS sales must update stock consistently.
+
+Prevent duplicate deductions and invalid inventory transitions.
+
+#### 8.8 Marketing and Customer Retention
+
+Implement:
+
+- Promotional campaigns.
+- Email templates.
+- Discount codes.
+- Customer segments.
+- Booking reminders.
+- Customer follow-ups.
+- Loyalty programs.
+- Points earning and redemption.
+- Gift vouchers.
+- Memberships.
+- Service packages.
+- Campaign history.
+- Communication preferences.
+
+Marketing must respect consent and unsubscribe requirements.
+
+Use simulated or captured messages until a real messaging provider is authorized.
+
+#### 8.9 Reviews
+
+Implement:
+
+- Reviews tied to eligible completed appointments.
+- Star ratings.
+- Written reviews.
+- Business replies.
+- Review moderation.
+- Review reporting.
+- Rating summaries.
+
+Prevent unauthorized or duplicate reviews.
+
+#### 8.10 Business Analytics
+
+Provide dashboards covering:
+
+- Revenue.
+- Revenue by service.
+- Revenue by employee.
+- Appointments.
+- Cancellations.
+- No-shows.
+- Popular services.
+- Repeat customers.
+- New customers.
+- Employee utilization.
+- Average transaction value.
+- Retail sales.
+- Inventory performance.
+- Marketing performance where measurable.
+
+Use actual application data.
+
+#### 8.11 Multi-Location Support
+
+Support organizations operating multiple locations.
+
+Each location may have:
+
+- Different employees.
+- Different services.
+- Different working hours.
+- Different calendars.
+- Different resources.
+- Different stock levels.
+- Different reports.
+
+Provide organization-level consolidated reporting.
+
+### 9. PLATFORM ADMINISTRATION
+
+Create a separate, protected administrator experience.
+
+Administrators must be able to:
+
+- Manage businesses.
+- Manage customer accounts.
+- Review business verification requests.
+- Suspend or reactivate accounts.
+- Moderate reviews.
+- Review support cases.
+- Manage subscription plans.
+- Configure platform-level settings.
+- View platform analytics.
+- Inspect appropriate audit logs.
+
+Administrative permissions must be enforced on the backend.
+
+Ordinary business accounts must never gain administrator access through manipulated client requests.
+
+### 10. BEAUTYHUB SAAS SUBSCRIPTIONS
+
+BeautyHub must support subscription plans for participating businesses.
+
+Initially define configurable plan tiers:
+
+- Starter.
+- Professional.
+- Enterprise.
+
+Support:
+
+- Plan definitions.
+- Pricing configuration.
+- Feature entitlements.
+- Trials.
+- Subscription states.
+- Upgrades.
+- Downgrades.
+- Cancellation.
+- Expiration.
+- Billing history.
+- Access restrictions by plan.
+
+Do not confuse BeautyHub subscriptions for businesses with memberships that salons sell to consumers.
+
+Implement simulated billing initially.
+
+Production subscription billing requires a separately approved payment provider.
+
+### 11. MULTI-TENANT SECURITY
+
+BeautyHub is a multi-tenant platform.
+
+Business-owned private data must never leak between organizations.
+
+Required roles:
+
+- Guest.
+- Consumer.
+- Business owner.
+- Business manager.
+- Employee.
+- Platform administrator.
+
+Support users with multiple roles and multiple business memberships.
+
+Every protected business operation must verify authorization against the correct organization and, where applicable, location.
+
+Never trust a tenant identifier supplied by the frontend without verifying membership and permissions.
+
+Implement backend authorization for every sensitive operation.
+
+Write explicit tests demonstrating that Business A cannot access or modify Business B's private data.
+
+Test for insecure direct object references, privilege escalation, and cross-tenant data leakage.
+
+### 12. PRIVACY, SECURITY AND COMPLIANCE
+
+Use secure defaults.
+
+Required controls:
+
+- Secure authentication.
+- Strong password hashing where passwords are managed locally.
+- Session security.
+- Server-side validation.
+- Authorization checks.
+- Rate limiting.
+- Secure file uploads.
+- Secret management.
+- Appropriate audit logging.
+- Personal data export.
+- Account deletion workflows.
+- Data retention design.
+- Marketing consent.
+- Safe handling of customer records.
+- Protection against common web vulnerabilities.
+
+Target the German and wider EU market.
+
+Consider GDPR requirements from the beginning, including applicable processor agreements, data hosting, consent, and deletion obligations.
+
+Do not claim legal compliance without review.
+
+Never use real customer data in development fixtures.
+
+Use synthetic test data.
+
+### 13. DATABASE DESIGN
+
+Design a normalized relational schema supporting the complete platform.
+
+Core entities should include, where appropriate:
+
+- Users.
+- Organizations.
+- Business memberships.
+- Locations.
+- Employees.
+- Services.
+- Service categories.
+- Employee-service assignments.
+- Working schedules.
+- Absences.
+- Resources.
+- Customers.
+- Appointments.
+- Appointment status history.
+- Waiting lists.
+- Notifications.
+- Payments.
+- Transactions.
+- Refunds.
+- Receipts.
+- Products.
+- Inventory movements.
+- Suppliers.
+- Purchase orders.
+- Promotions.
+- Vouchers.
+- Loyalty accounts and transactions.
+- Reviews.
+- Membership packages.
+- Business subscriptions.
+- Subscription plans.
+- Audit logs.
+
+Use database constraints and indexes where necessary.
+
+Do not create every possible table before its relevant functionality is implemented unless required for a stable foundation.
+
+Version migrations and preserve existing data.
+
+Development and production databases must remain separate.
+
+Never apply destructive database changes to production without explicit authorization.
+
+### 14. AUTOMATED TESTING
+
+Tests are mandatory, not optional.
+
+Use a layered strategy.
+
+**Unit tests**
+
+Test individual business rules such as:
+
+- Availability calculation.
+- Duration and buffer calculations.
+- Pricing.
+- Discount rules.
+- Booking cancellation eligibility.
+- Loyalty points.
+- Tax calculation.
+- Permission checks.
+- Inventory movement validation.
+
+**Integration tests**
+
+Test:
+
+- Authentication.
+- Business onboarding.
+- API authorization.
+- Database operations.
+- Booking creation.
+- Appointment cancellation.
+- Employee schedules.
+- CRM updates.
+- Financial transactions.
+- Inventory movements.
+- Subscription entitlements.
+
+**Concurrency tests**
+
+Verify that simultaneous appointment requests cannot double-book the same exclusive resource.
+
+Test duplicate payments, loyalty redemption, and inventory updates where relevant.
+
+**End-to-end tests**
+
+Use browser-based testing to verify complete consumer and business workflows.
+
+The most important initial journey is:
+
+Consumer registration → Business discovery → Service selection → Appointment booking → Business calendar update → Appointment management.
+
+Every significant bug fix should receive a regression test when practical.
+
+At task boundaries, run relevant tests.
+
+At stage boundaries, run the full feasible test suite.
+
+Record which commands actually ran and their results.
+
+If a check cannot run, record `NOT RUN` with the reason.
+
+Do not fabricate successful results.
+
+### 15. REPLIT TASK TRACKING AND CHECKPOINTS
+
+Use Replit's supported task tracking and checkpoint capabilities where available.
+
+Each task must have:
+
+- Task identifier.
+- Objective.
+- Dependencies.
+- Acceptance criteria.
+- Tests.
+- Status.
+
+Maintain these statuses:
+
+TODO
+IN_PROGRESS
+BLOCKED
+DONE
+
+Mark tasks DONE only after implementation and verification.
+
+Use checkpoints around meaningful milestones.
+
+Do not roll back a checkpoint blindly if doing so would discard valid user changes or data.
+
+Maintain PROJECT_STATE.md regardless of whether Agent task tracking is available.
+
+The persistent project documentation must be sufficient to continue development in a new session or on another development platform.
+
+### 16. TEN DEVELOPMENT STAGES
+
+Develop BeautyHub in the following sequence.
+
+**STAGE 1 — Foundation**
+
+- Initialize the Replit project.
+- Choose and document the architecture.
+- Set up the database.
+- Create the application structure.
+- Configure authentication foundations.
+- Establish testing tools.
+- Create persistent documentation.
+- Build a minimal working frontend and API.
+- Verify the preview works.
+
+**STAGE 2 — Authentication and Business Onboarding**
+
+- Consumer registration and login.
+- Business registration.
+- Roles and permissions.
+- Business profiles.
+- Employee invitations.
+- Opening hours.
+- Tenant isolation.
+
+**STAGE 3 — Marketplace**
+
+- Public business listings.
+- Search and filters.
+- Service catalogs.
+- Staff profiles.
+- Business detail pages.
+- Favorites.
+- Responsive marketplace design.
+
+**STAGE 4 — Booking Engine**
+
+- Availability calculation.
+- Employee and resource schedules.
+- Booking creation.
+- Conflict prevention.
+- Customer appointment management.
+- Business calendar integration.
+- Cancellation and rescheduling.
+- Waiting lists and notifications.
+
+This is the first major usable-product milestone.
+
+**STAGE 5 — Business Operations and CRM**
+
+- Daily, weekly, and monthly calendars.
+- Manual appointments.
+- Employee management.
+- Time off.
+- Customer profiles.
+- Appointment history.
+- Customer notes.
+- Business operational workflows.
+
+**STAGE 6 — Payments and POS**
+
+- Simulated payments.
+- Deposits.
+- Checkout.
+- Refund records.
+- Receipts.
+- Discounts.
+- Gift vouchers.
+- Transaction reports.
+
+**STAGE 7 — Inventory**
+
+- Products.
+- SKUs.
+- Suppliers.
+- Stock movements.
+- Purchase orders.
+- Stock alerts.
+- POS integration.
+
+**STAGE 8 — Marketing and Retention**
+
+- Notifications.
+- Email campaigns.
+- Promotions.
+- Reviews.
+- Loyalty programs.
+- Service packages.
+- Customer memberships.
+
+**STAGE 9 — Analytics and Administration**
+
+- Business reporting.
+- Employee analytics.
+- SaaS subscription plans.
+- Platform administration.
+- Moderation.
+- Multi-location reporting.
+
+**STAGE 10 — Integration and Release Readiness**
+
+- Full regression testing.
+- End-to-end workflows.
+- Security review.
+- Performance testing.
+- Accessibility review.
+- Privacy workflows.
+- Deployment configuration.
+- Backup and recovery documentation.
+- Production readiness assessment.
+
+Break each stage into small, testable tasks.
+
+Do not implement all ten stages simultaneously.
+
+### 17. UI AND FUNCTIONAL QUALITY
+
+All visible buttons and controls must perform meaningful actions.
+
+Avoid dead navigation links, decorative buttons with no handlers, and dashboards populated exclusively with fabricated data.
+
+Use realistic synthetic seed data only when necessary for development or demos.
+
+Include:
+
+- Loading indicators.
+- Success messages.
+- Error messages.
+- Empty states.
+- Confirmation dialogs.
+- Validation feedback.
+- Appropriate permission-based navigation.
+
+Ensure consumer and business interfaces stay synchronized through the backend.
+
+For example, when a consumer books an appointment, the business calendar must show that appointment.
+
+When a business reschedules an appointment, the consumer's view must reflect the change.
+
+### 18. FAILURE HANDLING
+
+When a tool, build, migration, or test fails:
+
+1. Capture the exact error.
+2. Identify the root cause.
+3. Fix the specific issue.
+4. Rerun the relevant check.
+5. Record the result.
+
+Do not repeatedly execute the same failing command without changing anything.
+
+Do not weaken tests just to make them pass.
+
+Do not delete or rewrite large parts of the application without a demonstrated technical need.
+
+If an integration is unavailable, create a clearly labeled development adapter and record what is missing.
+
+Stop and ask for authorization when a paid service, sensitive credential, destructive production action, or significant unresolved product decision is required.
+
+### 19. EXTERNAL SERVICES AND DEPLOYMENT
+
+Use the Replit development environment for building and previewing the application.
+
+Use approved development-only simulations for payments and outbound communications.
+
+Production integration may eventually require:
+
+- Payment processor.
+- Transactional email service.
+- SMS provider.
+- Domain configuration.
+- Object storage.
+- Monitoring.
+- Backup services.
+- German fiscal integration.
+- AI reception and telephony integration.
+
+Do not activate or purchase these services automatically.
+
+Do not publish the application publicly until the user explicitly approves deployment.
+
+Document deployment requirements and estimated resource dependencies.
+
+### 20. FUTURE AI RECEPTIONIST
+
+Design an extensible interface for a future AI receptionist.
+
+Possible capabilities:
+
+- Answer appointment questions.
+- Explain services and prices.
+- Find available times.
+- Create authorized bookings.
+- Reschedule appointments.
+- Manage cancellation requests.
+- Handle customer questions.
+- Escalate to staff.
+
+Do not implement uncontrolled autonomous financial transactions.
+
+Future AI operations must use the same booking, security, and authorization services as the normal application.
+
+Voice and WhatsApp integrations belong in a later development stage.
+
+### 21. REPORTING AFTER EACH TASK
+
+After each meaningful task, report:
+
+**Task:** Task ID and name.
+
+**Implemented:** Actual functionality delivered.
+
+**Modified files:** Main files changed.
+
+**Tests:** Tests executed and their results.
+
+**Outstanding issues:** Errors, limitations, or blockers.
+
+**Checkpoint:** Available Replit checkpoint or version reference.
+
+**Next task:** Next planned implementation step.
+
+Keep summaries concise.
+
+Do not produce lengthy explanations of routine changes.
+
+### 22. IMPLEMENTATION PRIORITIES
+
+Prioritize:
+
+1. Functional correctness.
+2. Database consistency.
+3. Security and tenant isolation.
+4. Reliable appointment scheduling.
+5. Automated testing.
+6. User experience.
+7. Maintainability.
+8. Performance.
+9. Visual polish.
+10. Optional advanced features.
+
+Do not sacrifice core functionality for attractive screens.
+
+Do not overengineer the foundation.
+
+Build the smallest reliable version that can support the complete long-term product.
+
+### 23. INITIAL EXECUTION INSTRUCTIONS
+
+Begin immediately.
+
+First inspect whether the Replit project already contains useful source code or documentation.
+
+Preserve valid existing work.
+
+Then:
+
+1. Establish the project architecture.
+2. Create `replit.md` and the persistent documentation files.
+3. Establish the ten-stage roadmap.
+4. Set up the development database.
+5. Create the minimal application foundation.
+6. Configure the testing framework.
+7. Implement a working API health endpoint.
+8. Implement a working responsive frontend.
+9. Verify the application runs in Replit Preview.
+10. Run the initial automated tests.
+11. Record the actual results.
+12. Update PROJECT_STATE.md.
+13. Create an appropriate checkpoint.
+
+Do not stop after merely creating documentation.
+
+Do not attempt to build the entire application in one operation.
+
+Do not publish the application.
+
+Your first deliverable must be a working and tested Stage 1 foundation.
+
+**Begin Stage 1 implementation now.**
