@@ -8,22 +8,26 @@ One product with React frontend and one Express API, independently built package
 Routes are split into catalog, foundation and health. Thin catalog handlers validate generated Zod schemas; repository methods explicitly project only published public fields. Security middleware precedes routes; errors expose only structured generic messages. JSON/form body caps, Helmet, rate limiting, same-origin access and sanitized request logs apply centrally. API listener uses the injected port and `0.0.0.0`; shutdown closes listener and pool.
 
 ## Implemented data model
-- `users`: opaque verified-provider identity mapping, internal UUID and default-false platform-administrator marker. No password or consumer PII columns yet.
-- `organizations`: tenant identity; demo flag is explicit.
-- `business_memberships`: unique user/organization pair with constrained owner/manager/employee role and foreign keys.
-- `service_categories`: stable unique slugs and presentation order.
-- `locations`: organization/category references, unique public slug, public profile fields, published flag, timezone and indexed public-city/category lookup.
-- `services`: location-scoped public catalog with published flag, positive duration and nonnegative integer euro cents.
+- `users`: unique managed-provider identity, internal UUID, verified email, editable display name/phone/preferences, deletion-request timestamp and trusted default-false administrator marker. No passwords.
+- `organizations`: tenant identity, business contacts/description and resumable onboarding step; demo flag explicit.
+- `business_memberships`: unique user/organization pair, constrained owner/manager/employee roles and active/inactive/removed status.
+- `service_categories`: preserved Stage 1 platform business-category definitions, stable slugs/order. `business_service_categories` are distinct organization-owned service groupings.
+- `locations`: structured DE address/optional coordinates, timezone, lead/advance booking settings, unique public slug and controlled publication; no Berlin restriction.
+- `employees`: organization/location profiles, optional linked identity, active state and validated weekly working-schedule templates. `employee_services` stores explicit service eligibility.
+- `services` and stable `service_variants`: integer cents, duration/buffers, publication/online eligibility, group references and soft archival (no loss of historical identifiers).
 - `opening_hours`: unique weekday per location, ordered valid HH:mm bounds.
+- `cancellation_policies`: immutable organization-scoped versions; configurable defaults 24h/100% late/100% no-show, fixed/percentage fees, waiver/exception settings. `policy_acceptances` reserves explicit timestamped snapshots for future booking consent.
+- `staff_invitations`: hash-only, recipient-bound, 72-hour single-use invitations; creator authorization rechecked at acceptance. Sensitive operations have `audit_events`.
+- `payment_provider_references`: opaque customer-provider association only; user-scoped read projection, no raw card fields or card-save API.
 
-No private tenant endpoint reads data in Stage 1. The users/memberships schema is an identity foundation, not a completed authentication flow. App-level permission policy is tested but must be connected to verified managed identity and membership loading in Stage 2.
+Stage 2 uses managed identity followed by DB-backed membership loading for every tenant request. Employee views are reduced to their own employee records, without membership/invitation listings. Owners/managers administer profiles/staff/services; only owners publish or change memberships, and managers cannot invite managers. Cross-tenant nested IDs are checked before mutations.
 
 Migrations are checked into `lib/db/drizzle/`. Run development migration generation/application explicitly; never DDL on API startup. Seed is development-only, transactional and idempotent, using stable synthetic IDs. No actual users or admin accounts are seeded. Production schema changes use the approved Replit Publish flow, not these development commands.
 
 ## Authentication boundary
-Clerk management check returned **not configured**. Clerk is the planned managed provider; Stage 2 activates it. `/api/auth/session` truthfully returns guest/not configured. The entire `/api/business` and `/api/admin` namespaces reject every caller with 401, regardless of headers/cookies/tenant IDs. No local password or ad hoc token scheme.
+Managed Clerk was provisioned for Stage 2 and owns registration, sign-in, verification, recovery and sessions. Backend Clerk middleware verifies provider identity; a unique external-ID bridge prevents duplicate internal users. Returning profile/session requests refresh provider-owned email verification without overriding the user's local display name/preferences. Browser APIs use managed same-origin cookies, never caller identity headers or custom local JWTs.
 
-Future chain: verified provider identity → internal user → DB memberships → organization/location-scoped permissions. Never construct a Principal from browser claims. Ordinary business owners cannot administer the platform. Admin status alone does not grant salon-private CRM access. Full authenticated IDOR/tenant tests arrive with these operations.
+Verified provider identity → internal user → active DB membership → route role/organization/nested-ID checks. Platform administrator assignment has no public/self-service endpoint: a trusted operator must explicitly assign it separately. Admin status alone does not grant salon-private access. Same-origin/Fetch-Metadata checks reject cross-site mutations; private responses are no-store. Authenticated IDOR/role/revocation tests use the real DB with only the external Clerk boundary mocked.
 
 ## API contract
 `lib/api-spec/openapi.yaml` is the source of truth; run codegen after edits. Routes:
@@ -36,16 +40,23 @@ Future chain: verified provider identity → internal user → DB memberships �
 | `/businesses/{slug}` | Published-only profile, published services and opening hours, or 404 |
 | `/marketplace/summary` | Real public catalog counts and available cities |
 | `/system` | Public capabilities and ten-stage roadmap |
-| `/auth/session` | No-store guest capability report |
-| `/business/workspace`, `/admin/workspace` | 401; no anonymous private access |
+| `/auth/session` | No-store guest or verified internal-user session |
+| `/me`, `/me/export`, `/me/payment-methods` | Own profile, export foundation and safe provider references; auth required |
+| `/organizations`, `/organizations/{id}/workspace` | Active memberships and tenant-scoped business workspace |
+
+Protected mutations include profile/preferences/deletion requests; organization/profile/location/hours/staff/service/category/policy/publication administration; hashed invitation creation/verified acceptance; owner-only membership updates. The OpenAPI document specifies exact verbs, payloads and generated clients.
 
 Search rejects unknown/malformed/overlong query inputs. Pattern metacharacters are escaped and values bound by ORM. Public projections omit tenant ownership IDs and identity data. Errors use `{error,code}` with 400/401/404/413/429/500 as appropriate. Health has a bounded DB connection/query timeout.
 
 ## Frontend and localization
-Routes: `/`, `/salons`, `/salons/:slug`, `/fuer-unternehmen`, `/anmelden`, `/system`. Query filters live in URL; fetched data has query keys, loading/error/empty states and navigation/refetch paths. Shared theme, layout, cards and controls are local reusable components. Locale formatting is centralized in `src/lib/format.ts`. German copy is current; future English needs message catalogs extracted before translated screens, never duplicated domain logic. Stock images are not third-party placeholders: generated local images depict fictional businesses and are illustrative only.
+Public routes remain `/`, `/salons`, `/salons/:slug`, `/fuer-unternehmen`, `/system`. Managed `/sign-in/*?` and `/sign-up/*?` handle auth; `/anmelden` is an alias. Protected `/konto`, `/unternehmen`, `/unternehmen/:organizationId` provide the customer portal, organization list and resumable six-step wizard/editable dashboard; `/einladung#token=…` accepts a manually shared invitation. Signed-in root redirects to the portal; logout returns to public root. Identity changes clear query caches, and expired sessions redirect safely. Query filters/current dashboard section live in URLs; data has loading/error/empty/retry states. Shared existing theme, layout/cards/controls and German currency/date formatting are retained. Future English needs extracted message catalogs, not duplicated domain logic. Generated images illustrate fictional seed studios; new business images are illustrative, not verified venue photographs.
 
 ## Future module boundaries
-Stage 2 identity/onboarding/team permissions; Stage 3 full marketplace/favorites/uploads; Stage 4 scheduling/appointments/resources/notifications; Stage 5 business calendar/CRM/team; Stage 6 provider-abstracted finance/POS; Stage 7 inventory; Stage 8 marketing/loyalty/reviews; Stage 9 reporting/SaaS/platform administration; Stage 10 release integration and security/privacy/performance/accessibility.
+Stage 2 implements identity/onboarding/staff/service/policy foundations; Stage 3 retains full marketplace/favorites/uploads; Stage 4 scheduling/appointments/resources/notifications; Stage 5 calendar/CRM; Stage 6 provider finance/POS; later stages remain as roadmapped.
+
+**Future multi-service boundary (not an active booking engine):** `Booking` is the organization/location/customer appointment aggregate; `BookingItem` references a stable Service/optional Variant/eligible Employee and captures immutable name, integer price, duration, preparation/cleanup and sequence snapshots. Aggregate totals/duration derive from its items. Explicit policy acceptance records the version and terms snapshot. Availability, overlap protection, resource allocation, rescheduling and state transitions must go through one later booking engine, never UI writes to these snapshots.
+
+**Future payment sequence (inactive):** authenticated customer → authorized business/services → provider-hosted SetupIntent/equivalent with future/off-session mandate and any SCA → verified provider webhook → opaque customer/payment-method references → explicit policy version acceptance → booking confirmation → idempotent completion/authorized cancellation/no-show charge. A provider adapter owns setup authorization and charging. Charge failures, SCA reauthentication, refunds, webhook signatures/retries and legal authorization must be designed/tested before activation. No real provider, raw card storage, card-entry field or fee collection exists now; no claim of legal enforceability.
 
 Store UTC instants with location IANA zones; calendar-only dates as strings/date columns. Scheduling must account for Berlin DST and enforce exclusive overlap transactionally in PostgreSQL. Cancellation/edit/AI actions must all call the same booking engine. Financial values use integer cents and financial/stock mutations need idempotency.
 

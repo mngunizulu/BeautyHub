@@ -4,6 +4,10 @@ import { rateLimit } from "express-rate-limit";
 import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
+import { clerkMiddleware } from "@clerk/express";
+import { publishableKeyFromHost } from "@clerk/shared/keys";
+import { CLERK_PROXY_PATH, clerkProxyMiddleware, getClerkProxyHost } from "./middlewares/clerkProxyMiddleware";
+import { HttpError } from "./lib/http-error";
 
 const app: Express = express();
 app.disable("x-powered-by");
@@ -30,6 +34,25 @@ app.use(
   }),
 );
 app.use(helmet());
+app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
+app.use(
+  clerkMiddleware((req) => ({
+    publishableKey: publishableKeyFromHost(
+      getClerkProxyHost(req) ?? "",
+      process.env.CLERK_PUBLISHABLE_KEY,
+    ),
+  })),
+);
+app.use((req, res, next) => {
+  if (!["GET", "HEAD", "OPTIONS"].includes(req.method)) {
+    const origin = req.get("origin");
+    if (req.get("sec-fetch-site") === "cross-site" || (origin && new URL(origin).host !== getClerkProxyHost(req))) {
+      res.status(403).json({ error: "Anfrage von fremder Herkunft abgelehnt.", code: "FORBIDDEN" });
+      return;
+    }
+  }
+  next();
+});
 app.use(express.json({ limit: "32kb" }));
 app.use(express.urlencoded({ extended: false, limit: "32kb" }));
 app.use("/api", rateLimit({
@@ -45,6 +68,10 @@ app.use((_req, res) => {
   res.status(404).json({ error: "Endpunkt nicht gefunden.", code: "NOT_FOUND" });
 });
 const handleError: ErrorRequestHandler = (error: unknown, req, res, _next) => {
+  if (error instanceof HttpError) {
+    res.status(error.status).json({ error: error.message, code: error.code });
+    return;
+  }
   const status = typeof error === "object" && error !== null && "status" in error ? Number(error.status) : 500;
   if (status === 400 || status === 413) {
     res.status(status).json({ error: "Ungültige oder zu große Anfrage.", code: "INVALID_INPUT" });

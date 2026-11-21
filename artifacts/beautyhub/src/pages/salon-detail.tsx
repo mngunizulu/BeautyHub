@@ -22,14 +22,14 @@ export default function SalonDetail() {
           <section className="mt-6 grid gap-10 md:grid-cols-[1.1fr_1fr] rise">
             <div className="overflow-hidden rounded-[1.5rem] border border-border"><img src={imageFor(b.imageKey)} alt={`Atmosphäre bei ${b.name}`} className="h-full max-h-[520px] w-full object-cover" /></div>
             <div>
-              <DemoBadge />
+              {b.isDemo && <DemoBadge />}
               <p className="mt-5 font-mono text-xs uppercase tracking-wider text-muted-foreground">{b.categoryName}</p>
               <h1 className="mt-1 font-display text-5xl sm:text-6xl" data-testid="text-business-name">{b.name}</h1>
               <p className="mt-4 text-lg text-muted-foreground">{b.description}</p>
               <p className="mt-5 flex items-start gap-2"><MapPin className="mt-1 h-4 w-4 text-accent" /><span data-testid="text-address">{b.address}<br />{b.postalCode} {b.city} · {b.district}</span></p>
               <div className="mt-6 rounded-2xl border border-accent/50 bg-accent/15 p-5" data-testid="text-booking-notice">
                 <p className="flex items-center gap-2 font-semibold"><CalendarX2 className="h-4 w-4" /> Online-Buchung noch nicht verfügbar</p>
-                <p className="mt-1 text-sm text-muted-foreground">Termine lassen sich erst ab Stufe 4 buchen. Dieser Betrieb ist ein synthetischer Datensatz für die Entwicklung — bitte nicht anrufen oder vorbeigehen.</p>
+                <p className="mt-1 text-sm text-muted-foreground">Termine lassen sich erst ab Stufe 4 buchen. {b.isDemo ? 'Dieser Betrieb ist ein synthetischer Datensatz für die Entwicklung — bitte nicht anrufen oder vorbeigehen.' : 'Bis dahin wende dich bitte direkt an den Betrieb.'}</p>
                 <button disabled className="mt-4 cursor-not-allowed rounded-full border border-border bg-card px-5 py-2.5 text-sm opacity-60" data-testid="button-book-disabled">Termin buchen · ab Stufe 4</button>
               </div>
             </div>

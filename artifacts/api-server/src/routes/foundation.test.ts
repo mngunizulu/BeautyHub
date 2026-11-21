@@ -126,7 +126,7 @@ describe("foundation API and real database persistence", () => {
   it("reports guest-only authentication without trusting forged headers", async () => {
     const res = await request(app).get("/api/auth/session")
       .set("Authorization", "Bearer forged").set("X-User-Id", identityId).set("X-Role", "admin");
-    expect(res.body).toMatchObject({ authenticated: false, configured: false, role: "guest" });
+    expect(res.body).toMatchObject({ authenticated: false, configured: true, role: "guest" });
     expect(res.headers["cache-control"]).toBe("no-store");
   });
   it("denies anonymous business and admin access regardless of tenant manipulation", async () => {
@@ -139,7 +139,7 @@ describe("foundation API and real database persistence", () => {
   });
   it("returns all ten planned stages and disabled future features", async () => {
     const res = await request(app).get("/api/system");
-    expect(res.body).toMatchObject({ stage: 1, bookingEnabled: false, authenticationEnabled: false, locale: "de-DE" });
+    expect(res.body).toMatchObject({ stage: 2, bookingEnabled: false, authenticationEnabled: true, locale: "de-DE" });
     expect(res.body.stages).toHaveLength(10);
   });
   it("does not advertise cross-origin access and sends security headers", async () => {

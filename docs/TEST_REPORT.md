@@ -1,5 +1,23 @@
 # Test report
 
+## Stage 2 incremental verification
+- Managed authentication provisioning succeeded; no credentials were printed.
+- Additive migration applied without a database reset. Original 3 synthetic businesses / 9 services were explicitly verified.
+- Full workspace `pnpm run typecheck` and `pnpm lint` passed.
+- `LOG_LEVEL=silent pnpm test`: **53/53 passed** across 4 files (27 retained Stage 1 tests with updated auth/stage fixtures; 22 Stage 2 real-PostgreSQL API tests, one inactive-membership unit regression and three independent-panel data-preservation regressions).
+- New coverage: stable returning identities, profile/preferences, no self-admin, atomic owner setup, drafts/resume, structured Essen address/hours, multiple organizations, tenant denial, service groups/variants/stable identifiers, public prices/soft archive, policy defaults/versioning, hashed expiring invitations, wrong-recipient rejection, concurrent single-use acceptance, role/deactivation/audit and user-scoped payment references/export/deletion requests.
+- The external Clerk boundary alone is mocked in API integration tests. This does not establish provider registration/recovery browser success.
+- Both managed app workflows restarted cleanly. Actual sign-in component screenshot rendered; only standard development-provider/browser warnings observed.
+- **Actual browser journey executed:** managed signup component; new managed-provider test consumer signed in using the supported Clerk helper; profile/phone persistence across reload; six-step organization setup; Essen address; policy v2 (48h/50% late/100% no-show); employee/hours; service group and assigned €65/50min service; controlled publication; logout/protected redirect; public Essen discovery, correct price/address/hours, no demo badge; original demo preservation and 390×844 no-overflow check.
+- **Original browser verdict: failure despite completing the path.** Saving booking settings from an already mounted panel overwrote hours saved by the neighboring panel. Tester restored hours to finish discovery; this workaround is not counted as a clean pass.
+- **Fix confirmed:** partial panels merge only their owned fields into the latest workspace location instead of sending stale hidden fields. Three dedicated unit regressions passed. The same browser then verified Mon 10–19 hours survived saving lead 5h/advance 61 days without reload, the reverse hours save preserved those settings, and a reload preserved both. **Focused browser verdict: success.** No second full journey was launched.
+- The tester unpublished only its own test business through the owner UI and logged out. Account and private fixture rows were retained; no existing user data was deleted.
+- Frontend build passed with the managed service's non-secret `PORT=24812 BASE_PATH=/` inputs. Non-blocking source-map warnings from two existing UI scaffolds and a >500kB bundle warning remain; no production release is claimed.
+- Final strengthened cross-tenant service update/archive assertions passed in the 42-test API recheck; the other 11 tests remained unchanged from the successful 53-test full run.
+- Final API/web workflows restarted cleanly; live health returned connected, guest `/api/me` returned 401, and the public summary returned the preserved 3 businesses / 9 services / 9 categories after browser-fixture unpublication.
+- Managed sign-up/sign-in identity integration was exercised programmatically; CAPTCHA/interactive provider signup and a real email-inbox recovery roundtrip were not exercised. Recovery remains provided by the managed sign-in component. No recovery email, invitation email, real card setup or payment was sent/processed.
+- Repository Playwright smoke cases were updated for enabled managed auth and non-fixed public counts; the Playwright command itself has not been run. The browser evidence above comes from the actual managed-auth browser runner, not test discovery.
+
 Only actual executed checks count as passed. Stage 1 uses unit tests and API integration against the real development PostgreSQL database, with uniquely identified temporary fixtures cleaned after the run.
 
 ## Initial results

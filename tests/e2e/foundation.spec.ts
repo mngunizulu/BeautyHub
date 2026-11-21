@@ -1,10 +1,10 @@
 import { test, expect } from "@playwright/test";
 
-// Initial-build browser interaction run is intentionally deferred. These are
-// runnable smoke tests, not a claim of completed booking/authentication journeys.
+// Public and managed-auth-entry regressions. Authenticated onboarding is also
+// exercised with the managed-Clerk browser test helper; see docs/TEST_REPORT.md.
 test("public discovery filters persist through reload and profile navigation", async ({ page }) => {
   await page.goto("/salons?category=friseur");
-  await expect(page.getByTestId("text-result-count")).toHaveText("1 Betrieb gefunden");
+  await expect(page.getByTestId("card-business-atelier-haar")).toBeVisible();
   await page.reload();
   await expect(page.getByTestId("chip-category-friseur")).toHaveAttribute("aria-pressed", "true");
   await page.getByTestId("card-business-atelier-haar").click();
@@ -17,13 +17,18 @@ test("search presents a genuine empty state and can reset", async ({ page }) => 
   await page.goto("/salons?q=no-such-demo-studio");
   await expect(page.getByTestId("state-empty")).toBeVisible();
   await page.getByTestId("button-empty-reset").click();
-  await expect(page.getByTestId("text-result-count")).toHaveText("3 Betriebe gefunden");
+  await expect(page.getByTestId("card-business-nail-atelier")).toBeVisible();
 });
 
-test("guest accounts and private routes do not pretend to authenticate", async ({ page, request }) => {
+test("guests reach real managed sign-in while private APIs stay protected", async ({ page, request }) => {
   await page.goto("/anmelden");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  await expect(page.locator('input[type="password"]')).toHaveCount(0);
+  await expect(page.locator('input[name="identifier"]')).toBeVisible();
   const response = await request.get("/api/admin/workspace");
   expect(response.status()).toBe(401);
+  await page.goto("/konto");
+  await expect(page).toHaveURL(/\/sign-in/);
+  await page.goto("/sign-up");
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page.locator('input[name="emailAddress"]')).toBeVisible();
 });

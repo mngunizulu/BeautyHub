@@ -17,7 +17,7 @@ Requirements: BH-P01–P05, BH-D01–D05, BH-U01–U04, BH-SEC01, BH-DB01–DB02
 Checkpoint limitation: Replit manages checkpoints automatically, but no addressable checkpoint identifier or checkpoint-creation control was exposed in this session. No manual checkpoint or Git commit is claimed. Recovery documentation and versioned development migrations are saved.
 
 ## Stage 2 — Authentication and business onboarding
-**Status: TODO.** Depends on Stage 1. Requirements BH-C01, BH-B01/B06, BH-T01–T03, BH-SEC01–02.
+**Status: DONE (development scope; verification limitations in TEST_REPORT).** Depends on Stage 1. Requirements BH-C01, BH-B01/B06, BH-T01–T03, BH-SEC01–02. The supplied Stage 2 brief also explicitly includes service/variant administration, versioned cancellation-policy configuration and payment-provider data foundations; these are not an active Stage 4 booking engine.
 - **BH-S2.01:** Integrate managed Clerk, verified session→user mapping, register/login/logout, verification/recovery and secure session behavior. Tests: valid/invalid/expired identity, logout and guest boundaries.
 - **BH-S2.02:** Organization/location creation and guided business profile/hours/onboarding with validation and ownership. Tests: persistence and permission failures.
 - **BH-S2.03:** Roles/memberships/employee invitations, exact organization/location authorization. Tests: two authenticated tenants, read/write IDOR, privilege escalation, multi-membership and ordinary-user admin denial.

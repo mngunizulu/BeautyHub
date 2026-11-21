@@ -2,10 +2,14 @@ import { useEffect } from "react";
 import { useLocation } from "wouter";
 
 const pages: Record<string, [string, string]> = {
-  "/": ["Dein nächster Salon um die Ecke", "BeautyHub – der deutsche Entwicklungskatalog für Beauty und Wellness. Entdecke klar gekennzeichnete fiktive Studios, Leistungen und Preise."],
-  "/salons": ["Salons entdecken", "Durchsuche den synthetischen BeautyHub-Entwicklungskatalog nach Salon, Stadt oder Kategorie."],
-  "/fuer-unternehmen": ["Für Unternehmen", "Die geplante BeautyHub-Plattform für Salons und Wellnessbetriebe. Erfahre, was in den nächsten Entwicklungsstufen entsteht."],
-  "/anmelden": ["Anmeldung ab Stufe 2", "BeautyHub-Konten werden in Entwicklungsstufe 2 aktiviert. Aktuell sind keine Anmeldung oder Kontoerstellung möglich."],
+  "/": ["Dein nächster Salon um die Ecke", "BeautyHub – Beauty- und Wellnessbetriebe in Deutschland mit klaren Leistungen, Preisen und Öffnungszeiten."],
+  "/salons": ["Salons entdecken", "Durchsuche BeautyHub nach Salon, Stadt oder Kategorie."],
+  "/fuer-unternehmen": ["Für Unternehmen", "Betrieb auf BeautyHub registrieren, Schritt für Schritt einrichten und veröffentlichen."],
+  "/sign-in": ["Anmelden", "Bei BeautyHub anmelden."],
+  "/sign-up": ["Registrieren", "Ein BeautyHub-Konto anlegen."],
+  "/konto": ["Mein Konto", "Profil, Einstellungen und Daten deines BeautyHub-Kontos."],
+  "/unternehmen": ["Meine Betriebe", "Betriebe verwalten und neue anlegen."],
+  "/einladung": ["Einladung annehmen", "Einladung in ein BeautyHub-Team annehmen."],
   "/system": ["Systemstatus und Fahrplan", "Live-Datenbankstatus, aktuelle Fähigkeiten und der zehnstufige BeautyHub-Entwicklungsfahrplan."],
 };
 
@@ -13,8 +17,9 @@ export function PageMetadata() {
   const [location] = useLocation();
   useEffect(() => {
     const profile = location.startsWith("/salons/") ? location.slice(8).split("-").map((word) => word[0]?.toUpperCase() + word.slice(1)).join(" ") : null;
-    const [name, description] = pages[location] ?? (profile
-      ? [profile, `Öffentliches synthetisches Salonprofil ${profile} im BeautyHub-Entwicklungskatalog. Noch keine echten Terminbuchungen.`]
+    const key = location.startsWith("/sign-in") ? "/sign-in" : location.startsWith("/sign-up") ? "/sign-up" : location.startsWith("/unternehmen/") ? "/unternehmen" : location;
+    const [name, description] = pages[key] ?? (profile
+      ? [profile, `Salonprofil ${profile} auf BeautyHub mit Leistungen, Preisen und Öffnungszeiten.`]
       : ["Seite nicht gefunden", "Diese BeautyHub-Seite ist nicht verfügbar."]);
     const title = `${name} | BeautyHub`;
     document.title = title;

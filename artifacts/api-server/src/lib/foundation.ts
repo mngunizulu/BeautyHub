@@ -1,16 +1,16 @@
 export const foundation = {
   name: "BeautyHub",
-  version: "0.1.0",
-  stage: 1,
+  version: "0.2.0",
+  stage: 2,
   locale: "de-DE",
   currency: "EUR",
   timezone: "Europe/Berlin",
   developmentMode: true,
   bookingEnabled: false,
-  authenticationEnabled: false,
+  authenticationEnabled: true,
   stages: [
-    { number: 1, title: "Fundament", status: "in_progress", description: "Anwendung, Datenbank, API, Sicherheit und Tests." },
-    { number: 2, title: "Konten & Onboarding", status: "planned", description: "Anmeldung, Rollen, Unternehmensprofile und Mandantentrennung." },
+    { number: 1, title: "Fundament", status: "completed", description: "Anwendung, Datenbank, API, Sicherheit und Tests." },
+    { number: 2, title: "Konten & Onboarding", status: "completed", description: "Anmeldung, Rollen, Unternehmensprofile und Mandantentrennung." },
     { number: 3, title: "Marktplatz", status: "planned", description: "Erweiterte Suche, öffentliche Profile und Favoriten." },
     { number: 4, title: "Buchungssystem", status: "planned", description: "Verfügbarkeit, sichere Terminbuchung und Umbuchungen." },
     { number: 5, title: "Betrieb & Kunden", status: "planned", description: "Kalender, Teamverwaltung und private Kundendaten." },
@@ -24,8 +24,8 @@ export const foundation = {
 
 export const guestSession = {
   authenticated: false,
-  configured: false,
+  configured: true,
   provider: "clerk",
   role: "guest",
-  message: "Die sichere Anmeldung wird in Entwicklungsstufe 2 aktiviert. Es werden noch keine Konten erstellt.",
+  message: "Melde dich sicher an oder erstelle ein Konto.",
 };

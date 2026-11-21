@@ -127,10 +127,16 @@ export const GetSystemStatusResponse = zod.object({
   "stages": zod.array(zod.object({
   "number": zod.int(),
   "title": zod.string(),
-  "status": zod.enum(['in_progress', 'planned']),
+  "status": zod.enum(['in_progress', 'planned', 'completed']),
   "description": zod.string()
 }))
 })
+
+
+export const getSessionResponseUserOneDisplayNameMax = 100;
+
+export const getSessionResponseUserOnePhoneMax = 30;
+
 
 
 export const GetSessionResponse = zod.object({
@@ -138,7 +144,3490 @@ export const GetSessionResponse = zod.object({
   "configured": zod.boolean(),
   "provider": zod.string(),
   "role": zod.string(),
+  "message": zod.string(),
+  "user": zod.object({
+  "displayName": zod.string().min(1).max(getSessionResponseUserOneDisplayNameMax),
+  "phone": zod.string().max(getSessionResponseUserOnePhoneMax),
+  "emailNotifications": zod.boolean(),
+  "marketingConsent": zod.boolean()
+}).and(zod.object({
+  "id": zod.string(),
+  "email": zod.string(),
+  "emailVerified": zod.boolean(),
+  "deletionRequested": zod.boolean(),
+  "isPlatformAdmin": zod.boolean()
+})).optional()
+})
+
+
+export const getMyProfileResponseOneDisplayNameMax = 100;
+
+export const getMyProfileResponseOnePhoneMax = 30;
+
+
+
+export const GetMyProfileResponse = zod.object({
+  "displayName": zod.string().min(1).max(getMyProfileResponseOneDisplayNameMax),
+  "phone": zod.string().max(getMyProfileResponseOnePhoneMax),
+  "emailNotifications": zod.boolean(),
+  "marketingConsent": zod.boolean()
+}).and(zod.object({
+  "id": zod.string(),
+  "email": zod.string(),
+  "emailVerified": zod.boolean(),
+  "deletionRequested": zod.boolean(),
+  "isPlatformAdmin": zod.boolean()
+}))
+
+
+export const updateMyProfileBodyDisplayNameMax = 100;
+
+export const updateMyProfileBodyPhoneMax = 30;
+
+
+
+export const UpdateMyProfileBody = zod.object({
+  "displayName": zod.string().min(1).max(updateMyProfileBodyDisplayNameMax),
+  "phone": zod.string().max(updateMyProfileBodyPhoneMax),
+  "emailNotifications": zod.boolean(),
+  "marketingConsent": zod.boolean()
+})
+
+export const updateMyProfileResponseOneDisplayNameMax = 100;
+
+export const updateMyProfileResponseOnePhoneMax = 30;
+
+
+
+export const UpdateMyProfileResponse = zod.object({
+  "displayName": zod.string().min(1).max(updateMyProfileResponseOneDisplayNameMax),
+  "phone": zod.string().max(updateMyProfileResponseOnePhoneMax),
+  "emailNotifications": zod.boolean(),
+  "marketingConsent": zod.boolean()
+}).and(zod.object({
+  "id": zod.string(),
+  "email": zod.string(),
+  "emailVerified": zod.boolean(),
+  "deletionRequested": zod.boolean(),
+  "isPlatformAdmin": zod.boolean()
+}))
+
+
+export const exportMyDataResponseProfileOneDisplayNameMax = 100;
+
+export const exportMyDataResponseProfileOnePhoneMax = 30;
+
+
+
+export const ExportMyDataResponse = zod.object({
+  "profile": zod.object({
+  "displayName": zod.string().min(1).max(exportMyDataResponseProfileOneDisplayNameMax),
+  "phone": zod.string().max(exportMyDataResponseProfileOnePhoneMax),
+  "emailNotifications": zod.boolean(),
+  "marketingConsent": zod.boolean()
+}).and(zod.object({
+  "id": zod.string(),
+  "email": zod.string(),
+  "emailVerified": zod.boolean(),
+  "deletionRequested": zod.boolean(),
+  "isPlatformAdmin": zod.boolean()
+})),
+  "organizations": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "role": zod.enum(['owner', 'manager', 'employee']),
+  "status": zod.string(),
+  "published": zod.boolean(),
+  "locationCount": zod.int()
+})),
+  "exportedAt": zod.string()
+})
+
+
+export const RequestAccountDeletionResponse = zod.object({
   "message": zod.string()
+})
+
+
+export const ListMyPaymentMethodsResponseItem = zod.object({
+  "id": zod.string(),
+  "provider": zod.string(),
+  "status": zod.string()
+})
+export const ListMyPaymentMethodsResponse = zod.array(ListMyPaymentMethodsResponseItem)
+
+
+export const ListMyOrganizationsResponseItem = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "role": zod.enum(['owner', 'manager', 'employee']),
+  "status": zod.string(),
+  "published": zod.boolean(),
+  "locationCount": zod.int()
+})
+export const ListMyOrganizationsResponse = zod.array(ListMyOrganizationsResponseItem)
+
+
+export const createOrganizationBodyNameMin = 2;
+export const createOrganizationBodyNameMax = 120;
+
+
+
+export const CreateOrganizationBody = zod.object({
+  "name": zod.string().min(createOrganizationBodyNameMin).max(createOrganizationBodyNameMax),
+  "categoryId": zod.uuid()
+})
+
+export const createOrganizationResponseProfileNameMin = 2;
+export const createOrganizationResponseProfileNameMax = 120;
+
+export const createOrganizationResponseProfileDescriptionMax = 3000;
+
+export const createOrganizationResponseProfileContactEmailMax = 200;
+
+export const createOrganizationResponseProfilePhoneMax = 30;
+
+export const createOrganizationResponseProfileWebsiteMax = 300;
+
+export const createOrganizationResponseProfileOnboardingStepMax = 6;
+
+export const createOrganizationResponseLocationsItemOneNameMin = 2;
+export const createOrganizationResponseLocationsItemOneNameMax = 120;
+
+export const createOrganizationResponseLocationsItemOnePostalCodeRegExp = new RegExp('^([0-9]{5})?$');
+export const createOrganizationResponseLocationsItemOneCityMax = 100;
+
+export const createOrganizationResponseLocationsItemOneStreetMax = 150;
+
+export const createOrganizationResponseLocationsItemOneHouseNumberMax = 20;
+
+export const createOrganizationResponseLocationsItemOneAddressExtraMax = 150;
+
+export const createOrganizationResponseLocationsItemOneDistrictMax = 100;
+
+export const createOrganizationResponseLocationsItemOneTimezoneMax = 80;
+
+export const createOrganizationResponseLocationsItemOneLatitudeMin = -90;
+export const createOrganizationResponseLocationsItemOneLatitudeMax = 90;
+
+export const createOrganizationResponseLocationsItemOneLongitudeMin = -180;
+export const createOrganizationResponseLocationsItemOneLongitudeMax = 180;
+
+export const createOrganizationResponseLocationsItemOneOpeningHoursItemWeekdayMax = 7;
+
+export const createOrganizationResponseLocationsItemOneOpeningHoursItemOpensRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const createOrganizationResponseLocationsItemOneOpeningHoursItemClosesRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const createOrganizationResponseLocationsItemOneOpeningHoursMax = 7;
+
+export const createOrganizationResponseLocationsItemOneLeadTimeHoursMin = 0;
+export const createOrganizationResponseLocationsItemOneLeadTimeHoursMax = 720;
+
+export const createOrganizationResponseLocationsItemOneAdvanceBookingDaysMax = 730;
+
+export const createOrganizationResponseEmployeesItemOneDisplayNameMax = 100;
+
+export const createOrganizationResponseEmployeesItemOneEmailMax = 200;
+
+export const createOrganizationResponseEmployeesItemOnePhoneMax = 30;
+
+export const createOrganizationResponseEmployeesItemOneWorkingHoursItemWeekdayMax = 7;
+
+export const createOrganizationResponseEmployeesItemOneWorkingHoursItemOpensRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const createOrganizationResponseEmployeesItemOneWorkingHoursItemClosesRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const createOrganizationResponseEmployeesItemOneWorkingHoursMax = 7;
+
+export const createOrganizationResponseServicesItemOneNameMax = 150;
+
+export const createOrganizationResponseServicesItemOneDescriptionMax = 2000;
+
+export const createOrganizationResponseServicesItemOnePriceCentsMin = 0;
+export const createOrganizationResponseServicesItemOnePriceCentsMax = 10000000;
+
+export const createOrganizationResponseServicesItemOneDurationMinutesMax = 1440;
+
+export const createOrganizationResponseServicesItemOnePreparationMinutesMin = 0;
+export const createOrganizationResponseServicesItemOnePreparationMinutesMax = 240;
+
+export const createOrganizationResponseServicesItemOneCleanupMinutesMin = 0;
+export const createOrganizationResponseServicesItemOneCleanupMinutesMax = 240;
+
+export const createOrganizationResponseServicesItemOneEmployeeIdsMax = 100;
+
+export const createOrganizationResponseServicesItemOneVariantsItemNameMax = 100;
+
+export const createOrganizationResponseServicesItemOneVariantsItemPriceCentsMin = 0;
+export const createOrganizationResponseServicesItemOneVariantsItemPriceCentsMax = 10000000;
+
+export const createOrganizationResponseServicesItemOneVariantsItemDurationMinutesMax = 1440;
+
+export const createOrganizationResponseServicesItemOneVariantsMax = 30;
+
+export const createOrganizationResponsePoliciesItemOneNoticeHoursMin = 0;
+export const createOrganizationResponsePoliciesItemOneNoticeHoursMax = 720;
+
+export const createOrganizationResponsePoliciesItemOneLateFeeValueMin = 0;
+export const createOrganizationResponsePoliciesItemOneLateFeeValueMax = 10000000;
+
+export const createOrganizationResponsePoliciesItemOneNoShowFeeValueMin = 0;
+export const createOrganizationResponsePoliciesItemOneNoShowFeeValueMax = 10000000;
+
+export const createOrganizationResponsePoliciesItemOneExceptionsMax = 2000;
+
+
+
+export const CreateOrganizationResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "role": zod.enum(['owner', 'manager', 'employee']),
+  "isDemo": zod.boolean(),
+  "profile": zod.object({
+  "name": zod.string().min(createOrganizationResponseProfileNameMin).max(createOrganizationResponseProfileNameMax),
+  "description": zod.string().max(createOrganizationResponseProfileDescriptionMax),
+  "contactEmail": zod.string().max(createOrganizationResponseProfileContactEmailMax),
+  "phone": zod.string().max(createOrganizationResponseProfilePhoneMax),
+  "website": zod.string().max(createOrganizationResponseProfileWebsiteMax),
+  "categoryId": zod.uuid(),
+  "onboardingStep": zod.int().min(1).max(createOrganizationResponseProfileOnboardingStepMax)
+}),
+  "locations": zod.array(zod.object({
+  "name": zod.string().min(createOrganizationResponseLocationsItemOneNameMin).max(createOrganizationResponseLocationsItemOneNameMax),
+  "country": zod.enum(['DE']),
+  "postalCode": zod.string().regex(createOrganizationResponseLocationsItemOnePostalCodeRegExp),
+  "city": zod.string().max(createOrganizationResponseLocationsItemOneCityMax),
+  "street": zod.string().max(createOrganizationResponseLocationsItemOneStreetMax),
+  "houseNumber": zod.string().max(createOrganizationResponseLocationsItemOneHouseNumberMax),
+  "addressExtra": zod.string().max(createOrganizationResponseLocationsItemOneAddressExtraMax),
+  "district": zod.string().max(createOrganizationResponseLocationsItemOneDistrictMax),
+  "timezone": zod.string().max(createOrganizationResponseLocationsItemOneTimezoneMax),
+  "latitude": zod.number().min(createOrganizationResponseLocationsItemOneLatitudeMin).max(createOrganizationResponseLocationsItemOneLatitudeMax).nullish(),
+  "longitude": zod.number().min(createOrganizationResponseLocationsItemOneLongitudeMin).max(createOrganizationResponseLocationsItemOneLongitudeMax).nullish(),
+  "openingHours": zod.array(zod.object({
+  "weekday": zod.int().min(1).max(createOrganizationResponseLocationsItemOneOpeningHoursItemWeekdayMax),
+  "opens": zod.string().regex(createOrganizationResponseLocationsItemOneOpeningHoursItemOpensRegExp),
+  "closes": zod.string().regex(createOrganizationResponseLocationsItemOneOpeningHoursItemClosesRegExp)
+})).max(createOrganizationResponseLocationsItemOneOpeningHoursMax),
+  "leadTimeHours": zod.int().min(createOrganizationResponseLocationsItemOneLeadTimeHoursMin).max(createOrganizationResponseLocationsItemOneLeadTimeHoursMax),
+  "advanceBookingDays": zod.int().min(1).max(createOrganizationResponseLocationsItemOneAdvanceBookingDaysMax),
+  "contactPreference": zod.enum(['email', 'phone'])
+}).and(zod.object({
+  "id": zod.string(),
+  "slug": zod.string(),
+  "published": zod.boolean()
+}))),
+  "employees": zod.array(zod.object({
+  "displayName": zod.string().min(1).max(createOrganizationResponseEmployeesItemOneDisplayNameMax),
+  "email": zod.string().max(createOrganizationResponseEmployeesItemOneEmailMax),
+  "phone": zod.string().max(createOrganizationResponseEmployeesItemOnePhoneMax),
+  "locationId": zod.uuid(),
+  "active": zod.boolean(),
+  "workingHours": zod.array(zod.object({
+  "weekday": zod.int().min(1).max(createOrganizationResponseEmployeesItemOneWorkingHoursItemWeekdayMax),
+  "opens": zod.string().regex(createOrganizationResponseEmployeesItemOneWorkingHoursItemOpensRegExp),
+  "closes": zod.string().regex(createOrganizationResponseEmployeesItemOneWorkingHoursItemClosesRegExp)
+})).max(createOrganizationResponseEmployeesItemOneWorkingHoursMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "userId": zod.string().nullish()
+}))),
+  "services": zod.array(zod.object({
+  "name": zod.string().min(1).max(createOrganizationResponseServicesItemOneNameMax),
+  "description": zod.string().max(createOrganizationResponseServicesItemOneDescriptionMax),
+  "locationId": zod.uuid(),
+  "categoryId": zod.string().nullish(),
+  "priceCents": zod.int().min(createOrganizationResponseServicesItemOnePriceCentsMin).max(createOrganizationResponseServicesItemOnePriceCentsMax),
+  "durationMinutes": zod.int().min(1).max(createOrganizationResponseServicesItemOneDurationMinutesMax),
+  "preparationMinutes": zod.int().min(createOrganizationResponseServicesItemOnePreparationMinutesMin).max(createOrganizationResponseServicesItemOnePreparationMinutesMax),
+  "cleanupMinutes": zod.int().min(createOrganizationResponseServicesItemOneCleanupMinutesMin).max(createOrganizationResponseServicesItemOneCleanupMinutesMax),
+  "published": zod.boolean(),
+  "onlineBooking": zod.boolean(),
+  "employeeIds": zod.array(zod.uuid()).max(createOrganizationResponseServicesItemOneEmployeeIdsMax),
+  "variants": zod.array(zod.object({
+  "id": zod.uuid().optional(),
+  "name": zod.string().min(1).max(createOrganizationResponseServicesItemOneVariantsItemNameMax),
+  "priceCents": zod.int().min(createOrganizationResponseServicesItemOneVariantsItemPriceCentsMin).max(createOrganizationResponseServicesItemOneVariantsItemPriceCentsMax),
+  "durationMinutes": zod.int().min(1).max(createOrganizationResponseServicesItemOneVariantsItemDurationMinutesMax)
+})).max(createOrganizationResponseServicesItemOneVariantsMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "archived": zod.boolean()
+}))),
+  "serviceCategories": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string()
+})),
+  "memberships": zod.array(zod.object({
+  "id": zod.string(),
+  "userId": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "status": zod.string()
+})),
+  "invitations": zod.array(zod.object({
+  "id": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "expiresAt": zod.string(),
+  "accepted": zod.boolean()
+})),
+  "policies": zod.array(zod.object({
+  "noticeHours": zod.int().min(createOrganizationResponsePoliciesItemOneNoticeHoursMin).max(createOrganizationResponsePoliciesItemOneNoticeHoursMax),
+  "lateFeeType": zod.enum(['percentage', 'fixed']),
+  "lateFeeValue": zod.int().min(createOrganizationResponsePoliciesItemOneLateFeeValueMin).max(createOrganizationResponsePoliciesItemOneLateFeeValueMax),
+  "noShowFeeType": zod.enum(['percentage', 'fixed']),
+  "noShowFeeValue": zod.int().min(createOrganizationResponsePoliciesItemOneNoShowFeeValueMin).max(createOrganizationResponsePoliciesItemOneNoShowFeeValueMax),
+  "waiverAllowed": zod.boolean(),
+  "exceptions": zod.string().max(createOrganizationResponsePoliciesItemOneExceptionsMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "version": zod.int(),
+  "createdAt": zod.string()
+}))),
+  "publicationIssues": zod.array(zod.string())
+})
+
+
+export const GetOrganizationWorkspaceParams = zod.object({
+  "organizationId": zod.uuid()
+})
+
+export const getOrganizationWorkspaceResponseProfileNameMin = 2;
+export const getOrganizationWorkspaceResponseProfileNameMax = 120;
+
+export const getOrganizationWorkspaceResponseProfileDescriptionMax = 3000;
+
+export const getOrganizationWorkspaceResponseProfileContactEmailMax = 200;
+
+export const getOrganizationWorkspaceResponseProfilePhoneMax = 30;
+
+export const getOrganizationWorkspaceResponseProfileWebsiteMax = 300;
+
+export const getOrganizationWorkspaceResponseProfileOnboardingStepMax = 6;
+
+export const getOrganizationWorkspaceResponseLocationsItemOneNameMin = 2;
+export const getOrganizationWorkspaceResponseLocationsItemOneNameMax = 120;
+
+export const getOrganizationWorkspaceResponseLocationsItemOnePostalCodeRegExp = new RegExp('^([0-9]{5})?$');
+export const getOrganizationWorkspaceResponseLocationsItemOneCityMax = 100;
+
+export const getOrganizationWorkspaceResponseLocationsItemOneStreetMax = 150;
+
+export const getOrganizationWorkspaceResponseLocationsItemOneHouseNumberMax = 20;
+
+export const getOrganizationWorkspaceResponseLocationsItemOneAddressExtraMax = 150;
+
+export const getOrganizationWorkspaceResponseLocationsItemOneDistrictMax = 100;
+
+export const getOrganizationWorkspaceResponseLocationsItemOneTimezoneMax = 80;
+
+export const getOrganizationWorkspaceResponseLocationsItemOneLatitudeMin = -90;
+export const getOrganizationWorkspaceResponseLocationsItemOneLatitudeMax = 90;
+
+export const getOrganizationWorkspaceResponseLocationsItemOneLongitudeMin = -180;
+export const getOrganizationWorkspaceResponseLocationsItemOneLongitudeMax = 180;
+
+export const getOrganizationWorkspaceResponseLocationsItemOneOpeningHoursItemWeekdayMax = 7;
+
+export const getOrganizationWorkspaceResponseLocationsItemOneOpeningHoursItemOpensRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const getOrganizationWorkspaceResponseLocationsItemOneOpeningHoursItemClosesRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const getOrganizationWorkspaceResponseLocationsItemOneOpeningHoursMax = 7;
+
+export const getOrganizationWorkspaceResponseLocationsItemOneLeadTimeHoursMin = 0;
+export const getOrganizationWorkspaceResponseLocationsItemOneLeadTimeHoursMax = 720;
+
+export const getOrganizationWorkspaceResponseLocationsItemOneAdvanceBookingDaysMax = 730;
+
+export const getOrganizationWorkspaceResponseEmployeesItemOneDisplayNameMax = 100;
+
+export const getOrganizationWorkspaceResponseEmployeesItemOneEmailMax = 200;
+
+export const getOrganizationWorkspaceResponseEmployeesItemOnePhoneMax = 30;
+
+export const getOrganizationWorkspaceResponseEmployeesItemOneWorkingHoursItemWeekdayMax = 7;
+
+export const getOrganizationWorkspaceResponseEmployeesItemOneWorkingHoursItemOpensRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const getOrganizationWorkspaceResponseEmployeesItemOneWorkingHoursItemClosesRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const getOrganizationWorkspaceResponseEmployeesItemOneWorkingHoursMax = 7;
+
+export const getOrganizationWorkspaceResponseServicesItemOneNameMax = 150;
+
+export const getOrganizationWorkspaceResponseServicesItemOneDescriptionMax = 2000;
+
+export const getOrganizationWorkspaceResponseServicesItemOnePriceCentsMin = 0;
+export const getOrganizationWorkspaceResponseServicesItemOnePriceCentsMax = 10000000;
+
+export const getOrganizationWorkspaceResponseServicesItemOneDurationMinutesMax = 1440;
+
+export const getOrganizationWorkspaceResponseServicesItemOnePreparationMinutesMin = 0;
+export const getOrganizationWorkspaceResponseServicesItemOnePreparationMinutesMax = 240;
+
+export const getOrganizationWorkspaceResponseServicesItemOneCleanupMinutesMin = 0;
+export const getOrganizationWorkspaceResponseServicesItemOneCleanupMinutesMax = 240;
+
+export const getOrganizationWorkspaceResponseServicesItemOneEmployeeIdsMax = 100;
+
+export const getOrganizationWorkspaceResponseServicesItemOneVariantsItemNameMax = 100;
+
+export const getOrganizationWorkspaceResponseServicesItemOneVariantsItemPriceCentsMin = 0;
+export const getOrganizationWorkspaceResponseServicesItemOneVariantsItemPriceCentsMax = 10000000;
+
+export const getOrganizationWorkspaceResponseServicesItemOneVariantsItemDurationMinutesMax = 1440;
+
+export const getOrganizationWorkspaceResponseServicesItemOneVariantsMax = 30;
+
+export const getOrganizationWorkspaceResponsePoliciesItemOneNoticeHoursMin = 0;
+export const getOrganizationWorkspaceResponsePoliciesItemOneNoticeHoursMax = 720;
+
+export const getOrganizationWorkspaceResponsePoliciesItemOneLateFeeValueMin = 0;
+export const getOrganizationWorkspaceResponsePoliciesItemOneLateFeeValueMax = 10000000;
+
+export const getOrganizationWorkspaceResponsePoliciesItemOneNoShowFeeValueMin = 0;
+export const getOrganizationWorkspaceResponsePoliciesItemOneNoShowFeeValueMax = 10000000;
+
+export const getOrganizationWorkspaceResponsePoliciesItemOneExceptionsMax = 2000;
+
+
+
+export const GetOrganizationWorkspaceResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "role": zod.enum(['owner', 'manager', 'employee']),
+  "isDemo": zod.boolean(),
+  "profile": zod.object({
+  "name": zod.string().min(getOrganizationWorkspaceResponseProfileNameMin).max(getOrganizationWorkspaceResponseProfileNameMax),
+  "description": zod.string().max(getOrganizationWorkspaceResponseProfileDescriptionMax),
+  "contactEmail": zod.string().max(getOrganizationWorkspaceResponseProfileContactEmailMax),
+  "phone": zod.string().max(getOrganizationWorkspaceResponseProfilePhoneMax),
+  "website": zod.string().max(getOrganizationWorkspaceResponseProfileWebsiteMax),
+  "categoryId": zod.uuid(),
+  "onboardingStep": zod.int().min(1).max(getOrganizationWorkspaceResponseProfileOnboardingStepMax)
+}),
+  "locations": zod.array(zod.object({
+  "name": zod.string().min(getOrganizationWorkspaceResponseLocationsItemOneNameMin).max(getOrganizationWorkspaceResponseLocationsItemOneNameMax),
+  "country": zod.enum(['DE']),
+  "postalCode": zod.string().regex(getOrganizationWorkspaceResponseLocationsItemOnePostalCodeRegExp),
+  "city": zod.string().max(getOrganizationWorkspaceResponseLocationsItemOneCityMax),
+  "street": zod.string().max(getOrganizationWorkspaceResponseLocationsItemOneStreetMax),
+  "houseNumber": zod.string().max(getOrganizationWorkspaceResponseLocationsItemOneHouseNumberMax),
+  "addressExtra": zod.string().max(getOrganizationWorkspaceResponseLocationsItemOneAddressExtraMax),
+  "district": zod.string().max(getOrganizationWorkspaceResponseLocationsItemOneDistrictMax),
+  "timezone": zod.string().max(getOrganizationWorkspaceResponseLocationsItemOneTimezoneMax),
+  "latitude": zod.number().min(getOrganizationWorkspaceResponseLocationsItemOneLatitudeMin).max(getOrganizationWorkspaceResponseLocationsItemOneLatitudeMax).nullish(),
+  "longitude": zod.number().min(getOrganizationWorkspaceResponseLocationsItemOneLongitudeMin).max(getOrganizationWorkspaceResponseLocationsItemOneLongitudeMax).nullish(),
+  "openingHours": zod.array(zod.object({
+  "weekday": zod.int().min(1).max(getOrganizationWorkspaceResponseLocationsItemOneOpeningHoursItemWeekdayMax),
+  "opens": zod.string().regex(getOrganizationWorkspaceResponseLocationsItemOneOpeningHoursItemOpensRegExp),
+  "closes": zod.string().regex(getOrganizationWorkspaceResponseLocationsItemOneOpeningHoursItemClosesRegExp)
+})).max(getOrganizationWorkspaceResponseLocationsItemOneOpeningHoursMax),
+  "leadTimeHours": zod.int().min(getOrganizationWorkspaceResponseLocationsItemOneLeadTimeHoursMin).max(getOrganizationWorkspaceResponseLocationsItemOneLeadTimeHoursMax),
+  "advanceBookingDays": zod.int().min(1).max(getOrganizationWorkspaceResponseLocationsItemOneAdvanceBookingDaysMax),
+  "contactPreference": zod.enum(['email', 'phone'])
+}).and(zod.object({
+  "id": zod.string(),
+  "slug": zod.string(),
+  "published": zod.boolean()
+}))),
+  "employees": zod.array(zod.object({
+  "displayName": zod.string().min(1).max(getOrganizationWorkspaceResponseEmployeesItemOneDisplayNameMax),
+  "email": zod.string().max(getOrganizationWorkspaceResponseEmployeesItemOneEmailMax),
+  "phone": zod.string().max(getOrganizationWorkspaceResponseEmployeesItemOnePhoneMax),
+  "locationId": zod.uuid(),
+  "active": zod.boolean(),
+  "workingHours": zod.array(zod.object({
+  "weekday": zod.int().min(1).max(getOrganizationWorkspaceResponseEmployeesItemOneWorkingHoursItemWeekdayMax),
+  "opens": zod.string().regex(getOrganizationWorkspaceResponseEmployeesItemOneWorkingHoursItemOpensRegExp),
+  "closes": zod.string().regex(getOrganizationWorkspaceResponseEmployeesItemOneWorkingHoursItemClosesRegExp)
+})).max(getOrganizationWorkspaceResponseEmployeesItemOneWorkingHoursMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "userId": zod.string().nullish()
+}))),
+  "services": zod.array(zod.object({
+  "name": zod.string().min(1).max(getOrganizationWorkspaceResponseServicesItemOneNameMax),
+  "description": zod.string().max(getOrganizationWorkspaceResponseServicesItemOneDescriptionMax),
+  "locationId": zod.uuid(),
+  "categoryId": zod.string().nullish(),
+  "priceCents": zod.int().min(getOrganizationWorkspaceResponseServicesItemOnePriceCentsMin).max(getOrganizationWorkspaceResponseServicesItemOnePriceCentsMax),
+  "durationMinutes": zod.int().min(1).max(getOrganizationWorkspaceResponseServicesItemOneDurationMinutesMax),
+  "preparationMinutes": zod.int().min(getOrganizationWorkspaceResponseServicesItemOnePreparationMinutesMin).max(getOrganizationWorkspaceResponseServicesItemOnePreparationMinutesMax),
+  "cleanupMinutes": zod.int().min(getOrganizationWorkspaceResponseServicesItemOneCleanupMinutesMin).max(getOrganizationWorkspaceResponseServicesItemOneCleanupMinutesMax),
+  "published": zod.boolean(),
+  "onlineBooking": zod.boolean(),
+  "employeeIds": zod.array(zod.uuid()).max(getOrganizationWorkspaceResponseServicesItemOneEmployeeIdsMax),
+  "variants": zod.array(zod.object({
+  "id": zod.uuid().optional(),
+  "name": zod.string().min(1).max(getOrganizationWorkspaceResponseServicesItemOneVariantsItemNameMax),
+  "priceCents": zod.int().min(getOrganizationWorkspaceResponseServicesItemOneVariantsItemPriceCentsMin).max(getOrganizationWorkspaceResponseServicesItemOneVariantsItemPriceCentsMax),
+  "durationMinutes": zod.int().min(1).max(getOrganizationWorkspaceResponseServicesItemOneVariantsItemDurationMinutesMax)
+})).max(getOrganizationWorkspaceResponseServicesItemOneVariantsMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "archived": zod.boolean()
+}))),
+  "serviceCategories": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string()
+})),
+  "memberships": zod.array(zod.object({
+  "id": zod.string(),
+  "userId": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "status": zod.string()
+})),
+  "invitations": zod.array(zod.object({
+  "id": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "expiresAt": zod.string(),
+  "accepted": zod.boolean()
+})),
+  "policies": zod.array(zod.object({
+  "noticeHours": zod.int().min(getOrganizationWorkspaceResponsePoliciesItemOneNoticeHoursMin).max(getOrganizationWorkspaceResponsePoliciesItemOneNoticeHoursMax),
+  "lateFeeType": zod.enum(['percentage', 'fixed']),
+  "lateFeeValue": zod.int().min(getOrganizationWorkspaceResponsePoliciesItemOneLateFeeValueMin).max(getOrganizationWorkspaceResponsePoliciesItemOneLateFeeValueMax),
+  "noShowFeeType": zod.enum(['percentage', 'fixed']),
+  "noShowFeeValue": zod.int().min(getOrganizationWorkspaceResponsePoliciesItemOneNoShowFeeValueMin).max(getOrganizationWorkspaceResponsePoliciesItemOneNoShowFeeValueMax),
+  "waiverAllowed": zod.boolean(),
+  "exceptions": zod.string().max(getOrganizationWorkspaceResponsePoliciesItemOneExceptionsMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "version": zod.int(),
+  "createdAt": zod.string()
+}))),
+  "publicationIssues": zod.array(zod.string())
+})
+
+
+export const SaveOrganizationProfileParams = zod.object({
+  "organizationId": zod.uuid()
+})
+
+export const saveOrganizationProfileBodyNameMin = 2;
+export const saveOrganizationProfileBodyNameMax = 120;
+
+export const saveOrganizationProfileBodyDescriptionMax = 3000;
+
+export const saveOrganizationProfileBodyContactEmailMax = 200;
+
+export const saveOrganizationProfileBodyPhoneMax = 30;
+
+export const saveOrganizationProfileBodyWebsiteMax = 300;
+
+export const saveOrganizationProfileBodyOnboardingStepMax = 6;
+
+
+
+export const SaveOrganizationProfileBody = zod.object({
+  "name": zod.string().min(saveOrganizationProfileBodyNameMin).max(saveOrganizationProfileBodyNameMax),
+  "description": zod.string().max(saveOrganizationProfileBodyDescriptionMax),
+  "contactEmail": zod.string().max(saveOrganizationProfileBodyContactEmailMax),
+  "phone": zod.string().max(saveOrganizationProfileBodyPhoneMax),
+  "website": zod.string().max(saveOrganizationProfileBodyWebsiteMax),
+  "categoryId": zod.uuid(),
+  "onboardingStep": zod.int().min(1).max(saveOrganizationProfileBodyOnboardingStepMax)
+})
+
+export const saveOrganizationProfileResponseProfileNameMin = 2;
+export const saveOrganizationProfileResponseProfileNameMax = 120;
+
+export const saveOrganizationProfileResponseProfileDescriptionMax = 3000;
+
+export const saveOrganizationProfileResponseProfileContactEmailMax = 200;
+
+export const saveOrganizationProfileResponseProfilePhoneMax = 30;
+
+export const saveOrganizationProfileResponseProfileWebsiteMax = 300;
+
+export const saveOrganizationProfileResponseProfileOnboardingStepMax = 6;
+
+export const saveOrganizationProfileResponseLocationsItemOneNameMin = 2;
+export const saveOrganizationProfileResponseLocationsItemOneNameMax = 120;
+
+export const saveOrganizationProfileResponseLocationsItemOnePostalCodeRegExp = new RegExp('^([0-9]{5})?$');
+export const saveOrganizationProfileResponseLocationsItemOneCityMax = 100;
+
+export const saveOrganizationProfileResponseLocationsItemOneStreetMax = 150;
+
+export const saveOrganizationProfileResponseLocationsItemOneHouseNumberMax = 20;
+
+export const saveOrganizationProfileResponseLocationsItemOneAddressExtraMax = 150;
+
+export const saveOrganizationProfileResponseLocationsItemOneDistrictMax = 100;
+
+export const saveOrganizationProfileResponseLocationsItemOneTimezoneMax = 80;
+
+export const saveOrganizationProfileResponseLocationsItemOneLatitudeMin = -90;
+export const saveOrganizationProfileResponseLocationsItemOneLatitudeMax = 90;
+
+export const saveOrganizationProfileResponseLocationsItemOneLongitudeMin = -180;
+export const saveOrganizationProfileResponseLocationsItemOneLongitudeMax = 180;
+
+export const saveOrganizationProfileResponseLocationsItemOneOpeningHoursItemWeekdayMax = 7;
+
+export const saveOrganizationProfileResponseLocationsItemOneOpeningHoursItemOpensRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const saveOrganizationProfileResponseLocationsItemOneOpeningHoursItemClosesRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const saveOrganizationProfileResponseLocationsItemOneOpeningHoursMax = 7;
+
+export const saveOrganizationProfileResponseLocationsItemOneLeadTimeHoursMin = 0;
+export const saveOrganizationProfileResponseLocationsItemOneLeadTimeHoursMax = 720;
+
+export const saveOrganizationProfileResponseLocationsItemOneAdvanceBookingDaysMax = 730;
+
+export const saveOrganizationProfileResponseEmployeesItemOneDisplayNameMax = 100;
+
+export const saveOrganizationProfileResponseEmployeesItemOneEmailMax = 200;
+
+export const saveOrganizationProfileResponseEmployeesItemOnePhoneMax = 30;
+
+export const saveOrganizationProfileResponseEmployeesItemOneWorkingHoursItemWeekdayMax = 7;
+
+export const saveOrganizationProfileResponseEmployeesItemOneWorkingHoursItemOpensRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const saveOrganizationProfileResponseEmployeesItemOneWorkingHoursItemClosesRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const saveOrganizationProfileResponseEmployeesItemOneWorkingHoursMax = 7;
+
+export const saveOrganizationProfileResponseServicesItemOneNameMax = 150;
+
+export const saveOrganizationProfileResponseServicesItemOneDescriptionMax = 2000;
+
+export const saveOrganizationProfileResponseServicesItemOnePriceCentsMin = 0;
+export const saveOrganizationProfileResponseServicesItemOnePriceCentsMax = 10000000;
+
+export const saveOrganizationProfileResponseServicesItemOneDurationMinutesMax = 1440;
+
+export const saveOrganizationProfileResponseServicesItemOnePreparationMinutesMin = 0;
+export const saveOrganizationProfileResponseServicesItemOnePreparationMinutesMax = 240;
+
+export const saveOrganizationProfileResponseServicesItemOneCleanupMinutesMin = 0;
+export const saveOrganizationProfileResponseServicesItemOneCleanupMinutesMax = 240;
+
+export const saveOrganizationProfileResponseServicesItemOneEmployeeIdsMax = 100;
+
+export const saveOrganizationProfileResponseServicesItemOneVariantsItemNameMax = 100;
+
+export const saveOrganizationProfileResponseServicesItemOneVariantsItemPriceCentsMin = 0;
+export const saveOrganizationProfileResponseServicesItemOneVariantsItemPriceCentsMax = 10000000;
+
+export const saveOrganizationProfileResponseServicesItemOneVariantsItemDurationMinutesMax = 1440;
+
+export const saveOrganizationProfileResponseServicesItemOneVariantsMax = 30;
+
+export const saveOrganizationProfileResponsePoliciesItemOneNoticeHoursMin = 0;
+export const saveOrganizationProfileResponsePoliciesItemOneNoticeHoursMax = 720;
+
+export const saveOrganizationProfileResponsePoliciesItemOneLateFeeValueMin = 0;
+export const saveOrganizationProfileResponsePoliciesItemOneLateFeeValueMax = 10000000;
+
+export const saveOrganizationProfileResponsePoliciesItemOneNoShowFeeValueMin = 0;
+export const saveOrganizationProfileResponsePoliciesItemOneNoShowFeeValueMax = 10000000;
+
+export const saveOrganizationProfileResponsePoliciesItemOneExceptionsMax = 2000;
+
+
+
+export const SaveOrganizationProfileResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "role": zod.enum(['owner', 'manager', 'employee']),
+  "isDemo": zod.boolean(),
+  "profile": zod.object({
+  "name": zod.string().min(saveOrganizationProfileResponseProfileNameMin).max(saveOrganizationProfileResponseProfileNameMax),
+  "description": zod.string().max(saveOrganizationProfileResponseProfileDescriptionMax),
+  "contactEmail": zod.string().max(saveOrganizationProfileResponseProfileContactEmailMax),
+  "phone": zod.string().max(saveOrganizationProfileResponseProfilePhoneMax),
+  "website": zod.string().max(saveOrganizationProfileResponseProfileWebsiteMax),
+  "categoryId": zod.uuid(),
+  "onboardingStep": zod.int().min(1).max(saveOrganizationProfileResponseProfileOnboardingStepMax)
+}),
+  "locations": zod.array(zod.object({
+  "name": zod.string().min(saveOrganizationProfileResponseLocationsItemOneNameMin).max(saveOrganizationProfileResponseLocationsItemOneNameMax),
+  "country": zod.enum(['DE']),
+  "postalCode": zod.string().regex(saveOrganizationProfileResponseLocationsItemOnePostalCodeRegExp),
+  "city": zod.string().max(saveOrganizationProfileResponseLocationsItemOneCityMax),
+  "street": zod.string().max(saveOrganizationProfileResponseLocationsItemOneStreetMax),
+  "houseNumber": zod.string().max(saveOrganizationProfileResponseLocationsItemOneHouseNumberMax),
+  "addressExtra": zod.string().max(saveOrganizationProfileResponseLocationsItemOneAddressExtraMax),
+  "district": zod.string().max(saveOrganizationProfileResponseLocationsItemOneDistrictMax),
+  "timezone": zod.string().max(saveOrganizationProfileResponseLocationsItemOneTimezoneMax),
+  "latitude": zod.number().min(saveOrganizationProfileResponseLocationsItemOneLatitudeMin).max(saveOrganizationProfileResponseLocationsItemOneLatitudeMax).nullish(),
+  "longitude": zod.number().min(saveOrganizationProfileResponseLocationsItemOneLongitudeMin).max(saveOrganizationProfileResponseLocationsItemOneLongitudeMax).nullish(),
+  "openingHours": zod.array(zod.object({
+  "weekday": zod.int().min(1).max(saveOrganizationProfileResponseLocationsItemOneOpeningHoursItemWeekdayMax),
+  "opens": zod.string().regex(saveOrganizationProfileResponseLocationsItemOneOpeningHoursItemOpensRegExp),
+  "closes": zod.string().regex(saveOrganizationProfileResponseLocationsItemOneOpeningHoursItemClosesRegExp)
+})).max(saveOrganizationProfileResponseLocationsItemOneOpeningHoursMax),
+  "leadTimeHours": zod.int().min(saveOrganizationProfileResponseLocationsItemOneLeadTimeHoursMin).max(saveOrganizationProfileResponseLocationsItemOneLeadTimeHoursMax),
+  "advanceBookingDays": zod.int().min(1).max(saveOrganizationProfileResponseLocationsItemOneAdvanceBookingDaysMax),
+  "contactPreference": zod.enum(['email', 'phone'])
+}).and(zod.object({
+  "id": zod.string(),
+  "slug": zod.string(),
+  "published": zod.boolean()
+}))),
+  "employees": zod.array(zod.object({
+  "displayName": zod.string().min(1).max(saveOrganizationProfileResponseEmployeesItemOneDisplayNameMax),
+  "email": zod.string().max(saveOrganizationProfileResponseEmployeesItemOneEmailMax),
+  "phone": zod.string().max(saveOrganizationProfileResponseEmployeesItemOnePhoneMax),
+  "locationId": zod.uuid(),
+  "active": zod.boolean(),
+  "workingHours": zod.array(zod.object({
+  "weekday": zod.int().min(1).max(saveOrganizationProfileResponseEmployeesItemOneWorkingHoursItemWeekdayMax),
+  "opens": zod.string().regex(saveOrganizationProfileResponseEmployeesItemOneWorkingHoursItemOpensRegExp),
+  "closes": zod.string().regex(saveOrganizationProfileResponseEmployeesItemOneWorkingHoursItemClosesRegExp)
+})).max(saveOrganizationProfileResponseEmployeesItemOneWorkingHoursMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "userId": zod.string().nullish()
+}))),
+  "services": zod.array(zod.object({
+  "name": zod.string().min(1).max(saveOrganizationProfileResponseServicesItemOneNameMax),
+  "description": zod.string().max(saveOrganizationProfileResponseServicesItemOneDescriptionMax),
+  "locationId": zod.uuid(),
+  "categoryId": zod.string().nullish(),
+  "priceCents": zod.int().min(saveOrganizationProfileResponseServicesItemOnePriceCentsMin).max(saveOrganizationProfileResponseServicesItemOnePriceCentsMax),
+  "durationMinutes": zod.int().min(1).max(saveOrganizationProfileResponseServicesItemOneDurationMinutesMax),
+  "preparationMinutes": zod.int().min(saveOrganizationProfileResponseServicesItemOnePreparationMinutesMin).max(saveOrganizationProfileResponseServicesItemOnePreparationMinutesMax),
+  "cleanupMinutes": zod.int().min(saveOrganizationProfileResponseServicesItemOneCleanupMinutesMin).max(saveOrganizationProfileResponseServicesItemOneCleanupMinutesMax),
+  "published": zod.boolean(),
+  "onlineBooking": zod.boolean(),
+  "employeeIds": zod.array(zod.uuid()).max(saveOrganizationProfileResponseServicesItemOneEmployeeIdsMax),
+  "variants": zod.array(zod.object({
+  "id": zod.uuid().optional(),
+  "name": zod.string().min(1).max(saveOrganizationProfileResponseServicesItemOneVariantsItemNameMax),
+  "priceCents": zod.int().min(saveOrganizationProfileResponseServicesItemOneVariantsItemPriceCentsMin).max(saveOrganizationProfileResponseServicesItemOneVariantsItemPriceCentsMax),
+  "durationMinutes": zod.int().min(1).max(saveOrganizationProfileResponseServicesItemOneVariantsItemDurationMinutesMax)
+})).max(saveOrganizationProfileResponseServicesItemOneVariantsMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "archived": zod.boolean()
+}))),
+  "serviceCategories": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string()
+})),
+  "memberships": zod.array(zod.object({
+  "id": zod.string(),
+  "userId": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "status": zod.string()
+})),
+  "invitations": zod.array(zod.object({
+  "id": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "expiresAt": zod.string(),
+  "accepted": zod.boolean()
+})),
+  "policies": zod.array(zod.object({
+  "noticeHours": zod.int().min(saveOrganizationProfileResponsePoliciesItemOneNoticeHoursMin).max(saveOrganizationProfileResponsePoliciesItemOneNoticeHoursMax),
+  "lateFeeType": zod.enum(['percentage', 'fixed']),
+  "lateFeeValue": zod.int().min(saveOrganizationProfileResponsePoliciesItemOneLateFeeValueMin).max(saveOrganizationProfileResponsePoliciesItemOneLateFeeValueMax),
+  "noShowFeeType": zod.enum(['percentage', 'fixed']),
+  "noShowFeeValue": zod.int().min(saveOrganizationProfileResponsePoliciesItemOneNoShowFeeValueMin).max(saveOrganizationProfileResponsePoliciesItemOneNoShowFeeValueMax),
+  "waiverAllowed": zod.boolean(),
+  "exceptions": zod.string().max(saveOrganizationProfileResponsePoliciesItemOneExceptionsMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "version": zod.int(),
+  "createdAt": zod.string()
+}))),
+  "publicationIssues": zod.array(zod.string())
+})
+
+
+export const CreateBusinessLocationParams = zod.object({
+  "organizationId": zod.uuid()
+})
+
+export const createBusinessLocationBodyNameMin = 2;
+export const createBusinessLocationBodyNameMax = 120;
+
+export const createBusinessLocationBodyPostalCodeRegExp = new RegExp('^([0-9]{5})?$');
+export const createBusinessLocationBodyCityMax = 100;
+
+export const createBusinessLocationBodyStreetMax = 150;
+
+export const createBusinessLocationBodyHouseNumberMax = 20;
+
+export const createBusinessLocationBodyAddressExtraMax = 150;
+
+export const createBusinessLocationBodyDistrictMax = 100;
+
+export const createBusinessLocationBodyTimezoneMax = 80;
+
+export const createBusinessLocationBodyLatitudeMin = -90;
+export const createBusinessLocationBodyLatitudeMax = 90;
+
+export const createBusinessLocationBodyLongitudeMin = -180;
+export const createBusinessLocationBodyLongitudeMax = 180;
+
+export const createBusinessLocationBodyOpeningHoursItemWeekdayMax = 7;
+
+export const createBusinessLocationBodyOpeningHoursItemOpensRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const createBusinessLocationBodyOpeningHoursItemClosesRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const createBusinessLocationBodyOpeningHoursMax = 7;
+
+export const createBusinessLocationBodyLeadTimeHoursMin = 0;
+export const createBusinessLocationBodyLeadTimeHoursMax = 720;
+
+export const createBusinessLocationBodyAdvanceBookingDaysMax = 730;
+
+
+
+export const CreateBusinessLocationBody = zod.object({
+  "name": zod.string().min(createBusinessLocationBodyNameMin).max(createBusinessLocationBodyNameMax),
+  "country": zod.enum(['DE']),
+  "postalCode": zod.string().regex(createBusinessLocationBodyPostalCodeRegExp),
+  "city": zod.string().max(createBusinessLocationBodyCityMax),
+  "street": zod.string().max(createBusinessLocationBodyStreetMax),
+  "houseNumber": zod.string().max(createBusinessLocationBodyHouseNumberMax),
+  "addressExtra": zod.string().max(createBusinessLocationBodyAddressExtraMax),
+  "district": zod.string().max(createBusinessLocationBodyDistrictMax),
+  "timezone": zod.string().max(createBusinessLocationBodyTimezoneMax),
+  "latitude": zod.number().min(createBusinessLocationBodyLatitudeMin).max(createBusinessLocationBodyLatitudeMax).nullish(),
+  "longitude": zod.number().min(createBusinessLocationBodyLongitudeMin).max(createBusinessLocationBodyLongitudeMax).nullish(),
+  "openingHours": zod.array(zod.object({
+  "weekday": zod.int().min(1).max(createBusinessLocationBodyOpeningHoursItemWeekdayMax),
+  "opens": zod.string().regex(createBusinessLocationBodyOpeningHoursItemOpensRegExp),
+  "closes": zod.string().regex(createBusinessLocationBodyOpeningHoursItemClosesRegExp)
+})).max(createBusinessLocationBodyOpeningHoursMax),
+  "leadTimeHours": zod.int().min(createBusinessLocationBodyLeadTimeHoursMin).max(createBusinessLocationBodyLeadTimeHoursMax),
+  "advanceBookingDays": zod.int().min(1).max(createBusinessLocationBodyAdvanceBookingDaysMax),
+  "contactPreference": zod.enum(['email', 'phone'])
+})
+
+export const createBusinessLocationResponseProfileNameMin = 2;
+export const createBusinessLocationResponseProfileNameMax = 120;
+
+export const createBusinessLocationResponseProfileDescriptionMax = 3000;
+
+export const createBusinessLocationResponseProfileContactEmailMax = 200;
+
+export const createBusinessLocationResponseProfilePhoneMax = 30;
+
+export const createBusinessLocationResponseProfileWebsiteMax = 300;
+
+export const createBusinessLocationResponseProfileOnboardingStepMax = 6;
+
+export const createBusinessLocationResponseLocationsItemOneNameMin = 2;
+export const createBusinessLocationResponseLocationsItemOneNameMax = 120;
+
+export const createBusinessLocationResponseLocationsItemOnePostalCodeRegExp = new RegExp('^([0-9]{5})?$');
+export const createBusinessLocationResponseLocationsItemOneCityMax = 100;
+
+export const createBusinessLocationResponseLocationsItemOneStreetMax = 150;
+
+export const createBusinessLocationResponseLocationsItemOneHouseNumberMax = 20;
+
+export const createBusinessLocationResponseLocationsItemOneAddressExtraMax = 150;
+
+export const createBusinessLocationResponseLocationsItemOneDistrictMax = 100;
+
+export const createBusinessLocationResponseLocationsItemOneTimezoneMax = 80;
+
+export const createBusinessLocationResponseLocationsItemOneLatitudeMin = -90;
+export const createBusinessLocationResponseLocationsItemOneLatitudeMax = 90;
+
+export const createBusinessLocationResponseLocationsItemOneLongitudeMin = -180;
+export const createBusinessLocationResponseLocationsItemOneLongitudeMax = 180;
+
+export const createBusinessLocationResponseLocationsItemOneOpeningHoursItemWeekdayMax = 7;
+
+export const createBusinessLocationResponseLocationsItemOneOpeningHoursItemOpensRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const createBusinessLocationResponseLocationsItemOneOpeningHoursItemClosesRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const createBusinessLocationResponseLocationsItemOneOpeningHoursMax = 7;
+
+export const createBusinessLocationResponseLocationsItemOneLeadTimeHoursMin = 0;
+export const createBusinessLocationResponseLocationsItemOneLeadTimeHoursMax = 720;
+
+export const createBusinessLocationResponseLocationsItemOneAdvanceBookingDaysMax = 730;
+
+export const createBusinessLocationResponseEmployeesItemOneDisplayNameMax = 100;
+
+export const createBusinessLocationResponseEmployeesItemOneEmailMax = 200;
+
+export const createBusinessLocationResponseEmployeesItemOnePhoneMax = 30;
+
+export const createBusinessLocationResponseEmployeesItemOneWorkingHoursItemWeekdayMax = 7;
+
+export const createBusinessLocationResponseEmployeesItemOneWorkingHoursItemOpensRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const createBusinessLocationResponseEmployeesItemOneWorkingHoursItemClosesRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const createBusinessLocationResponseEmployeesItemOneWorkingHoursMax = 7;
+
+export const createBusinessLocationResponseServicesItemOneNameMax = 150;
+
+export const createBusinessLocationResponseServicesItemOneDescriptionMax = 2000;
+
+export const createBusinessLocationResponseServicesItemOnePriceCentsMin = 0;
+export const createBusinessLocationResponseServicesItemOnePriceCentsMax = 10000000;
+
+export const createBusinessLocationResponseServicesItemOneDurationMinutesMax = 1440;
+
+export const createBusinessLocationResponseServicesItemOnePreparationMinutesMin = 0;
+export const createBusinessLocationResponseServicesItemOnePreparationMinutesMax = 240;
+
+export const createBusinessLocationResponseServicesItemOneCleanupMinutesMin = 0;
+export const createBusinessLocationResponseServicesItemOneCleanupMinutesMax = 240;
+
+export const createBusinessLocationResponseServicesItemOneEmployeeIdsMax = 100;
+
+export const createBusinessLocationResponseServicesItemOneVariantsItemNameMax = 100;
+
+export const createBusinessLocationResponseServicesItemOneVariantsItemPriceCentsMin = 0;
+export const createBusinessLocationResponseServicesItemOneVariantsItemPriceCentsMax = 10000000;
+
+export const createBusinessLocationResponseServicesItemOneVariantsItemDurationMinutesMax = 1440;
+
+export const createBusinessLocationResponseServicesItemOneVariantsMax = 30;
+
+export const createBusinessLocationResponsePoliciesItemOneNoticeHoursMin = 0;
+export const createBusinessLocationResponsePoliciesItemOneNoticeHoursMax = 720;
+
+export const createBusinessLocationResponsePoliciesItemOneLateFeeValueMin = 0;
+export const createBusinessLocationResponsePoliciesItemOneLateFeeValueMax = 10000000;
+
+export const createBusinessLocationResponsePoliciesItemOneNoShowFeeValueMin = 0;
+export const createBusinessLocationResponsePoliciesItemOneNoShowFeeValueMax = 10000000;
+
+export const createBusinessLocationResponsePoliciesItemOneExceptionsMax = 2000;
+
+
+
+export const CreateBusinessLocationResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "role": zod.enum(['owner', 'manager', 'employee']),
+  "isDemo": zod.boolean(),
+  "profile": zod.object({
+  "name": zod.string().min(createBusinessLocationResponseProfileNameMin).max(createBusinessLocationResponseProfileNameMax),
+  "description": zod.string().max(createBusinessLocationResponseProfileDescriptionMax),
+  "contactEmail": zod.string().max(createBusinessLocationResponseProfileContactEmailMax),
+  "phone": zod.string().max(createBusinessLocationResponseProfilePhoneMax),
+  "website": zod.string().max(createBusinessLocationResponseProfileWebsiteMax),
+  "categoryId": zod.uuid(),
+  "onboardingStep": zod.int().min(1).max(createBusinessLocationResponseProfileOnboardingStepMax)
+}),
+  "locations": zod.array(zod.object({
+  "name": zod.string().min(createBusinessLocationResponseLocationsItemOneNameMin).max(createBusinessLocationResponseLocationsItemOneNameMax),
+  "country": zod.enum(['DE']),
+  "postalCode": zod.string().regex(createBusinessLocationResponseLocationsItemOnePostalCodeRegExp),
+  "city": zod.string().max(createBusinessLocationResponseLocationsItemOneCityMax),
+  "street": zod.string().max(createBusinessLocationResponseLocationsItemOneStreetMax),
+  "houseNumber": zod.string().max(createBusinessLocationResponseLocationsItemOneHouseNumberMax),
+  "addressExtra": zod.string().max(createBusinessLocationResponseLocationsItemOneAddressExtraMax),
+  "district": zod.string().max(createBusinessLocationResponseLocationsItemOneDistrictMax),
+  "timezone": zod.string().max(createBusinessLocationResponseLocationsItemOneTimezoneMax),
+  "latitude": zod.number().min(createBusinessLocationResponseLocationsItemOneLatitudeMin).max(createBusinessLocationResponseLocationsItemOneLatitudeMax).nullish(),
+  "longitude": zod.number().min(createBusinessLocationResponseLocationsItemOneLongitudeMin).max(createBusinessLocationResponseLocationsItemOneLongitudeMax).nullish(),
+  "openingHours": zod.array(zod.object({
+  "weekday": zod.int().min(1).max(createBusinessLocationResponseLocationsItemOneOpeningHoursItemWeekdayMax),
+  "opens": zod.string().regex(createBusinessLocationResponseLocationsItemOneOpeningHoursItemOpensRegExp),
+  "closes": zod.string().regex(createBusinessLocationResponseLocationsItemOneOpeningHoursItemClosesRegExp)
+})).max(createBusinessLocationResponseLocationsItemOneOpeningHoursMax),
+  "leadTimeHours": zod.int().min(createBusinessLocationResponseLocationsItemOneLeadTimeHoursMin).max(createBusinessLocationResponseLocationsItemOneLeadTimeHoursMax),
+  "advanceBookingDays": zod.int().min(1).max(createBusinessLocationResponseLocationsItemOneAdvanceBookingDaysMax),
+  "contactPreference": zod.enum(['email', 'phone'])
+}).and(zod.object({
+  "id": zod.string(),
+  "slug": zod.string(),
+  "published": zod.boolean()
+}))),
+  "employees": zod.array(zod.object({
+  "displayName": zod.string().min(1).max(createBusinessLocationResponseEmployeesItemOneDisplayNameMax),
+  "email": zod.string().max(createBusinessLocationResponseEmployeesItemOneEmailMax),
+  "phone": zod.string().max(createBusinessLocationResponseEmployeesItemOnePhoneMax),
+  "locationId": zod.uuid(),
+  "active": zod.boolean(),
+  "workingHours": zod.array(zod.object({
+  "weekday": zod.int().min(1).max(createBusinessLocationResponseEmployeesItemOneWorkingHoursItemWeekdayMax),
+  "opens": zod.string().regex(createBusinessLocationResponseEmployeesItemOneWorkingHoursItemOpensRegExp),
+  "closes": zod.string().regex(createBusinessLocationResponseEmployeesItemOneWorkingHoursItemClosesRegExp)
+})).max(createBusinessLocationResponseEmployeesItemOneWorkingHoursMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "userId": zod.string().nullish()
+}))),
+  "services": zod.array(zod.object({
+  "name": zod.string().min(1).max(createBusinessLocationResponseServicesItemOneNameMax),
+  "description": zod.string().max(createBusinessLocationResponseServicesItemOneDescriptionMax),
+  "locationId": zod.uuid(),
+  "categoryId": zod.string().nullish(),
+  "priceCents": zod.int().min(createBusinessLocationResponseServicesItemOnePriceCentsMin).max(createBusinessLocationResponseServicesItemOnePriceCentsMax),
+  "durationMinutes": zod.int().min(1).max(createBusinessLocationResponseServicesItemOneDurationMinutesMax),
+  "preparationMinutes": zod.int().min(createBusinessLocationResponseServicesItemOnePreparationMinutesMin).max(createBusinessLocationResponseServicesItemOnePreparationMinutesMax),
+  "cleanupMinutes": zod.int().min(createBusinessLocationResponseServicesItemOneCleanupMinutesMin).max(createBusinessLocationResponseServicesItemOneCleanupMinutesMax),
+  "published": zod.boolean(),
+  "onlineBooking": zod.boolean(),
+  "employeeIds": zod.array(zod.uuid()).max(createBusinessLocationResponseServicesItemOneEmployeeIdsMax),
+  "variants": zod.array(zod.object({
+  "id": zod.uuid().optional(),
+  "name": zod.string().min(1).max(createBusinessLocationResponseServicesItemOneVariantsItemNameMax),
+  "priceCents": zod.int().min(createBusinessLocationResponseServicesItemOneVariantsItemPriceCentsMin).max(createBusinessLocationResponseServicesItemOneVariantsItemPriceCentsMax),
+  "durationMinutes": zod.int().min(1).max(createBusinessLocationResponseServicesItemOneVariantsItemDurationMinutesMax)
+})).max(createBusinessLocationResponseServicesItemOneVariantsMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "archived": zod.boolean()
+}))),
+  "serviceCategories": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string()
+})),
+  "memberships": zod.array(zod.object({
+  "id": zod.string(),
+  "userId": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "status": zod.string()
+})),
+  "invitations": zod.array(zod.object({
+  "id": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "expiresAt": zod.string(),
+  "accepted": zod.boolean()
+})),
+  "policies": zod.array(zod.object({
+  "noticeHours": zod.int().min(createBusinessLocationResponsePoliciesItemOneNoticeHoursMin).max(createBusinessLocationResponsePoliciesItemOneNoticeHoursMax),
+  "lateFeeType": zod.enum(['percentage', 'fixed']),
+  "lateFeeValue": zod.int().min(createBusinessLocationResponsePoliciesItemOneLateFeeValueMin).max(createBusinessLocationResponsePoliciesItemOneLateFeeValueMax),
+  "noShowFeeType": zod.enum(['percentage', 'fixed']),
+  "noShowFeeValue": zod.int().min(createBusinessLocationResponsePoliciesItemOneNoShowFeeValueMin).max(createBusinessLocationResponsePoliciesItemOneNoShowFeeValueMax),
+  "waiverAllowed": zod.boolean(),
+  "exceptions": zod.string().max(createBusinessLocationResponsePoliciesItemOneExceptionsMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "version": zod.int(),
+  "createdAt": zod.string()
+}))),
+  "publicationIssues": zod.array(zod.string())
+})
+
+
+export const SaveBusinessLocationParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid()
+})
+
+export const saveBusinessLocationBodyNameMin = 2;
+export const saveBusinessLocationBodyNameMax = 120;
+
+export const saveBusinessLocationBodyPostalCodeRegExp = new RegExp('^([0-9]{5})?$');
+export const saveBusinessLocationBodyCityMax = 100;
+
+export const saveBusinessLocationBodyStreetMax = 150;
+
+export const saveBusinessLocationBodyHouseNumberMax = 20;
+
+export const saveBusinessLocationBodyAddressExtraMax = 150;
+
+export const saveBusinessLocationBodyDistrictMax = 100;
+
+export const saveBusinessLocationBodyTimezoneMax = 80;
+
+export const saveBusinessLocationBodyLatitudeMin = -90;
+export const saveBusinessLocationBodyLatitudeMax = 90;
+
+export const saveBusinessLocationBodyLongitudeMin = -180;
+export const saveBusinessLocationBodyLongitudeMax = 180;
+
+export const saveBusinessLocationBodyOpeningHoursItemWeekdayMax = 7;
+
+export const saveBusinessLocationBodyOpeningHoursItemOpensRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const saveBusinessLocationBodyOpeningHoursItemClosesRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const saveBusinessLocationBodyOpeningHoursMax = 7;
+
+export const saveBusinessLocationBodyLeadTimeHoursMin = 0;
+export const saveBusinessLocationBodyLeadTimeHoursMax = 720;
+
+export const saveBusinessLocationBodyAdvanceBookingDaysMax = 730;
+
+
+
+export const SaveBusinessLocationBody = zod.object({
+  "name": zod.string().min(saveBusinessLocationBodyNameMin).max(saveBusinessLocationBodyNameMax),
+  "country": zod.enum(['DE']),
+  "postalCode": zod.string().regex(saveBusinessLocationBodyPostalCodeRegExp),
+  "city": zod.string().max(saveBusinessLocationBodyCityMax),
+  "street": zod.string().max(saveBusinessLocationBodyStreetMax),
+  "houseNumber": zod.string().max(saveBusinessLocationBodyHouseNumberMax),
+  "addressExtra": zod.string().max(saveBusinessLocationBodyAddressExtraMax),
+  "district": zod.string().max(saveBusinessLocationBodyDistrictMax),
+  "timezone": zod.string().max(saveBusinessLocationBodyTimezoneMax),
+  "latitude": zod.number().min(saveBusinessLocationBodyLatitudeMin).max(saveBusinessLocationBodyLatitudeMax).nullish(),
+  "longitude": zod.number().min(saveBusinessLocationBodyLongitudeMin).max(saveBusinessLocationBodyLongitudeMax).nullish(),
+  "openingHours": zod.array(zod.object({
+  "weekday": zod.int().min(1).max(saveBusinessLocationBodyOpeningHoursItemWeekdayMax),
+  "opens": zod.string().regex(saveBusinessLocationBodyOpeningHoursItemOpensRegExp),
+  "closes": zod.string().regex(saveBusinessLocationBodyOpeningHoursItemClosesRegExp)
+})).max(saveBusinessLocationBodyOpeningHoursMax),
+  "leadTimeHours": zod.int().min(saveBusinessLocationBodyLeadTimeHoursMin).max(saveBusinessLocationBodyLeadTimeHoursMax),
+  "advanceBookingDays": zod.int().min(1).max(saveBusinessLocationBodyAdvanceBookingDaysMax),
+  "contactPreference": zod.enum(['email', 'phone'])
+})
+
+export const saveBusinessLocationResponseProfileNameMin = 2;
+export const saveBusinessLocationResponseProfileNameMax = 120;
+
+export const saveBusinessLocationResponseProfileDescriptionMax = 3000;
+
+export const saveBusinessLocationResponseProfileContactEmailMax = 200;
+
+export const saveBusinessLocationResponseProfilePhoneMax = 30;
+
+export const saveBusinessLocationResponseProfileWebsiteMax = 300;
+
+export const saveBusinessLocationResponseProfileOnboardingStepMax = 6;
+
+export const saveBusinessLocationResponseLocationsItemOneNameMin = 2;
+export const saveBusinessLocationResponseLocationsItemOneNameMax = 120;
+
+export const saveBusinessLocationResponseLocationsItemOnePostalCodeRegExp = new RegExp('^([0-9]{5})?$');
+export const saveBusinessLocationResponseLocationsItemOneCityMax = 100;
+
+export const saveBusinessLocationResponseLocationsItemOneStreetMax = 150;
+
+export const saveBusinessLocationResponseLocationsItemOneHouseNumberMax = 20;
+
+export const saveBusinessLocationResponseLocationsItemOneAddressExtraMax = 150;
+
+export const saveBusinessLocationResponseLocationsItemOneDistrictMax = 100;
+
+export const saveBusinessLocationResponseLocationsItemOneTimezoneMax = 80;
+
+export const saveBusinessLocationResponseLocationsItemOneLatitudeMin = -90;
+export const saveBusinessLocationResponseLocationsItemOneLatitudeMax = 90;
+
+export const saveBusinessLocationResponseLocationsItemOneLongitudeMin = -180;
+export const saveBusinessLocationResponseLocationsItemOneLongitudeMax = 180;
+
+export const saveBusinessLocationResponseLocationsItemOneOpeningHoursItemWeekdayMax = 7;
+
+export const saveBusinessLocationResponseLocationsItemOneOpeningHoursItemOpensRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const saveBusinessLocationResponseLocationsItemOneOpeningHoursItemClosesRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const saveBusinessLocationResponseLocationsItemOneOpeningHoursMax = 7;
+
+export const saveBusinessLocationResponseLocationsItemOneLeadTimeHoursMin = 0;
+export const saveBusinessLocationResponseLocationsItemOneLeadTimeHoursMax = 720;
+
+export const saveBusinessLocationResponseLocationsItemOneAdvanceBookingDaysMax = 730;
+
+export const saveBusinessLocationResponseEmployeesItemOneDisplayNameMax = 100;
+
+export const saveBusinessLocationResponseEmployeesItemOneEmailMax = 200;
+
+export const saveBusinessLocationResponseEmployeesItemOnePhoneMax = 30;
+
+export const saveBusinessLocationResponseEmployeesItemOneWorkingHoursItemWeekdayMax = 7;
+
+export const saveBusinessLocationResponseEmployeesItemOneWorkingHoursItemOpensRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const saveBusinessLocationResponseEmployeesItemOneWorkingHoursItemClosesRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const saveBusinessLocationResponseEmployeesItemOneWorkingHoursMax = 7;
+
+export const saveBusinessLocationResponseServicesItemOneNameMax = 150;
+
+export const saveBusinessLocationResponseServicesItemOneDescriptionMax = 2000;
+
+export const saveBusinessLocationResponseServicesItemOnePriceCentsMin = 0;
+export const saveBusinessLocationResponseServicesItemOnePriceCentsMax = 10000000;
+
+export const saveBusinessLocationResponseServicesItemOneDurationMinutesMax = 1440;
+
+export const saveBusinessLocationResponseServicesItemOnePreparationMinutesMin = 0;
+export const saveBusinessLocationResponseServicesItemOnePreparationMinutesMax = 240;
+
+export const saveBusinessLocationResponseServicesItemOneCleanupMinutesMin = 0;
+export const saveBusinessLocationResponseServicesItemOneCleanupMinutesMax = 240;
+
+export const saveBusinessLocationResponseServicesItemOneEmployeeIdsMax = 100;
+
+export const saveBusinessLocationResponseServicesItemOneVariantsItemNameMax = 100;
+
+export const saveBusinessLocationResponseServicesItemOneVariantsItemPriceCentsMin = 0;
+export const saveBusinessLocationResponseServicesItemOneVariantsItemPriceCentsMax = 10000000;
+
+export const saveBusinessLocationResponseServicesItemOneVariantsItemDurationMinutesMax = 1440;
+
+export const saveBusinessLocationResponseServicesItemOneVariantsMax = 30;
+
+export const saveBusinessLocationResponsePoliciesItemOneNoticeHoursMin = 0;
+export const saveBusinessLocationResponsePoliciesItemOneNoticeHoursMax = 720;
+
+export const saveBusinessLocationResponsePoliciesItemOneLateFeeValueMin = 0;
+export const saveBusinessLocationResponsePoliciesItemOneLateFeeValueMax = 10000000;
+
+export const saveBusinessLocationResponsePoliciesItemOneNoShowFeeValueMin = 0;
+export const saveBusinessLocationResponsePoliciesItemOneNoShowFeeValueMax = 10000000;
+
+export const saveBusinessLocationResponsePoliciesItemOneExceptionsMax = 2000;
+
+
+
+export const SaveBusinessLocationResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "role": zod.enum(['owner', 'manager', 'employee']),
+  "isDemo": zod.boolean(),
+  "profile": zod.object({
+  "name": zod.string().min(saveBusinessLocationResponseProfileNameMin).max(saveBusinessLocationResponseProfileNameMax),
+  "description": zod.string().max(saveBusinessLocationResponseProfileDescriptionMax),
+  "contactEmail": zod.string().max(saveBusinessLocationResponseProfileContactEmailMax),
+  "phone": zod.string().max(saveBusinessLocationResponseProfilePhoneMax),
+  "website": zod.string().max(saveBusinessLocationResponseProfileWebsiteMax),
+  "categoryId": zod.uuid(),
+  "onboardingStep": zod.int().min(1).max(saveBusinessLocationResponseProfileOnboardingStepMax)
+}),
+  "locations": zod.array(zod.object({
+  "name": zod.string().min(saveBusinessLocationResponseLocationsItemOneNameMin).max(saveBusinessLocationResponseLocationsItemOneNameMax),
+  "country": zod.enum(['DE']),
+  "postalCode": zod.string().regex(saveBusinessLocationResponseLocationsItemOnePostalCodeRegExp),
+  "city": zod.string().max(saveBusinessLocationResponseLocationsItemOneCityMax),
+  "street": zod.string().max(saveBusinessLocationResponseLocationsItemOneStreetMax),
+  "houseNumber": zod.string().max(saveBusinessLocationResponseLocationsItemOneHouseNumberMax),
+  "addressExtra": zod.string().max(saveBusinessLocationResponseLocationsItemOneAddressExtraMax),
+  "district": zod.string().max(saveBusinessLocationResponseLocationsItemOneDistrictMax),
+  "timezone": zod.string().max(saveBusinessLocationResponseLocationsItemOneTimezoneMax),
+  "latitude": zod.number().min(saveBusinessLocationResponseLocationsItemOneLatitudeMin).max(saveBusinessLocationResponseLocationsItemOneLatitudeMax).nullish(),
+  "longitude": zod.number().min(saveBusinessLocationResponseLocationsItemOneLongitudeMin).max(saveBusinessLocationResponseLocationsItemOneLongitudeMax).nullish(),
+  "openingHours": zod.array(zod.object({
+  "weekday": zod.int().min(1).max(saveBusinessLocationResponseLocationsItemOneOpeningHoursItemWeekdayMax),
+  "opens": zod.string().regex(saveBusinessLocationResponseLocationsItemOneOpeningHoursItemOpensRegExp),
+  "closes": zod.string().regex(saveBusinessLocationResponseLocationsItemOneOpeningHoursItemClosesRegExp)
+})).max(saveBusinessLocationResponseLocationsItemOneOpeningHoursMax),
+  "leadTimeHours": zod.int().min(saveBusinessLocationResponseLocationsItemOneLeadTimeHoursMin).max(saveBusinessLocationResponseLocationsItemOneLeadTimeHoursMax),
+  "advanceBookingDays": zod.int().min(1).max(saveBusinessLocationResponseLocationsItemOneAdvanceBookingDaysMax),
+  "contactPreference": zod.enum(['email', 'phone'])
+}).and(zod.object({
+  "id": zod.string(),
+  "slug": zod.string(),
+  "published": zod.boolean()
+}))),
+  "employees": zod.array(zod.object({
+  "displayName": zod.string().min(1).max(saveBusinessLocationResponseEmployeesItemOneDisplayNameMax),
+  "email": zod.string().max(saveBusinessLocationResponseEmployeesItemOneEmailMax),
+  "phone": zod.string().max(saveBusinessLocationResponseEmployeesItemOnePhoneMax),
+  "locationId": zod.uuid(),
+  "active": zod.boolean(),
+  "workingHours": zod.array(zod.object({
+  "weekday": zod.int().min(1).max(saveBusinessLocationResponseEmployeesItemOneWorkingHoursItemWeekdayMax),
+  "opens": zod.string().regex(saveBusinessLocationResponseEmployeesItemOneWorkingHoursItemOpensRegExp),
+  "closes": zod.string().regex(saveBusinessLocationResponseEmployeesItemOneWorkingHoursItemClosesRegExp)
+})).max(saveBusinessLocationResponseEmployeesItemOneWorkingHoursMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "userId": zod.string().nullish()
+}))),
+  "services": zod.array(zod.object({
+  "name": zod.string().min(1).max(saveBusinessLocationResponseServicesItemOneNameMax),
+  "description": zod.string().max(saveBusinessLocationResponseServicesItemOneDescriptionMax),
+  "locationId": zod.uuid(),
+  "categoryId": zod.string().nullish(),
+  "priceCents": zod.int().min(saveBusinessLocationResponseServicesItemOnePriceCentsMin).max(saveBusinessLocationResponseServicesItemOnePriceCentsMax),
+  "durationMinutes": zod.int().min(1).max(saveBusinessLocationResponseServicesItemOneDurationMinutesMax),
+  "preparationMinutes": zod.int().min(saveBusinessLocationResponseServicesItemOnePreparationMinutesMin).max(saveBusinessLocationResponseServicesItemOnePreparationMinutesMax),
+  "cleanupMinutes": zod.int().min(saveBusinessLocationResponseServicesItemOneCleanupMinutesMin).max(saveBusinessLocationResponseServicesItemOneCleanupMinutesMax),
+  "published": zod.boolean(),
+  "onlineBooking": zod.boolean(),
+  "employeeIds": zod.array(zod.uuid()).max(saveBusinessLocationResponseServicesItemOneEmployeeIdsMax),
+  "variants": zod.array(zod.object({
+  "id": zod.uuid().optional(),
+  "name": zod.string().min(1).max(saveBusinessLocationResponseServicesItemOneVariantsItemNameMax),
+  "priceCents": zod.int().min(saveBusinessLocationResponseServicesItemOneVariantsItemPriceCentsMin).max(saveBusinessLocationResponseServicesItemOneVariantsItemPriceCentsMax),
+  "durationMinutes": zod.int().min(1).max(saveBusinessLocationResponseServicesItemOneVariantsItemDurationMinutesMax)
+})).max(saveBusinessLocationResponseServicesItemOneVariantsMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "archived": zod.boolean()
+}))),
+  "serviceCategories": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string()
+})),
+  "memberships": zod.array(zod.object({
+  "id": zod.string(),
+  "userId": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "status": zod.string()
+})),
+  "invitations": zod.array(zod.object({
+  "id": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "expiresAt": zod.string(),
+  "accepted": zod.boolean()
+})),
+  "policies": zod.array(zod.object({
+  "noticeHours": zod.int().min(saveBusinessLocationResponsePoliciesItemOneNoticeHoursMin).max(saveBusinessLocationResponsePoliciesItemOneNoticeHoursMax),
+  "lateFeeType": zod.enum(['percentage', 'fixed']),
+  "lateFeeValue": zod.int().min(saveBusinessLocationResponsePoliciesItemOneLateFeeValueMin).max(saveBusinessLocationResponsePoliciesItemOneLateFeeValueMax),
+  "noShowFeeType": zod.enum(['percentage', 'fixed']),
+  "noShowFeeValue": zod.int().min(saveBusinessLocationResponsePoliciesItemOneNoShowFeeValueMin).max(saveBusinessLocationResponsePoliciesItemOneNoShowFeeValueMax),
+  "waiverAllowed": zod.boolean(),
+  "exceptions": zod.string().max(saveBusinessLocationResponsePoliciesItemOneExceptionsMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "version": zod.int(),
+  "createdAt": zod.string()
+}))),
+  "publicationIssues": zod.array(zod.string())
+})
+
+
+export const CreateEmployeeParams = zod.object({
+  "organizationId": zod.uuid()
+})
+
+export const createEmployeeBodyDisplayNameMax = 100;
+
+export const createEmployeeBodyEmailMax = 200;
+
+export const createEmployeeBodyPhoneMax = 30;
+
+export const createEmployeeBodyWorkingHoursItemWeekdayMax = 7;
+
+export const createEmployeeBodyWorkingHoursItemOpensRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const createEmployeeBodyWorkingHoursItemClosesRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const createEmployeeBodyWorkingHoursMax = 7;
+
+
+
+export const CreateEmployeeBody = zod.object({
+  "displayName": zod.string().min(1).max(createEmployeeBodyDisplayNameMax),
+  "email": zod.string().max(createEmployeeBodyEmailMax),
+  "phone": zod.string().max(createEmployeeBodyPhoneMax),
+  "locationId": zod.uuid(),
+  "active": zod.boolean(),
+  "workingHours": zod.array(zod.object({
+  "weekday": zod.int().min(1).max(createEmployeeBodyWorkingHoursItemWeekdayMax),
+  "opens": zod.string().regex(createEmployeeBodyWorkingHoursItemOpensRegExp),
+  "closes": zod.string().regex(createEmployeeBodyWorkingHoursItemClosesRegExp)
+})).max(createEmployeeBodyWorkingHoursMax)
+})
+
+export const createEmployeeResponseProfileNameMin = 2;
+export const createEmployeeResponseProfileNameMax = 120;
+
+export const createEmployeeResponseProfileDescriptionMax = 3000;
+
+export const createEmployeeResponseProfileContactEmailMax = 200;
+
+export const createEmployeeResponseProfilePhoneMax = 30;
+
+export const createEmployeeResponseProfileWebsiteMax = 300;
+
+export const createEmployeeResponseProfileOnboardingStepMax = 6;
+
+export const createEmployeeResponseLocationsItemOneNameMin = 2;
+export const createEmployeeResponseLocationsItemOneNameMax = 120;
+
+export const createEmployeeResponseLocationsItemOnePostalCodeRegExp = new RegExp('^([0-9]{5})?$');
+export const createEmployeeResponseLocationsItemOneCityMax = 100;
+
+export const createEmployeeResponseLocationsItemOneStreetMax = 150;
+
+export const createEmployeeResponseLocationsItemOneHouseNumberMax = 20;
+
+export const createEmployeeResponseLocationsItemOneAddressExtraMax = 150;
+
+export const createEmployeeResponseLocationsItemOneDistrictMax = 100;
+
+export const createEmployeeResponseLocationsItemOneTimezoneMax = 80;
+
+export const createEmployeeResponseLocationsItemOneLatitudeMin = -90;
+export const createEmployeeResponseLocationsItemOneLatitudeMax = 90;
+
+export const createEmployeeResponseLocationsItemOneLongitudeMin = -180;
+export const createEmployeeResponseLocationsItemOneLongitudeMax = 180;
+
+export const createEmployeeResponseLocationsItemOneOpeningHoursItemWeekdayMax = 7;
+
+export const createEmployeeResponseLocationsItemOneOpeningHoursItemOpensRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const createEmployeeResponseLocationsItemOneOpeningHoursItemClosesRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const createEmployeeResponseLocationsItemOneOpeningHoursMax = 7;
+
+export const createEmployeeResponseLocationsItemOneLeadTimeHoursMin = 0;
+export const createEmployeeResponseLocationsItemOneLeadTimeHoursMax = 720;
+
+export const createEmployeeResponseLocationsItemOneAdvanceBookingDaysMax = 730;
+
+export const createEmployeeResponseEmployeesItemOneDisplayNameMax = 100;
+
+export const createEmployeeResponseEmployeesItemOneEmailMax = 200;
+
+export const createEmployeeResponseEmployeesItemOnePhoneMax = 30;
+
+export const createEmployeeResponseEmployeesItemOneWorkingHoursItemWeekdayMax = 7;
+
+export const createEmployeeResponseEmployeesItemOneWorkingHoursItemOpensRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const createEmployeeResponseEmployeesItemOneWorkingHoursItemClosesRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const createEmployeeResponseEmployeesItemOneWorkingHoursMax = 7;
+
+export const createEmployeeResponseServicesItemOneNameMax = 150;
+
+export const createEmployeeResponseServicesItemOneDescriptionMax = 2000;
+
+export const createEmployeeResponseServicesItemOnePriceCentsMin = 0;
+export const createEmployeeResponseServicesItemOnePriceCentsMax = 10000000;
+
+export const createEmployeeResponseServicesItemOneDurationMinutesMax = 1440;
+
+export const createEmployeeResponseServicesItemOnePreparationMinutesMin = 0;
+export const createEmployeeResponseServicesItemOnePreparationMinutesMax = 240;
+
+export const createEmployeeResponseServicesItemOneCleanupMinutesMin = 0;
+export const createEmployeeResponseServicesItemOneCleanupMinutesMax = 240;
+
+export const createEmployeeResponseServicesItemOneEmployeeIdsMax = 100;
+
+export const createEmployeeResponseServicesItemOneVariantsItemNameMax = 100;
+
+export const createEmployeeResponseServicesItemOneVariantsItemPriceCentsMin = 0;
+export const createEmployeeResponseServicesItemOneVariantsItemPriceCentsMax = 10000000;
+
+export const createEmployeeResponseServicesItemOneVariantsItemDurationMinutesMax = 1440;
+
+export const createEmployeeResponseServicesItemOneVariantsMax = 30;
+
+export const createEmployeeResponsePoliciesItemOneNoticeHoursMin = 0;
+export const createEmployeeResponsePoliciesItemOneNoticeHoursMax = 720;
+
+export const createEmployeeResponsePoliciesItemOneLateFeeValueMin = 0;
+export const createEmployeeResponsePoliciesItemOneLateFeeValueMax = 10000000;
+
+export const createEmployeeResponsePoliciesItemOneNoShowFeeValueMin = 0;
+export const createEmployeeResponsePoliciesItemOneNoShowFeeValueMax = 10000000;
+
+export const createEmployeeResponsePoliciesItemOneExceptionsMax = 2000;
+
+
+
+export const CreateEmployeeResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "role": zod.enum(['owner', 'manager', 'employee']),
+  "isDemo": zod.boolean(),
+  "profile": zod.object({
+  "name": zod.string().min(createEmployeeResponseProfileNameMin).max(createEmployeeResponseProfileNameMax),
+  "description": zod.string().max(createEmployeeResponseProfileDescriptionMax),
+  "contactEmail": zod.string().max(createEmployeeResponseProfileContactEmailMax),
+  "phone": zod.string().max(createEmployeeResponseProfilePhoneMax),
+  "website": zod.string().max(createEmployeeResponseProfileWebsiteMax),
+  "categoryId": zod.uuid(),
+  "onboardingStep": zod.int().min(1).max(createEmployeeResponseProfileOnboardingStepMax)
+}),
+  "locations": zod.array(zod.object({
+  "name": zod.string().min(createEmployeeResponseLocationsItemOneNameMin).max(createEmployeeResponseLocationsItemOneNameMax),
+  "country": zod.enum(['DE']),
+  "postalCode": zod.string().regex(createEmployeeResponseLocationsItemOnePostalCodeRegExp),
+  "city": zod.string().max(createEmployeeResponseLocationsItemOneCityMax),
+  "street": zod.string().max(createEmployeeResponseLocationsItemOneStreetMax),
+  "houseNumber": zod.string().max(createEmployeeResponseLocationsItemOneHouseNumberMax),
+  "addressExtra": zod.string().max(createEmployeeResponseLocationsItemOneAddressExtraMax),
+  "district": zod.string().max(createEmployeeResponseLocationsItemOneDistrictMax),
+  "timezone": zod.string().max(createEmployeeResponseLocationsItemOneTimezoneMax),
+  "latitude": zod.number().min(createEmployeeResponseLocationsItemOneLatitudeMin).max(createEmployeeResponseLocationsItemOneLatitudeMax).nullish(),
+  "longitude": zod.number().min(createEmployeeResponseLocationsItemOneLongitudeMin).max(createEmployeeResponseLocationsItemOneLongitudeMax).nullish(),
+  "openingHours": zod.array(zod.object({
+  "weekday": zod.int().min(1).max(createEmployeeResponseLocationsItemOneOpeningHoursItemWeekdayMax),
+  "opens": zod.string().regex(createEmployeeResponseLocationsItemOneOpeningHoursItemOpensRegExp),
+  "closes": zod.string().regex(createEmployeeResponseLocationsItemOneOpeningHoursItemClosesRegExp)
+})).max(createEmployeeResponseLocationsItemOneOpeningHoursMax),
+  "leadTimeHours": zod.int().min(createEmployeeResponseLocationsItemOneLeadTimeHoursMin).max(createEmployeeResponseLocationsItemOneLeadTimeHoursMax),
+  "advanceBookingDays": zod.int().min(1).max(createEmployeeResponseLocationsItemOneAdvanceBookingDaysMax),
+  "contactPreference": zod.enum(['email', 'phone'])
+}).and(zod.object({
+  "id": zod.string(),
+  "slug": zod.string(),
+  "published": zod.boolean()
+}))),
+  "employees": zod.array(zod.object({
+  "displayName": zod.string().min(1).max(createEmployeeResponseEmployeesItemOneDisplayNameMax),
+  "email": zod.string().max(createEmployeeResponseEmployeesItemOneEmailMax),
+  "phone": zod.string().max(createEmployeeResponseEmployeesItemOnePhoneMax),
+  "locationId": zod.uuid(),
+  "active": zod.boolean(),
+  "workingHours": zod.array(zod.object({
+  "weekday": zod.int().min(1).max(createEmployeeResponseEmployeesItemOneWorkingHoursItemWeekdayMax),
+  "opens": zod.string().regex(createEmployeeResponseEmployeesItemOneWorkingHoursItemOpensRegExp),
+  "closes": zod.string().regex(createEmployeeResponseEmployeesItemOneWorkingHoursItemClosesRegExp)
+})).max(createEmployeeResponseEmployeesItemOneWorkingHoursMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "userId": zod.string().nullish()
+}))),
+  "services": zod.array(zod.object({
+  "name": zod.string().min(1).max(createEmployeeResponseServicesItemOneNameMax),
+  "description": zod.string().max(createEmployeeResponseServicesItemOneDescriptionMax),
+  "locationId": zod.uuid(),
+  "categoryId": zod.string().nullish(),
+  "priceCents": zod.int().min(createEmployeeResponseServicesItemOnePriceCentsMin).max(createEmployeeResponseServicesItemOnePriceCentsMax),
+  "durationMinutes": zod.int().min(1).max(createEmployeeResponseServicesItemOneDurationMinutesMax),
+  "preparationMinutes": zod.int().min(createEmployeeResponseServicesItemOnePreparationMinutesMin).max(createEmployeeResponseServicesItemOnePreparationMinutesMax),
+  "cleanupMinutes": zod.int().min(createEmployeeResponseServicesItemOneCleanupMinutesMin).max(createEmployeeResponseServicesItemOneCleanupMinutesMax),
+  "published": zod.boolean(),
+  "onlineBooking": zod.boolean(),
+  "employeeIds": zod.array(zod.uuid()).max(createEmployeeResponseServicesItemOneEmployeeIdsMax),
+  "variants": zod.array(zod.object({
+  "id": zod.uuid().optional(),
+  "name": zod.string().min(1).max(createEmployeeResponseServicesItemOneVariantsItemNameMax),
+  "priceCents": zod.int().min(createEmployeeResponseServicesItemOneVariantsItemPriceCentsMin).max(createEmployeeResponseServicesItemOneVariantsItemPriceCentsMax),
+  "durationMinutes": zod.int().min(1).max(createEmployeeResponseServicesItemOneVariantsItemDurationMinutesMax)
+})).max(createEmployeeResponseServicesItemOneVariantsMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "archived": zod.boolean()
+}))),
+  "serviceCategories": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string()
+})),
+  "memberships": zod.array(zod.object({
+  "id": zod.string(),
+  "userId": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "status": zod.string()
+})),
+  "invitations": zod.array(zod.object({
+  "id": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "expiresAt": zod.string(),
+  "accepted": zod.boolean()
+})),
+  "policies": zod.array(zod.object({
+  "noticeHours": zod.int().min(createEmployeeResponsePoliciesItemOneNoticeHoursMin).max(createEmployeeResponsePoliciesItemOneNoticeHoursMax),
+  "lateFeeType": zod.enum(['percentage', 'fixed']),
+  "lateFeeValue": zod.int().min(createEmployeeResponsePoliciesItemOneLateFeeValueMin).max(createEmployeeResponsePoliciesItemOneLateFeeValueMax),
+  "noShowFeeType": zod.enum(['percentage', 'fixed']),
+  "noShowFeeValue": zod.int().min(createEmployeeResponsePoliciesItemOneNoShowFeeValueMin).max(createEmployeeResponsePoliciesItemOneNoShowFeeValueMax),
+  "waiverAllowed": zod.boolean(),
+  "exceptions": zod.string().max(createEmployeeResponsePoliciesItemOneExceptionsMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "version": zod.int(),
+  "createdAt": zod.string()
+}))),
+  "publicationIssues": zod.array(zod.string())
+})
+
+
+export const SaveEmployeeParams = zod.object({
+  "organizationId": zod.uuid(),
+  "employeeId": zod.uuid()
+})
+
+export const saveEmployeeBodyDisplayNameMax = 100;
+
+export const saveEmployeeBodyEmailMax = 200;
+
+export const saveEmployeeBodyPhoneMax = 30;
+
+export const saveEmployeeBodyWorkingHoursItemWeekdayMax = 7;
+
+export const saveEmployeeBodyWorkingHoursItemOpensRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const saveEmployeeBodyWorkingHoursItemClosesRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const saveEmployeeBodyWorkingHoursMax = 7;
+
+
+
+export const SaveEmployeeBody = zod.object({
+  "displayName": zod.string().min(1).max(saveEmployeeBodyDisplayNameMax),
+  "email": zod.string().max(saveEmployeeBodyEmailMax),
+  "phone": zod.string().max(saveEmployeeBodyPhoneMax),
+  "locationId": zod.uuid(),
+  "active": zod.boolean(),
+  "workingHours": zod.array(zod.object({
+  "weekday": zod.int().min(1).max(saveEmployeeBodyWorkingHoursItemWeekdayMax),
+  "opens": zod.string().regex(saveEmployeeBodyWorkingHoursItemOpensRegExp),
+  "closes": zod.string().regex(saveEmployeeBodyWorkingHoursItemClosesRegExp)
+})).max(saveEmployeeBodyWorkingHoursMax)
+})
+
+export const saveEmployeeResponseProfileNameMin = 2;
+export const saveEmployeeResponseProfileNameMax = 120;
+
+export const saveEmployeeResponseProfileDescriptionMax = 3000;
+
+export const saveEmployeeResponseProfileContactEmailMax = 200;
+
+export const saveEmployeeResponseProfilePhoneMax = 30;
+
+export const saveEmployeeResponseProfileWebsiteMax = 300;
+
+export const saveEmployeeResponseProfileOnboardingStepMax = 6;
+
+export const saveEmployeeResponseLocationsItemOneNameMin = 2;
+export const saveEmployeeResponseLocationsItemOneNameMax = 120;
+
+export const saveEmployeeResponseLocationsItemOnePostalCodeRegExp = new RegExp('^([0-9]{5})?$');
+export const saveEmployeeResponseLocationsItemOneCityMax = 100;
+
+export const saveEmployeeResponseLocationsItemOneStreetMax = 150;
+
+export const saveEmployeeResponseLocationsItemOneHouseNumberMax = 20;
+
+export const saveEmployeeResponseLocationsItemOneAddressExtraMax = 150;
+
+export const saveEmployeeResponseLocationsItemOneDistrictMax = 100;
+
+export const saveEmployeeResponseLocationsItemOneTimezoneMax = 80;
+
+export const saveEmployeeResponseLocationsItemOneLatitudeMin = -90;
+export const saveEmployeeResponseLocationsItemOneLatitudeMax = 90;
+
+export const saveEmployeeResponseLocationsItemOneLongitudeMin = -180;
+export const saveEmployeeResponseLocationsItemOneLongitudeMax = 180;
+
+export const saveEmployeeResponseLocationsItemOneOpeningHoursItemWeekdayMax = 7;
+
+export const saveEmployeeResponseLocationsItemOneOpeningHoursItemOpensRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const saveEmployeeResponseLocationsItemOneOpeningHoursItemClosesRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const saveEmployeeResponseLocationsItemOneOpeningHoursMax = 7;
+
+export const saveEmployeeResponseLocationsItemOneLeadTimeHoursMin = 0;
+export const saveEmployeeResponseLocationsItemOneLeadTimeHoursMax = 720;
+
+export const saveEmployeeResponseLocationsItemOneAdvanceBookingDaysMax = 730;
+
+export const saveEmployeeResponseEmployeesItemOneDisplayNameMax = 100;
+
+export const saveEmployeeResponseEmployeesItemOneEmailMax = 200;
+
+export const saveEmployeeResponseEmployeesItemOnePhoneMax = 30;
+
+export const saveEmployeeResponseEmployeesItemOneWorkingHoursItemWeekdayMax = 7;
+
+export const saveEmployeeResponseEmployeesItemOneWorkingHoursItemOpensRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const saveEmployeeResponseEmployeesItemOneWorkingHoursItemClosesRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const saveEmployeeResponseEmployeesItemOneWorkingHoursMax = 7;
+
+export const saveEmployeeResponseServicesItemOneNameMax = 150;
+
+export const saveEmployeeResponseServicesItemOneDescriptionMax = 2000;
+
+export const saveEmployeeResponseServicesItemOnePriceCentsMin = 0;
+export const saveEmployeeResponseServicesItemOnePriceCentsMax = 10000000;
+
+export const saveEmployeeResponseServicesItemOneDurationMinutesMax = 1440;
+
+export const saveEmployeeResponseServicesItemOnePreparationMinutesMin = 0;
+export const saveEmployeeResponseServicesItemOnePreparationMinutesMax = 240;
+
+export const saveEmployeeResponseServicesItemOneCleanupMinutesMin = 0;
+export const saveEmployeeResponseServicesItemOneCleanupMinutesMax = 240;
+
+export const saveEmployeeResponseServicesItemOneEmployeeIdsMax = 100;
+
+export const saveEmployeeResponseServicesItemOneVariantsItemNameMax = 100;
+
+export const saveEmployeeResponseServicesItemOneVariantsItemPriceCentsMin = 0;
+export const saveEmployeeResponseServicesItemOneVariantsItemPriceCentsMax = 10000000;
+
+export const saveEmployeeResponseServicesItemOneVariantsItemDurationMinutesMax = 1440;
+
+export const saveEmployeeResponseServicesItemOneVariantsMax = 30;
+
+export const saveEmployeeResponsePoliciesItemOneNoticeHoursMin = 0;
+export const saveEmployeeResponsePoliciesItemOneNoticeHoursMax = 720;
+
+export const saveEmployeeResponsePoliciesItemOneLateFeeValueMin = 0;
+export const saveEmployeeResponsePoliciesItemOneLateFeeValueMax = 10000000;
+
+export const saveEmployeeResponsePoliciesItemOneNoShowFeeValueMin = 0;
+export const saveEmployeeResponsePoliciesItemOneNoShowFeeValueMax = 10000000;
+
+export const saveEmployeeResponsePoliciesItemOneExceptionsMax = 2000;
+
+
+
+export const SaveEmployeeResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "role": zod.enum(['owner', 'manager', 'employee']),
+  "isDemo": zod.boolean(),
+  "profile": zod.object({
+  "name": zod.string().min(saveEmployeeResponseProfileNameMin).max(saveEmployeeResponseProfileNameMax),
+  "description": zod.string().max(saveEmployeeResponseProfileDescriptionMax),
+  "contactEmail": zod.string().max(saveEmployeeResponseProfileContactEmailMax),
+  "phone": zod.string().max(saveEmployeeResponseProfilePhoneMax),
+  "website": zod.string().max(saveEmployeeResponseProfileWebsiteMax),
+  "categoryId": zod.uuid(),
+  "onboardingStep": zod.int().min(1).max(saveEmployeeResponseProfileOnboardingStepMax)
+}),
+  "locations": zod.array(zod.object({
+  "name": zod.string().min(saveEmployeeResponseLocationsItemOneNameMin).max(saveEmployeeResponseLocationsItemOneNameMax),
+  "country": zod.enum(['DE']),
+  "postalCode": zod.string().regex(saveEmployeeResponseLocationsItemOnePostalCodeRegExp),
+  "city": zod.string().max(saveEmployeeResponseLocationsItemOneCityMax),
+  "street": zod.string().max(saveEmployeeResponseLocationsItemOneStreetMax),
+  "houseNumber": zod.string().max(saveEmployeeResponseLocationsItemOneHouseNumberMax),
+  "addressExtra": zod.string().max(saveEmployeeResponseLocationsItemOneAddressExtraMax),
+  "district": zod.string().max(saveEmployeeResponseLocationsItemOneDistrictMax),
+  "timezone": zod.string().max(saveEmployeeResponseLocationsItemOneTimezoneMax),
+  "latitude": zod.number().min(saveEmployeeResponseLocationsItemOneLatitudeMin).max(saveEmployeeResponseLocationsItemOneLatitudeMax).nullish(),
+  "longitude": zod.number().min(saveEmployeeResponseLocationsItemOneLongitudeMin).max(saveEmployeeResponseLocationsItemOneLongitudeMax).nullish(),
+  "openingHours": zod.array(zod.object({
+  "weekday": zod.int().min(1).max(saveEmployeeResponseLocationsItemOneOpeningHoursItemWeekdayMax),
+  "opens": zod.string().regex(saveEmployeeResponseLocationsItemOneOpeningHoursItemOpensRegExp),
+  "closes": zod.string().regex(saveEmployeeResponseLocationsItemOneOpeningHoursItemClosesRegExp)
+})).max(saveEmployeeResponseLocationsItemOneOpeningHoursMax),
+  "leadTimeHours": zod.int().min(saveEmployeeResponseLocationsItemOneLeadTimeHoursMin).max(saveEmployeeResponseLocationsItemOneLeadTimeHoursMax),
+  "advanceBookingDays": zod.int().min(1).max(saveEmployeeResponseLocationsItemOneAdvanceBookingDaysMax),
+  "contactPreference": zod.enum(['email', 'phone'])
+}).and(zod.object({
+  "id": zod.string(),
+  "slug": zod.string(),
+  "published": zod.boolean()
+}))),
+  "employees": zod.array(zod.object({
+  "displayName": zod.string().min(1).max(saveEmployeeResponseEmployeesItemOneDisplayNameMax),
+  "email": zod.string().max(saveEmployeeResponseEmployeesItemOneEmailMax),
+  "phone": zod.string().max(saveEmployeeResponseEmployeesItemOnePhoneMax),
+  "locationId": zod.uuid(),
+  "active": zod.boolean(),
+  "workingHours": zod.array(zod.object({
+  "weekday": zod.int().min(1).max(saveEmployeeResponseEmployeesItemOneWorkingHoursItemWeekdayMax),
+  "opens": zod.string().regex(saveEmployeeResponseEmployeesItemOneWorkingHoursItemOpensRegExp),
+  "closes": zod.string().regex(saveEmployeeResponseEmployeesItemOneWorkingHoursItemClosesRegExp)
+})).max(saveEmployeeResponseEmployeesItemOneWorkingHoursMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "userId": zod.string().nullish()
+}))),
+  "services": zod.array(zod.object({
+  "name": zod.string().min(1).max(saveEmployeeResponseServicesItemOneNameMax),
+  "description": zod.string().max(saveEmployeeResponseServicesItemOneDescriptionMax),
+  "locationId": zod.uuid(),
+  "categoryId": zod.string().nullish(),
+  "priceCents": zod.int().min(saveEmployeeResponseServicesItemOnePriceCentsMin).max(saveEmployeeResponseServicesItemOnePriceCentsMax),
+  "durationMinutes": zod.int().min(1).max(saveEmployeeResponseServicesItemOneDurationMinutesMax),
+  "preparationMinutes": zod.int().min(saveEmployeeResponseServicesItemOnePreparationMinutesMin).max(saveEmployeeResponseServicesItemOnePreparationMinutesMax),
+  "cleanupMinutes": zod.int().min(saveEmployeeResponseServicesItemOneCleanupMinutesMin).max(saveEmployeeResponseServicesItemOneCleanupMinutesMax),
+  "published": zod.boolean(),
+  "onlineBooking": zod.boolean(),
+  "employeeIds": zod.array(zod.uuid()).max(saveEmployeeResponseServicesItemOneEmployeeIdsMax),
+  "variants": zod.array(zod.object({
+  "id": zod.uuid().optional(),
+  "name": zod.string().min(1).max(saveEmployeeResponseServicesItemOneVariantsItemNameMax),
+  "priceCents": zod.int().min(saveEmployeeResponseServicesItemOneVariantsItemPriceCentsMin).max(saveEmployeeResponseServicesItemOneVariantsItemPriceCentsMax),
+  "durationMinutes": zod.int().min(1).max(saveEmployeeResponseServicesItemOneVariantsItemDurationMinutesMax)
+})).max(saveEmployeeResponseServicesItemOneVariantsMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "archived": zod.boolean()
+}))),
+  "serviceCategories": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string()
+})),
+  "memberships": zod.array(zod.object({
+  "id": zod.string(),
+  "userId": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "status": zod.string()
+})),
+  "invitations": zod.array(zod.object({
+  "id": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "expiresAt": zod.string(),
+  "accepted": zod.boolean()
+})),
+  "policies": zod.array(zod.object({
+  "noticeHours": zod.int().min(saveEmployeeResponsePoliciesItemOneNoticeHoursMin).max(saveEmployeeResponsePoliciesItemOneNoticeHoursMax),
+  "lateFeeType": zod.enum(['percentage', 'fixed']),
+  "lateFeeValue": zod.int().min(saveEmployeeResponsePoliciesItemOneLateFeeValueMin).max(saveEmployeeResponsePoliciesItemOneLateFeeValueMax),
+  "noShowFeeType": zod.enum(['percentage', 'fixed']),
+  "noShowFeeValue": zod.int().min(saveEmployeeResponsePoliciesItemOneNoShowFeeValueMin).max(saveEmployeeResponsePoliciesItemOneNoShowFeeValueMax),
+  "waiverAllowed": zod.boolean(),
+  "exceptions": zod.string().max(saveEmployeeResponsePoliciesItemOneExceptionsMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "version": zod.int(),
+  "createdAt": zod.string()
+}))),
+  "publicationIssues": zod.array(zod.string())
+})
+
+
+export const CreateServiceCategoryParams = zod.object({
+  "organizationId": zod.uuid()
+})
+
+export const createServiceCategoryBodyNameMax = 100;
+
+
+
+export const CreateServiceCategoryBody = zod.object({
+  "name": zod.string().min(1).max(createServiceCategoryBodyNameMax)
+})
+
+export const createServiceCategoryResponseProfileNameMin = 2;
+export const createServiceCategoryResponseProfileNameMax = 120;
+
+export const createServiceCategoryResponseProfileDescriptionMax = 3000;
+
+export const createServiceCategoryResponseProfileContactEmailMax = 200;
+
+export const createServiceCategoryResponseProfilePhoneMax = 30;
+
+export const createServiceCategoryResponseProfileWebsiteMax = 300;
+
+export const createServiceCategoryResponseProfileOnboardingStepMax = 6;
+
+export const createServiceCategoryResponseLocationsItemOneNameMin = 2;
+export const createServiceCategoryResponseLocationsItemOneNameMax = 120;
+
+export const createServiceCategoryResponseLocationsItemOnePostalCodeRegExp = new RegExp('^([0-9]{5})?$');
+export const createServiceCategoryResponseLocationsItemOneCityMax = 100;
+
+export const createServiceCategoryResponseLocationsItemOneStreetMax = 150;
+
+export const createServiceCategoryResponseLocationsItemOneHouseNumberMax = 20;
+
+export const createServiceCategoryResponseLocationsItemOneAddressExtraMax = 150;
+
+export const createServiceCategoryResponseLocationsItemOneDistrictMax = 100;
+
+export const createServiceCategoryResponseLocationsItemOneTimezoneMax = 80;
+
+export const createServiceCategoryResponseLocationsItemOneLatitudeMin = -90;
+export const createServiceCategoryResponseLocationsItemOneLatitudeMax = 90;
+
+export const createServiceCategoryResponseLocationsItemOneLongitudeMin = -180;
+export const createServiceCategoryResponseLocationsItemOneLongitudeMax = 180;
+
+export const createServiceCategoryResponseLocationsItemOneOpeningHoursItemWeekdayMax = 7;
+
+export const createServiceCategoryResponseLocationsItemOneOpeningHoursItemOpensRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const createServiceCategoryResponseLocationsItemOneOpeningHoursItemClosesRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const createServiceCategoryResponseLocationsItemOneOpeningHoursMax = 7;
+
+export const createServiceCategoryResponseLocationsItemOneLeadTimeHoursMin = 0;
+export const createServiceCategoryResponseLocationsItemOneLeadTimeHoursMax = 720;
+
+export const createServiceCategoryResponseLocationsItemOneAdvanceBookingDaysMax = 730;
+
+export const createServiceCategoryResponseEmployeesItemOneDisplayNameMax = 100;
+
+export const createServiceCategoryResponseEmployeesItemOneEmailMax = 200;
+
+export const createServiceCategoryResponseEmployeesItemOnePhoneMax = 30;
+
+export const createServiceCategoryResponseEmployeesItemOneWorkingHoursItemWeekdayMax = 7;
+
+export const createServiceCategoryResponseEmployeesItemOneWorkingHoursItemOpensRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const createServiceCategoryResponseEmployeesItemOneWorkingHoursItemClosesRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const createServiceCategoryResponseEmployeesItemOneWorkingHoursMax = 7;
+
+export const createServiceCategoryResponseServicesItemOneNameMax = 150;
+
+export const createServiceCategoryResponseServicesItemOneDescriptionMax = 2000;
+
+export const createServiceCategoryResponseServicesItemOnePriceCentsMin = 0;
+export const createServiceCategoryResponseServicesItemOnePriceCentsMax = 10000000;
+
+export const createServiceCategoryResponseServicesItemOneDurationMinutesMax = 1440;
+
+export const createServiceCategoryResponseServicesItemOnePreparationMinutesMin = 0;
+export const createServiceCategoryResponseServicesItemOnePreparationMinutesMax = 240;
+
+export const createServiceCategoryResponseServicesItemOneCleanupMinutesMin = 0;
+export const createServiceCategoryResponseServicesItemOneCleanupMinutesMax = 240;
+
+export const createServiceCategoryResponseServicesItemOneEmployeeIdsMax = 100;
+
+export const createServiceCategoryResponseServicesItemOneVariantsItemNameMax = 100;
+
+export const createServiceCategoryResponseServicesItemOneVariantsItemPriceCentsMin = 0;
+export const createServiceCategoryResponseServicesItemOneVariantsItemPriceCentsMax = 10000000;
+
+export const createServiceCategoryResponseServicesItemOneVariantsItemDurationMinutesMax = 1440;
+
+export const createServiceCategoryResponseServicesItemOneVariantsMax = 30;
+
+export const createServiceCategoryResponsePoliciesItemOneNoticeHoursMin = 0;
+export const createServiceCategoryResponsePoliciesItemOneNoticeHoursMax = 720;
+
+export const createServiceCategoryResponsePoliciesItemOneLateFeeValueMin = 0;
+export const createServiceCategoryResponsePoliciesItemOneLateFeeValueMax = 10000000;
+
+export const createServiceCategoryResponsePoliciesItemOneNoShowFeeValueMin = 0;
+export const createServiceCategoryResponsePoliciesItemOneNoShowFeeValueMax = 10000000;
+
+export const createServiceCategoryResponsePoliciesItemOneExceptionsMax = 2000;
+
+
+
+export const CreateServiceCategoryResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "role": zod.enum(['owner', 'manager', 'employee']),
+  "isDemo": zod.boolean(),
+  "profile": zod.object({
+  "name": zod.string().min(createServiceCategoryResponseProfileNameMin).max(createServiceCategoryResponseProfileNameMax),
+  "description": zod.string().max(createServiceCategoryResponseProfileDescriptionMax),
+  "contactEmail": zod.string().max(createServiceCategoryResponseProfileContactEmailMax),
+  "phone": zod.string().max(createServiceCategoryResponseProfilePhoneMax),
+  "website": zod.string().max(createServiceCategoryResponseProfileWebsiteMax),
+  "categoryId": zod.uuid(),
+  "onboardingStep": zod.int().min(1).max(createServiceCategoryResponseProfileOnboardingStepMax)
+}),
+  "locations": zod.array(zod.object({
+  "name": zod.string().min(createServiceCategoryResponseLocationsItemOneNameMin).max(createServiceCategoryResponseLocationsItemOneNameMax),
+  "country": zod.enum(['DE']),
+  "postalCode": zod.string().regex(createServiceCategoryResponseLocationsItemOnePostalCodeRegExp),
+  "city": zod.string().max(createServiceCategoryResponseLocationsItemOneCityMax),
+  "street": zod.string().max(createServiceCategoryResponseLocationsItemOneStreetMax),
+  "houseNumber": zod.string().max(createServiceCategoryResponseLocationsItemOneHouseNumberMax),
+  "addressExtra": zod.string().max(createServiceCategoryResponseLocationsItemOneAddressExtraMax),
+  "district": zod.string().max(createServiceCategoryResponseLocationsItemOneDistrictMax),
+  "timezone": zod.string().max(createServiceCategoryResponseLocationsItemOneTimezoneMax),
+  "latitude": zod.number().min(createServiceCategoryResponseLocationsItemOneLatitudeMin).max(createServiceCategoryResponseLocationsItemOneLatitudeMax).nullish(),
+  "longitude": zod.number().min(createServiceCategoryResponseLocationsItemOneLongitudeMin).max(createServiceCategoryResponseLocationsItemOneLongitudeMax).nullish(),
+  "openingHours": zod.array(zod.object({
+  "weekday": zod.int().min(1).max(createServiceCategoryResponseLocationsItemOneOpeningHoursItemWeekdayMax),
+  "opens": zod.string().regex(createServiceCategoryResponseLocationsItemOneOpeningHoursItemOpensRegExp),
+  "closes": zod.string().regex(createServiceCategoryResponseLocationsItemOneOpeningHoursItemClosesRegExp)
+})).max(createServiceCategoryResponseLocationsItemOneOpeningHoursMax),
+  "leadTimeHours": zod.int().min(createServiceCategoryResponseLocationsItemOneLeadTimeHoursMin).max(createServiceCategoryResponseLocationsItemOneLeadTimeHoursMax),
+  "advanceBookingDays": zod.int().min(1).max(createServiceCategoryResponseLocationsItemOneAdvanceBookingDaysMax),
+  "contactPreference": zod.enum(['email', 'phone'])
+}).and(zod.object({
+  "id": zod.string(),
+  "slug": zod.string(),
+  "published": zod.boolean()
+}))),
+  "employees": zod.array(zod.object({
+  "displayName": zod.string().min(1).max(createServiceCategoryResponseEmployeesItemOneDisplayNameMax),
+  "email": zod.string().max(createServiceCategoryResponseEmployeesItemOneEmailMax),
+  "phone": zod.string().max(createServiceCategoryResponseEmployeesItemOnePhoneMax),
+  "locationId": zod.uuid(),
+  "active": zod.boolean(),
+  "workingHours": zod.array(zod.object({
+  "weekday": zod.int().min(1).max(createServiceCategoryResponseEmployeesItemOneWorkingHoursItemWeekdayMax),
+  "opens": zod.string().regex(createServiceCategoryResponseEmployeesItemOneWorkingHoursItemOpensRegExp),
+  "closes": zod.string().regex(createServiceCategoryResponseEmployeesItemOneWorkingHoursItemClosesRegExp)
+})).max(createServiceCategoryResponseEmployeesItemOneWorkingHoursMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "userId": zod.string().nullish()
+}))),
+  "services": zod.array(zod.object({
+  "name": zod.string().min(1).max(createServiceCategoryResponseServicesItemOneNameMax),
+  "description": zod.string().max(createServiceCategoryResponseServicesItemOneDescriptionMax),
+  "locationId": zod.uuid(),
+  "categoryId": zod.string().nullish(),
+  "priceCents": zod.int().min(createServiceCategoryResponseServicesItemOnePriceCentsMin).max(createServiceCategoryResponseServicesItemOnePriceCentsMax),
+  "durationMinutes": zod.int().min(1).max(createServiceCategoryResponseServicesItemOneDurationMinutesMax),
+  "preparationMinutes": zod.int().min(createServiceCategoryResponseServicesItemOnePreparationMinutesMin).max(createServiceCategoryResponseServicesItemOnePreparationMinutesMax),
+  "cleanupMinutes": zod.int().min(createServiceCategoryResponseServicesItemOneCleanupMinutesMin).max(createServiceCategoryResponseServicesItemOneCleanupMinutesMax),
+  "published": zod.boolean(),
+  "onlineBooking": zod.boolean(),
+  "employeeIds": zod.array(zod.uuid()).max(createServiceCategoryResponseServicesItemOneEmployeeIdsMax),
+  "variants": zod.array(zod.object({
+  "id": zod.uuid().optional(),
+  "name": zod.string().min(1).max(createServiceCategoryResponseServicesItemOneVariantsItemNameMax),
+  "priceCents": zod.int().min(createServiceCategoryResponseServicesItemOneVariantsItemPriceCentsMin).max(createServiceCategoryResponseServicesItemOneVariantsItemPriceCentsMax),
+  "durationMinutes": zod.int().min(1).max(createServiceCategoryResponseServicesItemOneVariantsItemDurationMinutesMax)
+})).max(createServiceCategoryResponseServicesItemOneVariantsMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "archived": zod.boolean()
+}))),
+  "serviceCategories": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string()
+})),
+  "memberships": zod.array(zod.object({
+  "id": zod.string(),
+  "userId": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "status": zod.string()
+})),
+  "invitations": zod.array(zod.object({
+  "id": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "expiresAt": zod.string(),
+  "accepted": zod.boolean()
+})),
+  "policies": zod.array(zod.object({
+  "noticeHours": zod.int().min(createServiceCategoryResponsePoliciesItemOneNoticeHoursMin).max(createServiceCategoryResponsePoliciesItemOneNoticeHoursMax),
+  "lateFeeType": zod.enum(['percentage', 'fixed']),
+  "lateFeeValue": zod.int().min(createServiceCategoryResponsePoliciesItemOneLateFeeValueMin).max(createServiceCategoryResponsePoliciesItemOneLateFeeValueMax),
+  "noShowFeeType": zod.enum(['percentage', 'fixed']),
+  "noShowFeeValue": zod.int().min(createServiceCategoryResponsePoliciesItemOneNoShowFeeValueMin).max(createServiceCategoryResponsePoliciesItemOneNoShowFeeValueMax),
+  "waiverAllowed": zod.boolean(),
+  "exceptions": zod.string().max(createServiceCategoryResponsePoliciesItemOneExceptionsMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "version": zod.int(),
+  "createdAt": zod.string()
+}))),
+  "publicationIssues": zod.array(zod.string())
+})
+
+
+export const CreateBusinessServiceParams = zod.object({
+  "organizationId": zod.uuid()
+})
+
+export const createBusinessServiceBodyNameMax = 150;
+
+export const createBusinessServiceBodyDescriptionMax = 2000;
+
+export const createBusinessServiceBodyPriceCentsMin = 0;
+export const createBusinessServiceBodyPriceCentsMax = 10000000;
+
+export const createBusinessServiceBodyDurationMinutesMax = 1440;
+
+export const createBusinessServiceBodyPreparationMinutesMin = 0;
+export const createBusinessServiceBodyPreparationMinutesMax = 240;
+
+export const createBusinessServiceBodyCleanupMinutesMin = 0;
+export const createBusinessServiceBodyCleanupMinutesMax = 240;
+
+export const createBusinessServiceBodyEmployeeIdsMax = 100;
+
+export const createBusinessServiceBodyVariantsItemNameMax = 100;
+
+export const createBusinessServiceBodyVariantsItemPriceCentsMin = 0;
+export const createBusinessServiceBodyVariantsItemPriceCentsMax = 10000000;
+
+export const createBusinessServiceBodyVariantsItemDurationMinutesMax = 1440;
+
+export const createBusinessServiceBodyVariantsMax = 30;
+
+
+
+export const CreateBusinessServiceBody = zod.object({
+  "name": zod.string().min(1).max(createBusinessServiceBodyNameMax),
+  "description": zod.string().max(createBusinessServiceBodyDescriptionMax),
+  "locationId": zod.uuid(),
+  "categoryId": zod.string().nullish(),
+  "priceCents": zod.int().min(createBusinessServiceBodyPriceCentsMin).max(createBusinessServiceBodyPriceCentsMax),
+  "durationMinutes": zod.int().min(1).max(createBusinessServiceBodyDurationMinutesMax),
+  "preparationMinutes": zod.int().min(createBusinessServiceBodyPreparationMinutesMin).max(createBusinessServiceBodyPreparationMinutesMax),
+  "cleanupMinutes": zod.int().min(createBusinessServiceBodyCleanupMinutesMin).max(createBusinessServiceBodyCleanupMinutesMax),
+  "published": zod.boolean(),
+  "onlineBooking": zod.boolean(),
+  "employeeIds": zod.array(zod.uuid()).max(createBusinessServiceBodyEmployeeIdsMax),
+  "variants": zod.array(zod.object({
+  "id": zod.uuid().optional(),
+  "name": zod.string().min(1).max(createBusinessServiceBodyVariantsItemNameMax),
+  "priceCents": zod.int().min(createBusinessServiceBodyVariantsItemPriceCentsMin).max(createBusinessServiceBodyVariantsItemPriceCentsMax),
+  "durationMinutes": zod.int().min(1).max(createBusinessServiceBodyVariantsItemDurationMinutesMax)
+})).max(createBusinessServiceBodyVariantsMax)
+})
+
+export const createBusinessServiceResponseProfileNameMin = 2;
+export const createBusinessServiceResponseProfileNameMax = 120;
+
+export const createBusinessServiceResponseProfileDescriptionMax = 3000;
+
+export const createBusinessServiceResponseProfileContactEmailMax = 200;
+
+export const createBusinessServiceResponseProfilePhoneMax = 30;
+
+export const createBusinessServiceResponseProfileWebsiteMax = 300;
+
+export const createBusinessServiceResponseProfileOnboardingStepMax = 6;
+
+export const createBusinessServiceResponseLocationsItemOneNameMin = 2;
+export const createBusinessServiceResponseLocationsItemOneNameMax = 120;
+
+export const createBusinessServiceResponseLocationsItemOnePostalCodeRegExp = new RegExp('^([0-9]{5})?$');
+export const createBusinessServiceResponseLocationsItemOneCityMax = 100;
+
+export const createBusinessServiceResponseLocationsItemOneStreetMax = 150;
+
+export const createBusinessServiceResponseLocationsItemOneHouseNumberMax = 20;
+
+export const createBusinessServiceResponseLocationsItemOneAddressExtraMax = 150;
+
+export const createBusinessServiceResponseLocationsItemOneDistrictMax = 100;
+
+export const createBusinessServiceResponseLocationsItemOneTimezoneMax = 80;
+
+export const createBusinessServiceResponseLocationsItemOneLatitudeMin = -90;
+export const createBusinessServiceResponseLocationsItemOneLatitudeMax = 90;
+
+export const createBusinessServiceResponseLocationsItemOneLongitudeMin = -180;
+export const createBusinessServiceResponseLocationsItemOneLongitudeMax = 180;
+
+export const createBusinessServiceResponseLocationsItemOneOpeningHoursItemWeekdayMax = 7;
+
+export const createBusinessServiceResponseLocationsItemOneOpeningHoursItemOpensRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const createBusinessServiceResponseLocationsItemOneOpeningHoursItemClosesRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const createBusinessServiceResponseLocationsItemOneOpeningHoursMax = 7;
+
+export const createBusinessServiceResponseLocationsItemOneLeadTimeHoursMin = 0;
+export const createBusinessServiceResponseLocationsItemOneLeadTimeHoursMax = 720;
+
+export const createBusinessServiceResponseLocationsItemOneAdvanceBookingDaysMax = 730;
+
+export const createBusinessServiceResponseEmployeesItemOneDisplayNameMax = 100;
+
+export const createBusinessServiceResponseEmployeesItemOneEmailMax = 200;
+
+export const createBusinessServiceResponseEmployeesItemOnePhoneMax = 30;
+
+export const createBusinessServiceResponseEmployeesItemOneWorkingHoursItemWeekdayMax = 7;
+
+export const createBusinessServiceResponseEmployeesItemOneWorkingHoursItemOpensRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const createBusinessServiceResponseEmployeesItemOneWorkingHoursItemClosesRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const createBusinessServiceResponseEmployeesItemOneWorkingHoursMax = 7;
+
+export const createBusinessServiceResponseServicesItemOneNameMax = 150;
+
+export const createBusinessServiceResponseServicesItemOneDescriptionMax = 2000;
+
+export const createBusinessServiceResponseServicesItemOnePriceCentsMin = 0;
+export const createBusinessServiceResponseServicesItemOnePriceCentsMax = 10000000;
+
+export const createBusinessServiceResponseServicesItemOneDurationMinutesMax = 1440;
+
+export const createBusinessServiceResponseServicesItemOnePreparationMinutesMin = 0;
+export const createBusinessServiceResponseServicesItemOnePreparationMinutesMax = 240;
+
+export const createBusinessServiceResponseServicesItemOneCleanupMinutesMin = 0;
+export const createBusinessServiceResponseServicesItemOneCleanupMinutesMax = 240;
+
+export const createBusinessServiceResponseServicesItemOneEmployeeIdsMax = 100;
+
+export const createBusinessServiceResponseServicesItemOneVariantsItemNameMax = 100;
+
+export const createBusinessServiceResponseServicesItemOneVariantsItemPriceCentsMin = 0;
+export const createBusinessServiceResponseServicesItemOneVariantsItemPriceCentsMax = 10000000;
+
+export const createBusinessServiceResponseServicesItemOneVariantsItemDurationMinutesMax = 1440;
+
+export const createBusinessServiceResponseServicesItemOneVariantsMax = 30;
+
+export const createBusinessServiceResponsePoliciesItemOneNoticeHoursMin = 0;
+export const createBusinessServiceResponsePoliciesItemOneNoticeHoursMax = 720;
+
+export const createBusinessServiceResponsePoliciesItemOneLateFeeValueMin = 0;
+export const createBusinessServiceResponsePoliciesItemOneLateFeeValueMax = 10000000;
+
+export const createBusinessServiceResponsePoliciesItemOneNoShowFeeValueMin = 0;
+export const createBusinessServiceResponsePoliciesItemOneNoShowFeeValueMax = 10000000;
+
+export const createBusinessServiceResponsePoliciesItemOneExceptionsMax = 2000;
+
+
+
+export const CreateBusinessServiceResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "role": zod.enum(['owner', 'manager', 'employee']),
+  "isDemo": zod.boolean(),
+  "profile": zod.object({
+  "name": zod.string().min(createBusinessServiceResponseProfileNameMin).max(createBusinessServiceResponseProfileNameMax),
+  "description": zod.string().max(createBusinessServiceResponseProfileDescriptionMax),
+  "contactEmail": zod.string().max(createBusinessServiceResponseProfileContactEmailMax),
+  "phone": zod.string().max(createBusinessServiceResponseProfilePhoneMax),
+  "website": zod.string().max(createBusinessServiceResponseProfileWebsiteMax),
+  "categoryId": zod.uuid(),
+  "onboardingStep": zod.int().min(1).max(createBusinessServiceResponseProfileOnboardingStepMax)
+}),
+  "locations": zod.array(zod.object({
+  "name": zod.string().min(createBusinessServiceResponseLocationsItemOneNameMin).max(createBusinessServiceResponseLocationsItemOneNameMax),
+  "country": zod.enum(['DE']),
+  "postalCode": zod.string().regex(createBusinessServiceResponseLocationsItemOnePostalCodeRegExp),
+  "city": zod.string().max(createBusinessServiceResponseLocationsItemOneCityMax),
+  "street": zod.string().max(createBusinessServiceResponseLocationsItemOneStreetMax),
+  "houseNumber": zod.string().max(createBusinessServiceResponseLocationsItemOneHouseNumberMax),
+  "addressExtra": zod.string().max(createBusinessServiceResponseLocationsItemOneAddressExtraMax),
+  "district": zod.string().max(createBusinessServiceResponseLocationsItemOneDistrictMax),
+  "timezone": zod.string().max(createBusinessServiceResponseLocationsItemOneTimezoneMax),
+  "latitude": zod.number().min(createBusinessServiceResponseLocationsItemOneLatitudeMin).max(createBusinessServiceResponseLocationsItemOneLatitudeMax).nullish(),
+  "longitude": zod.number().min(createBusinessServiceResponseLocationsItemOneLongitudeMin).max(createBusinessServiceResponseLocationsItemOneLongitudeMax).nullish(),
+  "openingHours": zod.array(zod.object({
+  "weekday": zod.int().min(1).max(createBusinessServiceResponseLocationsItemOneOpeningHoursItemWeekdayMax),
+  "opens": zod.string().regex(createBusinessServiceResponseLocationsItemOneOpeningHoursItemOpensRegExp),
+  "closes": zod.string().regex(createBusinessServiceResponseLocationsItemOneOpeningHoursItemClosesRegExp)
+})).max(createBusinessServiceResponseLocationsItemOneOpeningHoursMax),
+  "leadTimeHours": zod.int().min(createBusinessServiceResponseLocationsItemOneLeadTimeHoursMin).max(createBusinessServiceResponseLocationsItemOneLeadTimeHoursMax),
+  "advanceBookingDays": zod.int().min(1).max(createBusinessServiceResponseLocationsItemOneAdvanceBookingDaysMax),
+  "contactPreference": zod.enum(['email', 'phone'])
+}).and(zod.object({
+  "id": zod.string(),
+  "slug": zod.string(),
+  "published": zod.boolean()
+}))),
+  "employees": zod.array(zod.object({
+  "displayName": zod.string().min(1).max(createBusinessServiceResponseEmployeesItemOneDisplayNameMax),
+  "email": zod.string().max(createBusinessServiceResponseEmployeesItemOneEmailMax),
+  "phone": zod.string().max(createBusinessServiceResponseEmployeesItemOnePhoneMax),
+  "locationId": zod.uuid(),
+  "active": zod.boolean(),
+  "workingHours": zod.array(zod.object({
+  "weekday": zod.int().min(1).max(createBusinessServiceResponseEmployeesItemOneWorkingHoursItemWeekdayMax),
+  "opens": zod.string().regex(createBusinessServiceResponseEmployeesItemOneWorkingHoursItemOpensRegExp),
+  "closes": zod.string().regex(createBusinessServiceResponseEmployeesItemOneWorkingHoursItemClosesRegExp)
+})).max(createBusinessServiceResponseEmployeesItemOneWorkingHoursMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "userId": zod.string().nullish()
+}))),
+  "services": zod.array(zod.object({
+  "name": zod.string().min(1).max(createBusinessServiceResponseServicesItemOneNameMax),
+  "description": zod.string().max(createBusinessServiceResponseServicesItemOneDescriptionMax),
+  "locationId": zod.uuid(),
+  "categoryId": zod.string().nullish(),
+  "priceCents": zod.int().min(createBusinessServiceResponseServicesItemOnePriceCentsMin).max(createBusinessServiceResponseServicesItemOnePriceCentsMax),
+  "durationMinutes": zod.int().min(1).max(createBusinessServiceResponseServicesItemOneDurationMinutesMax),
+  "preparationMinutes": zod.int().min(createBusinessServiceResponseServicesItemOnePreparationMinutesMin).max(createBusinessServiceResponseServicesItemOnePreparationMinutesMax),
+  "cleanupMinutes": zod.int().min(createBusinessServiceResponseServicesItemOneCleanupMinutesMin).max(createBusinessServiceResponseServicesItemOneCleanupMinutesMax),
+  "published": zod.boolean(),
+  "onlineBooking": zod.boolean(),
+  "employeeIds": zod.array(zod.uuid()).max(createBusinessServiceResponseServicesItemOneEmployeeIdsMax),
+  "variants": zod.array(zod.object({
+  "id": zod.uuid().optional(),
+  "name": zod.string().min(1).max(createBusinessServiceResponseServicesItemOneVariantsItemNameMax),
+  "priceCents": zod.int().min(createBusinessServiceResponseServicesItemOneVariantsItemPriceCentsMin).max(createBusinessServiceResponseServicesItemOneVariantsItemPriceCentsMax),
+  "durationMinutes": zod.int().min(1).max(createBusinessServiceResponseServicesItemOneVariantsItemDurationMinutesMax)
+})).max(createBusinessServiceResponseServicesItemOneVariantsMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "archived": zod.boolean()
+}))),
+  "serviceCategories": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string()
+})),
+  "memberships": zod.array(zod.object({
+  "id": zod.string(),
+  "userId": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "status": zod.string()
+})),
+  "invitations": zod.array(zod.object({
+  "id": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "expiresAt": zod.string(),
+  "accepted": zod.boolean()
+})),
+  "policies": zod.array(zod.object({
+  "noticeHours": zod.int().min(createBusinessServiceResponsePoliciesItemOneNoticeHoursMin).max(createBusinessServiceResponsePoliciesItemOneNoticeHoursMax),
+  "lateFeeType": zod.enum(['percentage', 'fixed']),
+  "lateFeeValue": zod.int().min(createBusinessServiceResponsePoliciesItemOneLateFeeValueMin).max(createBusinessServiceResponsePoliciesItemOneLateFeeValueMax),
+  "noShowFeeType": zod.enum(['percentage', 'fixed']),
+  "noShowFeeValue": zod.int().min(createBusinessServiceResponsePoliciesItemOneNoShowFeeValueMin).max(createBusinessServiceResponsePoliciesItemOneNoShowFeeValueMax),
+  "waiverAllowed": zod.boolean(),
+  "exceptions": zod.string().max(createBusinessServiceResponsePoliciesItemOneExceptionsMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "version": zod.int(),
+  "createdAt": zod.string()
+}))),
+  "publicationIssues": zod.array(zod.string())
+})
+
+
+export const SaveBusinessServiceParams = zod.object({
+  "organizationId": zod.uuid(),
+  "serviceId": zod.uuid()
+})
+
+export const saveBusinessServiceBodyNameMax = 150;
+
+export const saveBusinessServiceBodyDescriptionMax = 2000;
+
+export const saveBusinessServiceBodyPriceCentsMin = 0;
+export const saveBusinessServiceBodyPriceCentsMax = 10000000;
+
+export const saveBusinessServiceBodyDurationMinutesMax = 1440;
+
+export const saveBusinessServiceBodyPreparationMinutesMin = 0;
+export const saveBusinessServiceBodyPreparationMinutesMax = 240;
+
+export const saveBusinessServiceBodyCleanupMinutesMin = 0;
+export const saveBusinessServiceBodyCleanupMinutesMax = 240;
+
+export const saveBusinessServiceBodyEmployeeIdsMax = 100;
+
+export const saveBusinessServiceBodyVariantsItemNameMax = 100;
+
+export const saveBusinessServiceBodyVariantsItemPriceCentsMin = 0;
+export const saveBusinessServiceBodyVariantsItemPriceCentsMax = 10000000;
+
+export const saveBusinessServiceBodyVariantsItemDurationMinutesMax = 1440;
+
+export const saveBusinessServiceBodyVariantsMax = 30;
+
+
+
+export const SaveBusinessServiceBody = zod.object({
+  "name": zod.string().min(1).max(saveBusinessServiceBodyNameMax),
+  "description": zod.string().max(saveBusinessServiceBodyDescriptionMax),
+  "locationId": zod.uuid(),
+  "categoryId": zod.string().nullish(),
+  "priceCents": zod.int().min(saveBusinessServiceBodyPriceCentsMin).max(saveBusinessServiceBodyPriceCentsMax),
+  "durationMinutes": zod.int().min(1).max(saveBusinessServiceBodyDurationMinutesMax),
+  "preparationMinutes": zod.int().min(saveBusinessServiceBodyPreparationMinutesMin).max(saveBusinessServiceBodyPreparationMinutesMax),
+  "cleanupMinutes": zod.int().min(saveBusinessServiceBodyCleanupMinutesMin).max(saveBusinessServiceBodyCleanupMinutesMax),
+  "published": zod.boolean(),
+  "onlineBooking": zod.boolean(),
+  "employeeIds": zod.array(zod.uuid()).max(saveBusinessServiceBodyEmployeeIdsMax),
+  "variants": zod.array(zod.object({
+  "id": zod.uuid().optional(),
+  "name": zod.string().min(1).max(saveBusinessServiceBodyVariantsItemNameMax),
+  "priceCents": zod.int().min(saveBusinessServiceBodyVariantsItemPriceCentsMin).max(saveBusinessServiceBodyVariantsItemPriceCentsMax),
+  "durationMinutes": zod.int().min(1).max(saveBusinessServiceBodyVariantsItemDurationMinutesMax)
+})).max(saveBusinessServiceBodyVariantsMax)
+})
+
+export const saveBusinessServiceResponseProfileNameMin = 2;
+export const saveBusinessServiceResponseProfileNameMax = 120;
+
+export const saveBusinessServiceResponseProfileDescriptionMax = 3000;
+
+export const saveBusinessServiceResponseProfileContactEmailMax = 200;
+
+export const saveBusinessServiceResponseProfilePhoneMax = 30;
+
+export const saveBusinessServiceResponseProfileWebsiteMax = 300;
+
+export const saveBusinessServiceResponseProfileOnboardingStepMax = 6;
+
+export const saveBusinessServiceResponseLocationsItemOneNameMin = 2;
+export const saveBusinessServiceResponseLocationsItemOneNameMax = 120;
+
+export const saveBusinessServiceResponseLocationsItemOnePostalCodeRegExp = new RegExp('^([0-9]{5})?$');
+export const saveBusinessServiceResponseLocationsItemOneCityMax = 100;
+
+export const saveBusinessServiceResponseLocationsItemOneStreetMax = 150;
+
+export const saveBusinessServiceResponseLocationsItemOneHouseNumberMax = 20;
+
+export const saveBusinessServiceResponseLocationsItemOneAddressExtraMax = 150;
+
+export const saveBusinessServiceResponseLocationsItemOneDistrictMax = 100;
+
+export const saveBusinessServiceResponseLocationsItemOneTimezoneMax = 80;
+
+export const saveBusinessServiceResponseLocationsItemOneLatitudeMin = -90;
+export const saveBusinessServiceResponseLocationsItemOneLatitudeMax = 90;
+
+export const saveBusinessServiceResponseLocationsItemOneLongitudeMin = -180;
+export const saveBusinessServiceResponseLocationsItemOneLongitudeMax = 180;
+
+export const saveBusinessServiceResponseLocationsItemOneOpeningHoursItemWeekdayMax = 7;
+
+export const saveBusinessServiceResponseLocationsItemOneOpeningHoursItemOpensRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const saveBusinessServiceResponseLocationsItemOneOpeningHoursItemClosesRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const saveBusinessServiceResponseLocationsItemOneOpeningHoursMax = 7;
+
+export const saveBusinessServiceResponseLocationsItemOneLeadTimeHoursMin = 0;
+export const saveBusinessServiceResponseLocationsItemOneLeadTimeHoursMax = 720;
+
+export const saveBusinessServiceResponseLocationsItemOneAdvanceBookingDaysMax = 730;
+
+export const saveBusinessServiceResponseEmployeesItemOneDisplayNameMax = 100;
+
+export const saveBusinessServiceResponseEmployeesItemOneEmailMax = 200;
+
+export const saveBusinessServiceResponseEmployeesItemOnePhoneMax = 30;
+
+export const saveBusinessServiceResponseEmployeesItemOneWorkingHoursItemWeekdayMax = 7;
+
+export const saveBusinessServiceResponseEmployeesItemOneWorkingHoursItemOpensRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const saveBusinessServiceResponseEmployeesItemOneWorkingHoursItemClosesRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const saveBusinessServiceResponseEmployeesItemOneWorkingHoursMax = 7;
+
+export const saveBusinessServiceResponseServicesItemOneNameMax = 150;
+
+export const saveBusinessServiceResponseServicesItemOneDescriptionMax = 2000;
+
+export const saveBusinessServiceResponseServicesItemOnePriceCentsMin = 0;
+export const saveBusinessServiceResponseServicesItemOnePriceCentsMax = 10000000;
+
+export const saveBusinessServiceResponseServicesItemOneDurationMinutesMax = 1440;
+
+export const saveBusinessServiceResponseServicesItemOnePreparationMinutesMin = 0;
+export const saveBusinessServiceResponseServicesItemOnePreparationMinutesMax = 240;
+
+export const saveBusinessServiceResponseServicesItemOneCleanupMinutesMin = 0;
+export const saveBusinessServiceResponseServicesItemOneCleanupMinutesMax = 240;
+
+export const saveBusinessServiceResponseServicesItemOneEmployeeIdsMax = 100;
+
+export const saveBusinessServiceResponseServicesItemOneVariantsItemNameMax = 100;
+
+export const saveBusinessServiceResponseServicesItemOneVariantsItemPriceCentsMin = 0;
+export const saveBusinessServiceResponseServicesItemOneVariantsItemPriceCentsMax = 10000000;
+
+export const saveBusinessServiceResponseServicesItemOneVariantsItemDurationMinutesMax = 1440;
+
+export const saveBusinessServiceResponseServicesItemOneVariantsMax = 30;
+
+export const saveBusinessServiceResponsePoliciesItemOneNoticeHoursMin = 0;
+export const saveBusinessServiceResponsePoliciesItemOneNoticeHoursMax = 720;
+
+export const saveBusinessServiceResponsePoliciesItemOneLateFeeValueMin = 0;
+export const saveBusinessServiceResponsePoliciesItemOneLateFeeValueMax = 10000000;
+
+export const saveBusinessServiceResponsePoliciesItemOneNoShowFeeValueMin = 0;
+export const saveBusinessServiceResponsePoliciesItemOneNoShowFeeValueMax = 10000000;
+
+export const saveBusinessServiceResponsePoliciesItemOneExceptionsMax = 2000;
+
+
+
+export const SaveBusinessServiceResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "role": zod.enum(['owner', 'manager', 'employee']),
+  "isDemo": zod.boolean(),
+  "profile": zod.object({
+  "name": zod.string().min(saveBusinessServiceResponseProfileNameMin).max(saveBusinessServiceResponseProfileNameMax),
+  "description": zod.string().max(saveBusinessServiceResponseProfileDescriptionMax),
+  "contactEmail": zod.string().max(saveBusinessServiceResponseProfileContactEmailMax),
+  "phone": zod.string().max(saveBusinessServiceResponseProfilePhoneMax),
+  "website": zod.string().max(saveBusinessServiceResponseProfileWebsiteMax),
+  "categoryId": zod.uuid(),
+  "onboardingStep": zod.int().min(1).max(saveBusinessServiceResponseProfileOnboardingStepMax)
+}),
+  "locations": zod.array(zod.object({
+  "name": zod.string().min(saveBusinessServiceResponseLocationsItemOneNameMin).max(saveBusinessServiceResponseLocationsItemOneNameMax),
+  "country": zod.enum(['DE']),
+  "postalCode": zod.string().regex(saveBusinessServiceResponseLocationsItemOnePostalCodeRegExp),
+  "city": zod.string().max(saveBusinessServiceResponseLocationsItemOneCityMax),
+  "street": zod.string().max(saveBusinessServiceResponseLocationsItemOneStreetMax),
+  "houseNumber": zod.string().max(saveBusinessServiceResponseLocationsItemOneHouseNumberMax),
+  "addressExtra": zod.string().max(saveBusinessServiceResponseLocationsItemOneAddressExtraMax),
+  "district": zod.string().max(saveBusinessServiceResponseLocationsItemOneDistrictMax),
+  "timezone": zod.string().max(saveBusinessServiceResponseLocationsItemOneTimezoneMax),
+  "latitude": zod.number().min(saveBusinessServiceResponseLocationsItemOneLatitudeMin).max(saveBusinessServiceResponseLocationsItemOneLatitudeMax).nullish(),
+  "longitude": zod.number().min(saveBusinessServiceResponseLocationsItemOneLongitudeMin).max(saveBusinessServiceResponseLocationsItemOneLongitudeMax).nullish(),
+  "openingHours": zod.array(zod.object({
+  "weekday": zod.int().min(1).max(saveBusinessServiceResponseLocationsItemOneOpeningHoursItemWeekdayMax),
+  "opens": zod.string().regex(saveBusinessServiceResponseLocationsItemOneOpeningHoursItemOpensRegExp),
+  "closes": zod.string().regex(saveBusinessServiceResponseLocationsItemOneOpeningHoursItemClosesRegExp)
+})).max(saveBusinessServiceResponseLocationsItemOneOpeningHoursMax),
+  "leadTimeHours": zod.int().min(saveBusinessServiceResponseLocationsItemOneLeadTimeHoursMin).max(saveBusinessServiceResponseLocationsItemOneLeadTimeHoursMax),
+  "advanceBookingDays": zod.int().min(1).max(saveBusinessServiceResponseLocationsItemOneAdvanceBookingDaysMax),
+  "contactPreference": zod.enum(['email', 'phone'])
+}).and(zod.object({
+  "id": zod.string(),
+  "slug": zod.string(),
+  "published": zod.boolean()
+}))),
+  "employees": zod.array(zod.object({
+  "displayName": zod.string().min(1).max(saveBusinessServiceResponseEmployeesItemOneDisplayNameMax),
+  "email": zod.string().max(saveBusinessServiceResponseEmployeesItemOneEmailMax),
+  "phone": zod.string().max(saveBusinessServiceResponseEmployeesItemOnePhoneMax),
+  "locationId": zod.uuid(),
+  "active": zod.boolean(),
+  "workingHours": zod.array(zod.object({
+  "weekday": zod.int().min(1).max(saveBusinessServiceResponseEmployeesItemOneWorkingHoursItemWeekdayMax),
+  "opens": zod.string().regex(saveBusinessServiceResponseEmployeesItemOneWorkingHoursItemOpensRegExp),
+  "closes": zod.string().regex(saveBusinessServiceResponseEmployeesItemOneWorkingHoursItemClosesRegExp)
+})).max(saveBusinessServiceResponseEmployeesItemOneWorkingHoursMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "userId": zod.string().nullish()
+}))),
+  "services": zod.array(zod.object({
+  "name": zod.string().min(1).max(saveBusinessServiceResponseServicesItemOneNameMax),
+  "description": zod.string().max(saveBusinessServiceResponseServicesItemOneDescriptionMax),
+  "locationId": zod.uuid(),
+  "categoryId": zod.string().nullish(),
+  "priceCents": zod.int().min(saveBusinessServiceResponseServicesItemOnePriceCentsMin).max(saveBusinessServiceResponseServicesItemOnePriceCentsMax),
+  "durationMinutes": zod.int().min(1).max(saveBusinessServiceResponseServicesItemOneDurationMinutesMax),
+  "preparationMinutes": zod.int().min(saveBusinessServiceResponseServicesItemOnePreparationMinutesMin).max(saveBusinessServiceResponseServicesItemOnePreparationMinutesMax),
+  "cleanupMinutes": zod.int().min(saveBusinessServiceResponseServicesItemOneCleanupMinutesMin).max(saveBusinessServiceResponseServicesItemOneCleanupMinutesMax),
+  "published": zod.boolean(),
+  "onlineBooking": zod.boolean(),
+  "employeeIds": zod.array(zod.uuid()).max(saveBusinessServiceResponseServicesItemOneEmployeeIdsMax),
+  "variants": zod.array(zod.object({
+  "id": zod.uuid().optional(),
+  "name": zod.string().min(1).max(saveBusinessServiceResponseServicesItemOneVariantsItemNameMax),
+  "priceCents": zod.int().min(saveBusinessServiceResponseServicesItemOneVariantsItemPriceCentsMin).max(saveBusinessServiceResponseServicesItemOneVariantsItemPriceCentsMax),
+  "durationMinutes": zod.int().min(1).max(saveBusinessServiceResponseServicesItemOneVariantsItemDurationMinutesMax)
+})).max(saveBusinessServiceResponseServicesItemOneVariantsMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "archived": zod.boolean()
+}))),
+  "serviceCategories": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string()
+})),
+  "memberships": zod.array(zod.object({
+  "id": zod.string(),
+  "userId": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "status": zod.string()
+})),
+  "invitations": zod.array(zod.object({
+  "id": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "expiresAt": zod.string(),
+  "accepted": zod.boolean()
+})),
+  "policies": zod.array(zod.object({
+  "noticeHours": zod.int().min(saveBusinessServiceResponsePoliciesItemOneNoticeHoursMin).max(saveBusinessServiceResponsePoliciesItemOneNoticeHoursMax),
+  "lateFeeType": zod.enum(['percentage', 'fixed']),
+  "lateFeeValue": zod.int().min(saveBusinessServiceResponsePoliciesItemOneLateFeeValueMin).max(saveBusinessServiceResponsePoliciesItemOneLateFeeValueMax),
+  "noShowFeeType": zod.enum(['percentage', 'fixed']),
+  "noShowFeeValue": zod.int().min(saveBusinessServiceResponsePoliciesItemOneNoShowFeeValueMin).max(saveBusinessServiceResponsePoliciesItemOneNoShowFeeValueMax),
+  "waiverAllowed": zod.boolean(),
+  "exceptions": zod.string().max(saveBusinessServiceResponsePoliciesItemOneExceptionsMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "version": zod.int(),
+  "createdAt": zod.string()
+}))),
+  "publicationIssues": zod.array(zod.string())
+})
+
+
+export const ArchiveBusinessServiceParams = zod.object({
+  "organizationId": zod.uuid(),
+  "serviceId": zod.uuid()
+})
+
+export const archiveBusinessServiceResponseProfileNameMin = 2;
+export const archiveBusinessServiceResponseProfileNameMax = 120;
+
+export const archiveBusinessServiceResponseProfileDescriptionMax = 3000;
+
+export const archiveBusinessServiceResponseProfileContactEmailMax = 200;
+
+export const archiveBusinessServiceResponseProfilePhoneMax = 30;
+
+export const archiveBusinessServiceResponseProfileWebsiteMax = 300;
+
+export const archiveBusinessServiceResponseProfileOnboardingStepMax = 6;
+
+export const archiveBusinessServiceResponseLocationsItemOneNameMin = 2;
+export const archiveBusinessServiceResponseLocationsItemOneNameMax = 120;
+
+export const archiveBusinessServiceResponseLocationsItemOnePostalCodeRegExp = new RegExp('^([0-9]{5})?$');
+export const archiveBusinessServiceResponseLocationsItemOneCityMax = 100;
+
+export const archiveBusinessServiceResponseLocationsItemOneStreetMax = 150;
+
+export const archiveBusinessServiceResponseLocationsItemOneHouseNumberMax = 20;
+
+export const archiveBusinessServiceResponseLocationsItemOneAddressExtraMax = 150;
+
+export const archiveBusinessServiceResponseLocationsItemOneDistrictMax = 100;
+
+export const archiveBusinessServiceResponseLocationsItemOneTimezoneMax = 80;
+
+export const archiveBusinessServiceResponseLocationsItemOneLatitudeMin = -90;
+export const archiveBusinessServiceResponseLocationsItemOneLatitudeMax = 90;
+
+export const archiveBusinessServiceResponseLocationsItemOneLongitudeMin = -180;
+export const archiveBusinessServiceResponseLocationsItemOneLongitudeMax = 180;
+
+export const archiveBusinessServiceResponseLocationsItemOneOpeningHoursItemWeekdayMax = 7;
+
+export const archiveBusinessServiceResponseLocationsItemOneOpeningHoursItemOpensRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const archiveBusinessServiceResponseLocationsItemOneOpeningHoursItemClosesRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const archiveBusinessServiceResponseLocationsItemOneOpeningHoursMax = 7;
+
+export const archiveBusinessServiceResponseLocationsItemOneLeadTimeHoursMin = 0;
+export const archiveBusinessServiceResponseLocationsItemOneLeadTimeHoursMax = 720;
+
+export const archiveBusinessServiceResponseLocationsItemOneAdvanceBookingDaysMax = 730;
+
+export const archiveBusinessServiceResponseEmployeesItemOneDisplayNameMax = 100;
+
+export const archiveBusinessServiceResponseEmployeesItemOneEmailMax = 200;
+
+export const archiveBusinessServiceResponseEmployeesItemOnePhoneMax = 30;
+
+export const archiveBusinessServiceResponseEmployeesItemOneWorkingHoursItemWeekdayMax = 7;
+
+export const archiveBusinessServiceResponseEmployeesItemOneWorkingHoursItemOpensRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const archiveBusinessServiceResponseEmployeesItemOneWorkingHoursItemClosesRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const archiveBusinessServiceResponseEmployeesItemOneWorkingHoursMax = 7;
+
+export const archiveBusinessServiceResponseServicesItemOneNameMax = 150;
+
+export const archiveBusinessServiceResponseServicesItemOneDescriptionMax = 2000;
+
+export const archiveBusinessServiceResponseServicesItemOnePriceCentsMin = 0;
+export const archiveBusinessServiceResponseServicesItemOnePriceCentsMax = 10000000;
+
+export const archiveBusinessServiceResponseServicesItemOneDurationMinutesMax = 1440;
+
+export const archiveBusinessServiceResponseServicesItemOnePreparationMinutesMin = 0;
+export const archiveBusinessServiceResponseServicesItemOnePreparationMinutesMax = 240;
+
+export const archiveBusinessServiceResponseServicesItemOneCleanupMinutesMin = 0;
+export const archiveBusinessServiceResponseServicesItemOneCleanupMinutesMax = 240;
+
+export const archiveBusinessServiceResponseServicesItemOneEmployeeIdsMax = 100;
+
+export const archiveBusinessServiceResponseServicesItemOneVariantsItemNameMax = 100;
+
+export const archiveBusinessServiceResponseServicesItemOneVariantsItemPriceCentsMin = 0;
+export const archiveBusinessServiceResponseServicesItemOneVariantsItemPriceCentsMax = 10000000;
+
+export const archiveBusinessServiceResponseServicesItemOneVariantsItemDurationMinutesMax = 1440;
+
+export const archiveBusinessServiceResponseServicesItemOneVariantsMax = 30;
+
+export const archiveBusinessServiceResponsePoliciesItemOneNoticeHoursMin = 0;
+export const archiveBusinessServiceResponsePoliciesItemOneNoticeHoursMax = 720;
+
+export const archiveBusinessServiceResponsePoliciesItemOneLateFeeValueMin = 0;
+export const archiveBusinessServiceResponsePoliciesItemOneLateFeeValueMax = 10000000;
+
+export const archiveBusinessServiceResponsePoliciesItemOneNoShowFeeValueMin = 0;
+export const archiveBusinessServiceResponsePoliciesItemOneNoShowFeeValueMax = 10000000;
+
+export const archiveBusinessServiceResponsePoliciesItemOneExceptionsMax = 2000;
+
+
+
+export const ArchiveBusinessServiceResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "role": zod.enum(['owner', 'manager', 'employee']),
+  "isDemo": zod.boolean(),
+  "profile": zod.object({
+  "name": zod.string().min(archiveBusinessServiceResponseProfileNameMin).max(archiveBusinessServiceResponseProfileNameMax),
+  "description": zod.string().max(archiveBusinessServiceResponseProfileDescriptionMax),
+  "contactEmail": zod.string().max(archiveBusinessServiceResponseProfileContactEmailMax),
+  "phone": zod.string().max(archiveBusinessServiceResponseProfilePhoneMax),
+  "website": zod.string().max(archiveBusinessServiceResponseProfileWebsiteMax),
+  "categoryId": zod.uuid(),
+  "onboardingStep": zod.int().min(1).max(archiveBusinessServiceResponseProfileOnboardingStepMax)
+}),
+  "locations": zod.array(zod.object({
+  "name": zod.string().min(archiveBusinessServiceResponseLocationsItemOneNameMin).max(archiveBusinessServiceResponseLocationsItemOneNameMax),
+  "country": zod.enum(['DE']),
+  "postalCode": zod.string().regex(archiveBusinessServiceResponseLocationsItemOnePostalCodeRegExp),
+  "city": zod.string().max(archiveBusinessServiceResponseLocationsItemOneCityMax),
+  "street": zod.string().max(archiveBusinessServiceResponseLocationsItemOneStreetMax),
+  "houseNumber": zod.string().max(archiveBusinessServiceResponseLocationsItemOneHouseNumberMax),
+  "addressExtra": zod.string().max(archiveBusinessServiceResponseLocationsItemOneAddressExtraMax),
+  "district": zod.string().max(archiveBusinessServiceResponseLocationsItemOneDistrictMax),
+  "timezone": zod.string().max(archiveBusinessServiceResponseLocationsItemOneTimezoneMax),
+  "latitude": zod.number().min(archiveBusinessServiceResponseLocationsItemOneLatitudeMin).max(archiveBusinessServiceResponseLocationsItemOneLatitudeMax).nullish(),
+  "longitude": zod.number().min(archiveBusinessServiceResponseLocationsItemOneLongitudeMin).max(archiveBusinessServiceResponseLocationsItemOneLongitudeMax).nullish(),
+  "openingHours": zod.array(zod.object({
+  "weekday": zod.int().min(1).max(archiveBusinessServiceResponseLocationsItemOneOpeningHoursItemWeekdayMax),
+  "opens": zod.string().regex(archiveBusinessServiceResponseLocationsItemOneOpeningHoursItemOpensRegExp),
+  "closes": zod.string().regex(archiveBusinessServiceResponseLocationsItemOneOpeningHoursItemClosesRegExp)
+})).max(archiveBusinessServiceResponseLocationsItemOneOpeningHoursMax),
+  "leadTimeHours": zod.int().min(archiveBusinessServiceResponseLocationsItemOneLeadTimeHoursMin).max(archiveBusinessServiceResponseLocationsItemOneLeadTimeHoursMax),
+  "advanceBookingDays": zod.int().min(1).max(archiveBusinessServiceResponseLocationsItemOneAdvanceBookingDaysMax),
+  "contactPreference": zod.enum(['email', 'phone'])
+}).and(zod.object({
+  "id": zod.string(),
+  "slug": zod.string(),
+  "published": zod.boolean()
+}))),
+  "employees": zod.array(zod.object({
+  "displayName": zod.string().min(1).max(archiveBusinessServiceResponseEmployeesItemOneDisplayNameMax),
+  "email": zod.string().max(archiveBusinessServiceResponseEmployeesItemOneEmailMax),
+  "phone": zod.string().max(archiveBusinessServiceResponseEmployeesItemOnePhoneMax),
+  "locationId": zod.uuid(),
+  "active": zod.boolean(),
+  "workingHours": zod.array(zod.object({
+  "weekday": zod.int().min(1).max(archiveBusinessServiceResponseEmployeesItemOneWorkingHoursItemWeekdayMax),
+  "opens": zod.string().regex(archiveBusinessServiceResponseEmployeesItemOneWorkingHoursItemOpensRegExp),
+  "closes": zod.string().regex(archiveBusinessServiceResponseEmployeesItemOneWorkingHoursItemClosesRegExp)
+})).max(archiveBusinessServiceResponseEmployeesItemOneWorkingHoursMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "userId": zod.string().nullish()
+}))),
+  "services": zod.array(zod.object({
+  "name": zod.string().min(1).max(archiveBusinessServiceResponseServicesItemOneNameMax),
+  "description": zod.string().max(archiveBusinessServiceResponseServicesItemOneDescriptionMax),
+  "locationId": zod.uuid(),
+  "categoryId": zod.string().nullish(),
+  "priceCents": zod.int().min(archiveBusinessServiceResponseServicesItemOnePriceCentsMin).max(archiveBusinessServiceResponseServicesItemOnePriceCentsMax),
+  "durationMinutes": zod.int().min(1).max(archiveBusinessServiceResponseServicesItemOneDurationMinutesMax),
+  "preparationMinutes": zod.int().min(archiveBusinessServiceResponseServicesItemOnePreparationMinutesMin).max(archiveBusinessServiceResponseServicesItemOnePreparationMinutesMax),
+  "cleanupMinutes": zod.int().min(archiveBusinessServiceResponseServicesItemOneCleanupMinutesMin).max(archiveBusinessServiceResponseServicesItemOneCleanupMinutesMax),
+  "published": zod.boolean(),
+  "onlineBooking": zod.boolean(),
+  "employeeIds": zod.array(zod.uuid()).max(archiveBusinessServiceResponseServicesItemOneEmployeeIdsMax),
+  "variants": zod.array(zod.object({
+  "id": zod.uuid().optional(),
+  "name": zod.string().min(1).max(archiveBusinessServiceResponseServicesItemOneVariantsItemNameMax),
+  "priceCents": zod.int().min(archiveBusinessServiceResponseServicesItemOneVariantsItemPriceCentsMin).max(archiveBusinessServiceResponseServicesItemOneVariantsItemPriceCentsMax),
+  "durationMinutes": zod.int().min(1).max(archiveBusinessServiceResponseServicesItemOneVariantsItemDurationMinutesMax)
+})).max(archiveBusinessServiceResponseServicesItemOneVariantsMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "archived": zod.boolean()
+}))),
+  "serviceCategories": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string()
+})),
+  "memberships": zod.array(zod.object({
+  "id": zod.string(),
+  "userId": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "status": zod.string()
+})),
+  "invitations": zod.array(zod.object({
+  "id": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "expiresAt": zod.string(),
+  "accepted": zod.boolean()
+})),
+  "policies": zod.array(zod.object({
+  "noticeHours": zod.int().min(archiveBusinessServiceResponsePoliciesItemOneNoticeHoursMin).max(archiveBusinessServiceResponsePoliciesItemOneNoticeHoursMax),
+  "lateFeeType": zod.enum(['percentage', 'fixed']),
+  "lateFeeValue": zod.int().min(archiveBusinessServiceResponsePoliciesItemOneLateFeeValueMin).max(archiveBusinessServiceResponsePoliciesItemOneLateFeeValueMax),
+  "noShowFeeType": zod.enum(['percentage', 'fixed']),
+  "noShowFeeValue": zod.int().min(archiveBusinessServiceResponsePoliciesItemOneNoShowFeeValueMin).max(archiveBusinessServiceResponsePoliciesItemOneNoShowFeeValueMax),
+  "waiverAllowed": zod.boolean(),
+  "exceptions": zod.string().max(archiveBusinessServiceResponsePoliciesItemOneExceptionsMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "version": zod.int(),
+  "createdAt": zod.string()
+}))),
+  "publicationIssues": zod.array(zod.string())
+})
+
+
+export const SaveCancellationPolicyParams = zod.object({
+  "organizationId": zod.uuid()
+})
+
+export const saveCancellationPolicyBodyNoticeHoursMin = 0;
+export const saveCancellationPolicyBodyNoticeHoursMax = 720;
+
+export const saveCancellationPolicyBodyLateFeeValueMin = 0;
+export const saveCancellationPolicyBodyLateFeeValueMax = 10000000;
+
+export const saveCancellationPolicyBodyNoShowFeeValueMin = 0;
+export const saveCancellationPolicyBodyNoShowFeeValueMax = 10000000;
+
+export const saveCancellationPolicyBodyExceptionsMax = 2000;
+
+
+
+export const SaveCancellationPolicyBody = zod.object({
+  "noticeHours": zod.int().min(saveCancellationPolicyBodyNoticeHoursMin).max(saveCancellationPolicyBodyNoticeHoursMax),
+  "lateFeeType": zod.enum(['percentage', 'fixed']),
+  "lateFeeValue": zod.int().min(saveCancellationPolicyBodyLateFeeValueMin).max(saveCancellationPolicyBodyLateFeeValueMax),
+  "noShowFeeType": zod.enum(['percentage', 'fixed']),
+  "noShowFeeValue": zod.int().min(saveCancellationPolicyBodyNoShowFeeValueMin).max(saveCancellationPolicyBodyNoShowFeeValueMax),
+  "waiverAllowed": zod.boolean(),
+  "exceptions": zod.string().max(saveCancellationPolicyBodyExceptionsMax)
+})
+
+export const saveCancellationPolicyResponseProfileNameMin = 2;
+export const saveCancellationPolicyResponseProfileNameMax = 120;
+
+export const saveCancellationPolicyResponseProfileDescriptionMax = 3000;
+
+export const saveCancellationPolicyResponseProfileContactEmailMax = 200;
+
+export const saveCancellationPolicyResponseProfilePhoneMax = 30;
+
+export const saveCancellationPolicyResponseProfileWebsiteMax = 300;
+
+export const saveCancellationPolicyResponseProfileOnboardingStepMax = 6;
+
+export const saveCancellationPolicyResponseLocationsItemOneNameMin = 2;
+export const saveCancellationPolicyResponseLocationsItemOneNameMax = 120;
+
+export const saveCancellationPolicyResponseLocationsItemOnePostalCodeRegExp = new RegExp('^([0-9]{5})?$');
+export const saveCancellationPolicyResponseLocationsItemOneCityMax = 100;
+
+export const saveCancellationPolicyResponseLocationsItemOneStreetMax = 150;
+
+export const saveCancellationPolicyResponseLocationsItemOneHouseNumberMax = 20;
+
+export const saveCancellationPolicyResponseLocationsItemOneAddressExtraMax = 150;
+
+export const saveCancellationPolicyResponseLocationsItemOneDistrictMax = 100;
+
+export const saveCancellationPolicyResponseLocationsItemOneTimezoneMax = 80;
+
+export const saveCancellationPolicyResponseLocationsItemOneLatitudeMin = -90;
+export const saveCancellationPolicyResponseLocationsItemOneLatitudeMax = 90;
+
+export const saveCancellationPolicyResponseLocationsItemOneLongitudeMin = -180;
+export const saveCancellationPolicyResponseLocationsItemOneLongitudeMax = 180;
+
+export const saveCancellationPolicyResponseLocationsItemOneOpeningHoursItemWeekdayMax = 7;
+
+export const saveCancellationPolicyResponseLocationsItemOneOpeningHoursItemOpensRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const saveCancellationPolicyResponseLocationsItemOneOpeningHoursItemClosesRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const saveCancellationPolicyResponseLocationsItemOneOpeningHoursMax = 7;
+
+export const saveCancellationPolicyResponseLocationsItemOneLeadTimeHoursMin = 0;
+export const saveCancellationPolicyResponseLocationsItemOneLeadTimeHoursMax = 720;
+
+export const saveCancellationPolicyResponseLocationsItemOneAdvanceBookingDaysMax = 730;
+
+export const saveCancellationPolicyResponseEmployeesItemOneDisplayNameMax = 100;
+
+export const saveCancellationPolicyResponseEmployeesItemOneEmailMax = 200;
+
+export const saveCancellationPolicyResponseEmployeesItemOnePhoneMax = 30;
+
+export const saveCancellationPolicyResponseEmployeesItemOneWorkingHoursItemWeekdayMax = 7;
+
+export const saveCancellationPolicyResponseEmployeesItemOneWorkingHoursItemOpensRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const saveCancellationPolicyResponseEmployeesItemOneWorkingHoursItemClosesRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const saveCancellationPolicyResponseEmployeesItemOneWorkingHoursMax = 7;
+
+export const saveCancellationPolicyResponseServicesItemOneNameMax = 150;
+
+export const saveCancellationPolicyResponseServicesItemOneDescriptionMax = 2000;
+
+export const saveCancellationPolicyResponseServicesItemOnePriceCentsMin = 0;
+export const saveCancellationPolicyResponseServicesItemOnePriceCentsMax = 10000000;
+
+export const saveCancellationPolicyResponseServicesItemOneDurationMinutesMax = 1440;
+
+export const saveCancellationPolicyResponseServicesItemOnePreparationMinutesMin = 0;
+export const saveCancellationPolicyResponseServicesItemOnePreparationMinutesMax = 240;
+
+export const saveCancellationPolicyResponseServicesItemOneCleanupMinutesMin = 0;
+export const saveCancellationPolicyResponseServicesItemOneCleanupMinutesMax = 240;
+
+export const saveCancellationPolicyResponseServicesItemOneEmployeeIdsMax = 100;
+
+export const saveCancellationPolicyResponseServicesItemOneVariantsItemNameMax = 100;
+
+export const saveCancellationPolicyResponseServicesItemOneVariantsItemPriceCentsMin = 0;
+export const saveCancellationPolicyResponseServicesItemOneVariantsItemPriceCentsMax = 10000000;
+
+export const saveCancellationPolicyResponseServicesItemOneVariantsItemDurationMinutesMax = 1440;
+
+export const saveCancellationPolicyResponseServicesItemOneVariantsMax = 30;
+
+export const saveCancellationPolicyResponsePoliciesItemOneNoticeHoursMin = 0;
+export const saveCancellationPolicyResponsePoliciesItemOneNoticeHoursMax = 720;
+
+export const saveCancellationPolicyResponsePoliciesItemOneLateFeeValueMin = 0;
+export const saveCancellationPolicyResponsePoliciesItemOneLateFeeValueMax = 10000000;
+
+export const saveCancellationPolicyResponsePoliciesItemOneNoShowFeeValueMin = 0;
+export const saveCancellationPolicyResponsePoliciesItemOneNoShowFeeValueMax = 10000000;
+
+export const saveCancellationPolicyResponsePoliciesItemOneExceptionsMax = 2000;
+
+
+
+export const SaveCancellationPolicyResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "role": zod.enum(['owner', 'manager', 'employee']),
+  "isDemo": zod.boolean(),
+  "profile": zod.object({
+  "name": zod.string().min(saveCancellationPolicyResponseProfileNameMin).max(saveCancellationPolicyResponseProfileNameMax),
+  "description": zod.string().max(saveCancellationPolicyResponseProfileDescriptionMax),
+  "contactEmail": zod.string().max(saveCancellationPolicyResponseProfileContactEmailMax),
+  "phone": zod.string().max(saveCancellationPolicyResponseProfilePhoneMax),
+  "website": zod.string().max(saveCancellationPolicyResponseProfileWebsiteMax),
+  "categoryId": zod.uuid(),
+  "onboardingStep": zod.int().min(1).max(saveCancellationPolicyResponseProfileOnboardingStepMax)
+}),
+  "locations": zod.array(zod.object({
+  "name": zod.string().min(saveCancellationPolicyResponseLocationsItemOneNameMin).max(saveCancellationPolicyResponseLocationsItemOneNameMax),
+  "country": zod.enum(['DE']),
+  "postalCode": zod.string().regex(saveCancellationPolicyResponseLocationsItemOnePostalCodeRegExp),
+  "city": zod.string().max(saveCancellationPolicyResponseLocationsItemOneCityMax),
+  "street": zod.string().max(saveCancellationPolicyResponseLocationsItemOneStreetMax),
+  "houseNumber": zod.string().max(saveCancellationPolicyResponseLocationsItemOneHouseNumberMax),
+  "addressExtra": zod.string().max(saveCancellationPolicyResponseLocationsItemOneAddressExtraMax),
+  "district": zod.string().max(saveCancellationPolicyResponseLocationsItemOneDistrictMax),
+  "timezone": zod.string().max(saveCancellationPolicyResponseLocationsItemOneTimezoneMax),
+  "latitude": zod.number().min(saveCancellationPolicyResponseLocationsItemOneLatitudeMin).max(saveCancellationPolicyResponseLocationsItemOneLatitudeMax).nullish(),
+  "longitude": zod.number().min(saveCancellationPolicyResponseLocationsItemOneLongitudeMin).max(saveCancellationPolicyResponseLocationsItemOneLongitudeMax).nullish(),
+  "openingHours": zod.array(zod.object({
+  "weekday": zod.int().min(1).max(saveCancellationPolicyResponseLocationsItemOneOpeningHoursItemWeekdayMax),
+  "opens": zod.string().regex(saveCancellationPolicyResponseLocationsItemOneOpeningHoursItemOpensRegExp),
+  "closes": zod.string().regex(saveCancellationPolicyResponseLocationsItemOneOpeningHoursItemClosesRegExp)
+})).max(saveCancellationPolicyResponseLocationsItemOneOpeningHoursMax),
+  "leadTimeHours": zod.int().min(saveCancellationPolicyResponseLocationsItemOneLeadTimeHoursMin).max(saveCancellationPolicyResponseLocationsItemOneLeadTimeHoursMax),
+  "advanceBookingDays": zod.int().min(1).max(saveCancellationPolicyResponseLocationsItemOneAdvanceBookingDaysMax),
+  "contactPreference": zod.enum(['email', 'phone'])
+}).and(zod.object({
+  "id": zod.string(),
+  "slug": zod.string(),
+  "published": zod.boolean()
+}))),
+  "employees": zod.array(zod.object({
+  "displayName": zod.string().min(1).max(saveCancellationPolicyResponseEmployeesItemOneDisplayNameMax),
+  "email": zod.string().max(saveCancellationPolicyResponseEmployeesItemOneEmailMax),
+  "phone": zod.string().max(saveCancellationPolicyResponseEmployeesItemOnePhoneMax),
+  "locationId": zod.uuid(),
+  "active": zod.boolean(),
+  "workingHours": zod.array(zod.object({
+  "weekday": zod.int().min(1).max(saveCancellationPolicyResponseEmployeesItemOneWorkingHoursItemWeekdayMax),
+  "opens": zod.string().regex(saveCancellationPolicyResponseEmployeesItemOneWorkingHoursItemOpensRegExp),
+  "closes": zod.string().regex(saveCancellationPolicyResponseEmployeesItemOneWorkingHoursItemClosesRegExp)
+})).max(saveCancellationPolicyResponseEmployeesItemOneWorkingHoursMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "userId": zod.string().nullish()
+}))),
+  "services": zod.array(zod.object({
+  "name": zod.string().min(1).max(saveCancellationPolicyResponseServicesItemOneNameMax),
+  "description": zod.string().max(saveCancellationPolicyResponseServicesItemOneDescriptionMax),
+  "locationId": zod.uuid(),
+  "categoryId": zod.string().nullish(),
+  "priceCents": zod.int().min(saveCancellationPolicyResponseServicesItemOnePriceCentsMin).max(saveCancellationPolicyResponseServicesItemOnePriceCentsMax),
+  "durationMinutes": zod.int().min(1).max(saveCancellationPolicyResponseServicesItemOneDurationMinutesMax),
+  "preparationMinutes": zod.int().min(saveCancellationPolicyResponseServicesItemOnePreparationMinutesMin).max(saveCancellationPolicyResponseServicesItemOnePreparationMinutesMax),
+  "cleanupMinutes": zod.int().min(saveCancellationPolicyResponseServicesItemOneCleanupMinutesMin).max(saveCancellationPolicyResponseServicesItemOneCleanupMinutesMax),
+  "published": zod.boolean(),
+  "onlineBooking": zod.boolean(),
+  "employeeIds": zod.array(zod.uuid()).max(saveCancellationPolicyResponseServicesItemOneEmployeeIdsMax),
+  "variants": zod.array(zod.object({
+  "id": zod.uuid().optional(),
+  "name": zod.string().min(1).max(saveCancellationPolicyResponseServicesItemOneVariantsItemNameMax),
+  "priceCents": zod.int().min(saveCancellationPolicyResponseServicesItemOneVariantsItemPriceCentsMin).max(saveCancellationPolicyResponseServicesItemOneVariantsItemPriceCentsMax),
+  "durationMinutes": zod.int().min(1).max(saveCancellationPolicyResponseServicesItemOneVariantsItemDurationMinutesMax)
+})).max(saveCancellationPolicyResponseServicesItemOneVariantsMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "archived": zod.boolean()
+}))),
+  "serviceCategories": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string()
+})),
+  "memberships": zod.array(zod.object({
+  "id": zod.string(),
+  "userId": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "status": zod.string()
+})),
+  "invitations": zod.array(zod.object({
+  "id": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "expiresAt": zod.string(),
+  "accepted": zod.boolean()
+})),
+  "policies": zod.array(zod.object({
+  "noticeHours": zod.int().min(saveCancellationPolicyResponsePoliciesItemOneNoticeHoursMin).max(saveCancellationPolicyResponsePoliciesItemOneNoticeHoursMax),
+  "lateFeeType": zod.enum(['percentage', 'fixed']),
+  "lateFeeValue": zod.int().min(saveCancellationPolicyResponsePoliciesItemOneLateFeeValueMin).max(saveCancellationPolicyResponsePoliciesItemOneLateFeeValueMax),
+  "noShowFeeType": zod.enum(['percentage', 'fixed']),
+  "noShowFeeValue": zod.int().min(saveCancellationPolicyResponsePoliciesItemOneNoShowFeeValueMin).max(saveCancellationPolicyResponsePoliciesItemOneNoShowFeeValueMax),
+  "waiverAllowed": zod.boolean(),
+  "exceptions": zod.string().max(saveCancellationPolicyResponsePoliciesItemOneExceptionsMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "version": zod.int(),
+  "createdAt": zod.string()
+}))),
+  "publicationIssues": zod.array(zod.string())
+})
+
+
+export const SetBusinessPublicationParams = zod.object({
+  "organizationId": zod.uuid()
+})
+
+export const SetBusinessPublicationBody = zod.object({
+  "locationId": zod.uuid(),
+  "published": zod.boolean()
+})
+
+export const setBusinessPublicationResponseProfileNameMin = 2;
+export const setBusinessPublicationResponseProfileNameMax = 120;
+
+export const setBusinessPublicationResponseProfileDescriptionMax = 3000;
+
+export const setBusinessPublicationResponseProfileContactEmailMax = 200;
+
+export const setBusinessPublicationResponseProfilePhoneMax = 30;
+
+export const setBusinessPublicationResponseProfileWebsiteMax = 300;
+
+export const setBusinessPublicationResponseProfileOnboardingStepMax = 6;
+
+export const setBusinessPublicationResponseLocationsItemOneNameMin = 2;
+export const setBusinessPublicationResponseLocationsItemOneNameMax = 120;
+
+export const setBusinessPublicationResponseLocationsItemOnePostalCodeRegExp = new RegExp('^([0-9]{5})?$');
+export const setBusinessPublicationResponseLocationsItemOneCityMax = 100;
+
+export const setBusinessPublicationResponseLocationsItemOneStreetMax = 150;
+
+export const setBusinessPublicationResponseLocationsItemOneHouseNumberMax = 20;
+
+export const setBusinessPublicationResponseLocationsItemOneAddressExtraMax = 150;
+
+export const setBusinessPublicationResponseLocationsItemOneDistrictMax = 100;
+
+export const setBusinessPublicationResponseLocationsItemOneTimezoneMax = 80;
+
+export const setBusinessPublicationResponseLocationsItemOneLatitudeMin = -90;
+export const setBusinessPublicationResponseLocationsItemOneLatitudeMax = 90;
+
+export const setBusinessPublicationResponseLocationsItemOneLongitudeMin = -180;
+export const setBusinessPublicationResponseLocationsItemOneLongitudeMax = 180;
+
+export const setBusinessPublicationResponseLocationsItemOneOpeningHoursItemWeekdayMax = 7;
+
+export const setBusinessPublicationResponseLocationsItemOneOpeningHoursItemOpensRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const setBusinessPublicationResponseLocationsItemOneOpeningHoursItemClosesRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const setBusinessPublicationResponseLocationsItemOneOpeningHoursMax = 7;
+
+export const setBusinessPublicationResponseLocationsItemOneLeadTimeHoursMin = 0;
+export const setBusinessPublicationResponseLocationsItemOneLeadTimeHoursMax = 720;
+
+export const setBusinessPublicationResponseLocationsItemOneAdvanceBookingDaysMax = 730;
+
+export const setBusinessPublicationResponseEmployeesItemOneDisplayNameMax = 100;
+
+export const setBusinessPublicationResponseEmployeesItemOneEmailMax = 200;
+
+export const setBusinessPublicationResponseEmployeesItemOnePhoneMax = 30;
+
+export const setBusinessPublicationResponseEmployeesItemOneWorkingHoursItemWeekdayMax = 7;
+
+export const setBusinessPublicationResponseEmployeesItemOneWorkingHoursItemOpensRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const setBusinessPublicationResponseEmployeesItemOneWorkingHoursItemClosesRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const setBusinessPublicationResponseEmployeesItemOneWorkingHoursMax = 7;
+
+export const setBusinessPublicationResponseServicesItemOneNameMax = 150;
+
+export const setBusinessPublicationResponseServicesItemOneDescriptionMax = 2000;
+
+export const setBusinessPublicationResponseServicesItemOnePriceCentsMin = 0;
+export const setBusinessPublicationResponseServicesItemOnePriceCentsMax = 10000000;
+
+export const setBusinessPublicationResponseServicesItemOneDurationMinutesMax = 1440;
+
+export const setBusinessPublicationResponseServicesItemOnePreparationMinutesMin = 0;
+export const setBusinessPublicationResponseServicesItemOnePreparationMinutesMax = 240;
+
+export const setBusinessPublicationResponseServicesItemOneCleanupMinutesMin = 0;
+export const setBusinessPublicationResponseServicesItemOneCleanupMinutesMax = 240;
+
+export const setBusinessPublicationResponseServicesItemOneEmployeeIdsMax = 100;
+
+export const setBusinessPublicationResponseServicesItemOneVariantsItemNameMax = 100;
+
+export const setBusinessPublicationResponseServicesItemOneVariantsItemPriceCentsMin = 0;
+export const setBusinessPublicationResponseServicesItemOneVariantsItemPriceCentsMax = 10000000;
+
+export const setBusinessPublicationResponseServicesItemOneVariantsItemDurationMinutesMax = 1440;
+
+export const setBusinessPublicationResponseServicesItemOneVariantsMax = 30;
+
+export const setBusinessPublicationResponsePoliciesItemOneNoticeHoursMin = 0;
+export const setBusinessPublicationResponsePoliciesItemOneNoticeHoursMax = 720;
+
+export const setBusinessPublicationResponsePoliciesItemOneLateFeeValueMin = 0;
+export const setBusinessPublicationResponsePoliciesItemOneLateFeeValueMax = 10000000;
+
+export const setBusinessPublicationResponsePoliciesItemOneNoShowFeeValueMin = 0;
+export const setBusinessPublicationResponsePoliciesItemOneNoShowFeeValueMax = 10000000;
+
+export const setBusinessPublicationResponsePoliciesItemOneExceptionsMax = 2000;
+
+
+
+export const SetBusinessPublicationResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "role": zod.enum(['owner', 'manager', 'employee']),
+  "isDemo": zod.boolean(),
+  "profile": zod.object({
+  "name": zod.string().min(setBusinessPublicationResponseProfileNameMin).max(setBusinessPublicationResponseProfileNameMax),
+  "description": zod.string().max(setBusinessPublicationResponseProfileDescriptionMax),
+  "contactEmail": zod.string().max(setBusinessPublicationResponseProfileContactEmailMax),
+  "phone": zod.string().max(setBusinessPublicationResponseProfilePhoneMax),
+  "website": zod.string().max(setBusinessPublicationResponseProfileWebsiteMax),
+  "categoryId": zod.uuid(),
+  "onboardingStep": zod.int().min(1).max(setBusinessPublicationResponseProfileOnboardingStepMax)
+}),
+  "locations": zod.array(zod.object({
+  "name": zod.string().min(setBusinessPublicationResponseLocationsItemOneNameMin).max(setBusinessPublicationResponseLocationsItemOneNameMax),
+  "country": zod.enum(['DE']),
+  "postalCode": zod.string().regex(setBusinessPublicationResponseLocationsItemOnePostalCodeRegExp),
+  "city": zod.string().max(setBusinessPublicationResponseLocationsItemOneCityMax),
+  "street": zod.string().max(setBusinessPublicationResponseLocationsItemOneStreetMax),
+  "houseNumber": zod.string().max(setBusinessPublicationResponseLocationsItemOneHouseNumberMax),
+  "addressExtra": zod.string().max(setBusinessPublicationResponseLocationsItemOneAddressExtraMax),
+  "district": zod.string().max(setBusinessPublicationResponseLocationsItemOneDistrictMax),
+  "timezone": zod.string().max(setBusinessPublicationResponseLocationsItemOneTimezoneMax),
+  "latitude": zod.number().min(setBusinessPublicationResponseLocationsItemOneLatitudeMin).max(setBusinessPublicationResponseLocationsItemOneLatitudeMax).nullish(),
+  "longitude": zod.number().min(setBusinessPublicationResponseLocationsItemOneLongitudeMin).max(setBusinessPublicationResponseLocationsItemOneLongitudeMax).nullish(),
+  "openingHours": zod.array(zod.object({
+  "weekday": zod.int().min(1).max(setBusinessPublicationResponseLocationsItemOneOpeningHoursItemWeekdayMax),
+  "opens": zod.string().regex(setBusinessPublicationResponseLocationsItemOneOpeningHoursItemOpensRegExp),
+  "closes": zod.string().regex(setBusinessPublicationResponseLocationsItemOneOpeningHoursItemClosesRegExp)
+})).max(setBusinessPublicationResponseLocationsItemOneOpeningHoursMax),
+  "leadTimeHours": zod.int().min(setBusinessPublicationResponseLocationsItemOneLeadTimeHoursMin).max(setBusinessPublicationResponseLocationsItemOneLeadTimeHoursMax),
+  "advanceBookingDays": zod.int().min(1).max(setBusinessPublicationResponseLocationsItemOneAdvanceBookingDaysMax),
+  "contactPreference": zod.enum(['email', 'phone'])
+}).and(zod.object({
+  "id": zod.string(),
+  "slug": zod.string(),
+  "published": zod.boolean()
+}))),
+  "employees": zod.array(zod.object({
+  "displayName": zod.string().min(1).max(setBusinessPublicationResponseEmployeesItemOneDisplayNameMax),
+  "email": zod.string().max(setBusinessPublicationResponseEmployeesItemOneEmailMax),
+  "phone": zod.string().max(setBusinessPublicationResponseEmployeesItemOnePhoneMax),
+  "locationId": zod.uuid(),
+  "active": zod.boolean(),
+  "workingHours": zod.array(zod.object({
+  "weekday": zod.int().min(1).max(setBusinessPublicationResponseEmployeesItemOneWorkingHoursItemWeekdayMax),
+  "opens": zod.string().regex(setBusinessPublicationResponseEmployeesItemOneWorkingHoursItemOpensRegExp),
+  "closes": zod.string().regex(setBusinessPublicationResponseEmployeesItemOneWorkingHoursItemClosesRegExp)
+})).max(setBusinessPublicationResponseEmployeesItemOneWorkingHoursMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "userId": zod.string().nullish()
+}))),
+  "services": zod.array(zod.object({
+  "name": zod.string().min(1).max(setBusinessPublicationResponseServicesItemOneNameMax),
+  "description": zod.string().max(setBusinessPublicationResponseServicesItemOneDescriptionMax),
+  "locationId": zod.uuid(),
+  "categoryId": zod.string().nullish(),
+  "priceCents": zod.int().min(setBusinessPublicationResponseServicesItemOnePriceCentsMin).max(setBusinessPublicationResponseServicesItemOnePriceCentsMax),
+  "durationMinutes": zod.int().min(1).max(setBusinessPublicationResponseServicesItemOneDurationMinutesMax),
+  "preparationMinutes": zod.int().min(setBusinessPublicationResponseServicesItemOnePreparationMinutesMin).max(setBusinessPublicationResponseServicesItemOnePreparationMinutesMax),
+  "cleanupMinutes": zod.int().min(setBusinessPublicationResponseServicesItemOneCleanupMinutesMin).max(setBusinessPublicationResponseServicesItemOneCleanupMinutesMax),
+  "published": zod.boolean(),
+  "onlineBooking": zod.boolean(),
+  "employeeIds": zod.array(zod.uuid()).max(setBusinessPublicationResponseServicesItemOneEmployeeIdsMax),
+  "variants": zod.array(zod.object({
+  "id": zod.uuid().optional(),
+  "name": zod.string().min(1).max(setBusinessPublicationResponseServicesItemOneVariantsItemNameMax),
+  "priceCents": zod.int().min(setBusinessPublicationResponseServicesItemOneVariantsItemPriceCentsMin).max(setBusinessPublicationResponseServicesItemOneVariantsItemPriceCentsMax),
+  "durationMinutes": zod.int().min(1).max(setBusinessPublicationResponseServicesItemOneVariantsItemDurationMinutesMax)
+})).max(setBusinessPublicationResponseServicesItemOneVariantsMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "archived": zod.boolean()
+}))),
+  "serviceCategories": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string()
+})),
+  "memberships": zod.array(zod.object({
+  "id": zod.string(),
+  "userId": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "status": zod.string()
+})),
+  "invitations": zod.array(zod.object({
+  "id": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "expiresAt": zod.string(),
+  "accepted": zod.boolean()
+})),
+  "policies": zod.array(zod.object({
+  "noticeHours": zod.int().min(setBusinessPublicationResponsePoliciesItemOneNoticeHoursMin).max(setBusinessPublicationResponsePoliciesItemOneNoticeHoursMax),
+  "lateFeeType": zod.enum(['percentage', 'fixed']),
+  "lateFeeValue": zod.int().min(setBusinessPublicationResponsePoliciesItemOneLateFeeValueMin).max(setBusinessPublicationResponsePoliciesItemOneLateFeeValueMax),
+  "noShowFeeType": zod.enum(['percentage', 'fixed']),
+  "noShowFeeValue": zod.int().min(setBusinessPublicationResponsePoliciesItemOneNoShowFeeValueMin).max(setBusinessPublicationResponsePoliciesItemOneNoShowFeeValueMax),
+  "waiverAllowed": zod.boolean(),
+  "exceptions": zod.string().max(setBusinessPublicationResponsePoliciesItemOneExceptionsMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "version": zod.int(),
+  "createdAt": zod.string()
+}))),
+  "publicationIssues": zod.array(zod.string())
+})
+
+
+export const CreateStaffInvitationParams = zod.object({
+  "organizationId": zod.uuid()
+})
+
+export const createStaffInvitationBodyEmailMax = 200;
+
+
+
+export const CreateStaffInvitationBody = zod.object({
+  "email": zod.email().max(createStaffInvitationBodyEmailMax),
+  "role": zod.enum(['manager', 'employee']),
+  "locationId": zod.uuid()
+})
+
+export const CreateStaffInvitationResponse = zod.object({
+  "token": zod.string(),
+  "expiresAt": zod.string(),
+  "message": zod.string()
+})
+
+
+export const SaveOrganizationMembershipParams = zod.object({
+  "organizationId": zod.uuid(),
+  "membershipId": zod.uuid()
+})
+
+export const SaveOrganizationMembershipBody = zod.object({
+  "role": zod.enum(['manager', 'employee']),
+  "status": zod.enum(['active', 'inactive', 'removed'])
+})
+
+export const saveOrganizationMembershipResponseProfileNameMin = 2;
+export const saveOrganizationMembershipResponseProfileNameMax = 120;
+
+export const saveOrganizationMembershipResponseProfileDescriptionMax = 3000;
+
+export const saveOrganizationMembershipResponseProfileContactEmailMax = 200;
+
+export const saveOrganizationMembershipResponseProfilePhoneMax = 30;
+
+export const saveOrganizationMembershipResponseProfileWebsiteMax = 300;
+
+export const saveOrganizationMembershipResponseProfileOnboardingStepMax = 6;
+
+export const saveOrganizationMembershipResponseLocationsItemOneNameMin = 2;
+export const saveOrganizationMembershipResponseLocationsItemOneNameMax = 120;
+
+export const saveOrganizationMembershipResponseLocationsItemOnePostalCodeRegExp = new RegExp('^([0-9]{5})?$');
+export const saveOrganizationMembershipResponseLocationsItemOneCityMax = 100;
+
+export const saveOrganizationMembershipResponseLocationsItemOneStreetMax = 150;
+
+export const saveOrganizationMembershipResponseLocationsItemOneHouseNumberMax = 20;
+
+export const saveOrganizationMembershipResponseLocationsItemOneAddressExtraMax = 150;
+
+export const saveOrganizationMembershipResponseLocationsItemOneDistrictMax = 100;
+
+export const saveOrganizationMembershipResponseLocationsItemOneTimezoneMax = 80;
+
+export const saveOrganizationMembershipResponseLocationsItemOneLatitudeMin = -90;
+export const saveOrganizationMembershipResponseLocationsItemOneLatitudeMax = 90;
+
+export const saveOrganizationMembershipResponseLocationsItemOneLongitudeMin = -180;
+export const saveOrganizationMembershipResponseLocationsItemOneLongitudeMax = 180;
+
+export const saveOrganizationMembershipResponseLocationsItemOneOpeningHoursItemWeekdayMax = 7;
+
+export const saveOrganizationMembershipResponseLocationsItemOneOpeningHoursItemOpensRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const saveOrganizationMembershipResponseLocationsItemOneOpeningHoursItemClosesRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const saveOrganizationMembershipResponseLocationsItemOneOpeningHoursMax = 7;
+
+export const saveOrganizationMembershipResponseLocationsItemOneLeadTimeHoursMin = 0;
+export const saveOrganizationMembershipResponseLocationsItemOneLeadTimeHoursMax = 720;
+
+export const saveOrganizationMembershipResponseLocationsItemOneAdvanceBookingDaysMax = 730;
+
+export const saveOrganizationMembershipResponseEmployeesItemOneDisplayNameMax = 100;
+
+export const saveOrganizationMembershipResponseEmployeesItemOneEmailMax = 200;
+
+export const saveOrganizationMembershipResponseEmployeesItemOnePhoneMax = 30;
+
+export const saveOrganizationMembershipResponseEmployeesItemOneWorkingHoursItemWeekdayMax = 7;
+
+export const saveOrganizationMembershipResponseEmployeesItemOneWorkingHoursItemOpensRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const saveOrganizationMembershipResponseEmployeesItemOneWorkingHoursItemClosesRegExp = new RegExp('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+export const saveOrganizationMembershipResponseEmployeesItemOneWorkingHoursMax = 7;
+
+export const saveOrganizationMembershipResponseServicesItemOneNameMax = 150;
+
+export const saveOrganizationMembershipResponseServicesItemOneDescriptionMax = 2000;
+
+export const saveOrganizationMembershipResponseServicesItemOnePriceCentsMin = 0;
+export const saveOrganizationMembershipResponseServicesItemOnePriceCentsMax = 10000000;
+
+export const saveOrganizationMembershipResponseServicesItemOneDurationMinutesMax = 1440;
+
+export const saveOrganizationMembershipResponseServicesItemOnePreparationMinutesMin = 0;
+export const saveOrganizationMembershipResponseServicesItemOnePreparationMinutesMax = 240;
+
+export const saveOrganizationMembershipResponseServicesItemOneCleanupMinutesMin = 0;
+export const saveOrganizationMembershipResponseServicesItemOneCleanupMinutesMax = 240;
+
+export const saveOrganizationMembershipResponseServicesItemOneEmployeeIdsMax = 100;
+
+export const saveOrganizationMembershipResponseServicesItemOneVariantsItemNameMax = 100;
+
+export const saveOrganizationMembershipResponseServicesItemOneVariantsItemPriceCentsMin = 0;
+export const saveOrganizationMembershipResponseServicesItemOneVariantsItemPriceCentsMax = 10000000;
+
+export const saveOrganizationMembershipResponseServicesItemOneVariantsItemDurationMinutesMax = 1440;
+
+export const saveOrganizationMembershipResponseServicesItemOneVariantsMax = 30;
+
+export const saveOrganizationMembershipResponsePoliciesItemOneNoticeHoursMin = 0;
+export const saveOrganizationMembershipResponsePoliciesItemOneNoticeHoursMax = 720;
+
+export const saveOrganizationMembershipResponsePoliciesItemOneLateFeeValueMin = 0;
+export const saveOrganizationMembershipResponsePoliciesItemOneLateFeeValueMax = 10000000;
+
+export const saveOrganizationMembershipResponsePoliciesItemOneNoShowFeeValueMin = 0;
+export const saveOrganizationMembershipResponsePoliciesItemOneNoShowFeeValueMax = 10000000;
+
+export const saveOrganizationMembershipResponsePoliciesItemOneExceptionsMax = 2000;
+
+
+
+export const SaveOrganizationMembershipResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "role": zod.enum(['owner', 'manager', 'employee']),
+  "isDemo": zod.boolean(),
+  "profile": zod.object({
+  "name": zod.string().min(saveOrganizationMembershipResponseProfileNameMin).max(saveOrganizationMembershipResponseProfileNameMax),
+  "description": zod.string().max(saveOrganizationMembershipResponseProfileDescriptionMax),
+  "contactEmail": zod.string().max(saveOrganizationMembershipResponseProfileContactEmailMax),
+  "phone": zod.string().max(saveOrganizationMembershipResponseProfilePhoneMax),
+  "website": zod.string().max(saveOrganizationMembershipResponseProfileWebsiteMax),
+  "categoryId": zod.uuid(),
+  "onboardingStep": zod.int().min(1).max(saveOrganizationMembershipResponseProfileOnboardingStepMax)
+}),
+  "locations": zod.array(zod.object({
+  "name": zod.string().min(saveOrganizationMembershipResponseLocationsItemOneNameMin).max(saveOrganizationMembershipResponseLocationsItemOneNameMax),
+  "country": zod.enum(['DE']),
+  "postalCode": zod.string().regex(saveOrganizationMembershipResponseLocationsItemOnePostalCodeRegExp),
+  "city": zod.string().max(saveOrganizationMembershipResponseLocationsItemOneCityMax),
+  "street": zod.string().max(saveOrganizationMembershipResponseLocationsItemOneStreetMax),
+  "houseNumber": zod.string().max(saveOrganizationMembershipResponseLocationsItemOneHouseNumberMax),
+  "addressExtra": zod.string().max(saveOrganizationMembershipResponseLocationsItemOneAddressExtraMax),
+  "district": zod.string().max(saveOrganizationMembershipResponseLocationsItemOneDistrictMax),
+  "timezone": zod.string().max(saveOrganizationMembershipResponseLocationsItemOneTimezoneMax),
+  "latitude": zod.number().min(saveOrganizationMembershipResponseLocationsItemOneLatitudeMin).max(saveOrganizationMembershipResponseLocationsItemOneLatitudeMax).nullish(),
+  "longitude": zod.number().min(saveOrganizationMembershipResponseLocationsItemOneLongitudeMin).max(saveOrganizationMembershipResponseLocationsItemOneLongitudeMax).nullish(),
+  "openingHours": zod.array(zod.object({
+  "weekday": zod.int().min(1).max(saveOrganizationMembershipResponseLocationsItemOneOpeningHoursItemWeekdayMax),
+  "opens": zod.string().regex(saveOrganizationMembershipResponseLocationsItemOneOpeningHoursItemOpensRegExp),
+  "closes": zod.string().regex(saveOrganizationMembershipResponseLocationsItemOneOpeningHoursItemClosesRegExp)
+})).max(saveOrganizationMembershipResponseLocationsItemOneOpeningHoursMax),
+  "leadTimeHours": zod.int().min(saveOrganizationMembershipResponseLocationsItemOneLeadTimeHoursMin).max(saveOrganizationMembershipResponseLocationsItemOneLeadTimeHoursMax),
+  "advanceBookingDays": zod.int().min(1).max(saveOrganizationMembershipResponseLocationsItemOneAdvanceBookingDaysMax),
+  "contactPreference": zod.enum(['email', 'phone'])
+}).and(zod.object({
+  "id": zod.string(),
+  "slug": zod.string(),
+  "published": zod.boolean()
+}))),
+  "employees": zod.array(zod.object({
+  "displayName": zod.string().min(1).max(saveOrganizationMembershipResponseEmployeesItemOneDisplayNameMax),
+  "email": zod.string().max(saveOrganizationMembershipResponseEmployeesItemOneEmailMax),
+  "phone": zod.string().max(saveOrganizationMembershipResponseEmployeesItemOnePhoneMax),
+  "locationId": zod.uuid(),
+  "active": zod.boolean(),
+  "workingHours": zod.array(zod.object({
+  "weekday": zod.int().min(1).max(saveOrganizationMembershipResponseEmployeesItemOneWorkingHoursItemWeekdayMax),
+  "opens": zod.string().regex(saveOrganizationMembershipResponseEmployeesItemOneWorkingHoursItemOpensRegExp),
+  "closes": zod.string().regex(saveOrganizationMembershipResponseEmployeesItemOneWorkingHoursItemClosesRegExp)
+})).max(saveOrganizationMembershipResponseEmployeesItemOneWorkingHoursMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "userId": zod.string().nullish()
+}))),
+  "services": zod.array(zod.object({
+  "name": zod.string().min(1).max(saveOrganizationMembershipResponseServicesItemOneNameMax),
+  "description": zod.string().max(saveOrganizationMembershipResponseServicesItemOneDescriptionMax),
+  "locationId": zod.uuid(),
+  "categoryId": zod.string().nullish(),
+  "priceCents": zod.int().min(saveOrganizationMembershipResponseServicesItemOnePriceCentsMin).max(saveOrganizationMembershipResponseServicesItemOnePriceCentsMax),
+  "durationMinutes": zod.int().min(1).max(saveOrganizationMembershipResponseServicesItemOneDurationMinutesMax),
+  "preparationMinutes": zod.int().min(saveOrganizationMembershipResponseServicesItemOnePreparationMinutesMin).max(saveOrganizationMembershipResponseServicesItemOnePreparationMinutesMax),
+  "cleanupMinutes": zod.int().min(saveOrganizationMembershipResponseServicesItemOneCleanupMinutesMin).max(saveOrganizationMembershipResponseServicesItemOneCleanupMinutesMax),
+  "published": zod.boolean(),
+  "onlineBooking": zod.boolean(),
+  "employeeIds": zod.array(zod.uuid()).max(saveOrganizationMembershipResponseServicesItemOneEmployeeIdsMax),
+  "variants": zod.array(zod.object({
+  "id": zod.uuid().optional(),
+  "name": zod.string().min(1).max(saveOrganizationMembershipResponseServicesItemOneVariantsItemNameMax),
+  "priceCents": zod.int().min(saveOrganizationMembershipResponseServicesItemOneVariantsItemPriceCentsMin).max(saveOrganizationMembershipResponseServicesItemOneVariantsItemPriceCentsMax),
+  "durationMinutes": zod.int().min(1).max(saveOrganizationMembershipResponseServicesItemOneVariantsItemDurationMinutesMax)
+})).max(saveOrganizationMembershipResponseServicesItemOneVariantsMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "archived": zod.boolean()
+}))),
+  "serviceCategories": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string()
+})),
+  "memberships": zod.array(zod.object({
+  "id": zod.string(),
+  "userId": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "status": zod.string()
+})),
+  "invitations": zod.array(zod.object({
+  "id": zod.string(),
+  "email": zod.string(),
+  "role": zod.string(),
+  "expiresAt": zod.string(),
+  "accepted": zod.boolean()
+})),
+  "policies": zod.array(zod.object({
+  "noticeHours": zod.int().min(saveOrganizationMembershipResponsePoliciesItemOneNoticeHoursMin).max(saveOrganizationMembershipResponsePoliciesItemOneNoticeHoursMax),
+  "lateFeeType": zod.enum(['percentage', 'fixed']),
+  "lateFeeValue": zod.int().min(saveOrganizationMembershipResponsePoliciesItemOneLateFeeValueMin).max(saveOrganizationMembershipResponsePoliciesItemOneLateFeeValueMax),
+  "noShowFeeType": zod.enum(['percentage', 'fixed']),
+  "noShowFeeValue": zod.int().min(saveOrganizationMembershipResponsePoliciesItemOneNoShowFeeValueMin).max(saveOrganizationMembershipResponsePoliciesItemOneNoShowFeeValueMax),
+  "waiverAllowed": zod.boolean(),
+  "exceptions": zod.string().max(saveOrganizationMembershipResponsePoliciesItemOneExceptionsMax)
+}).and(zod.object({
+  "id": zod.string(),
+  "version": zod.int(),
+  "createdAt": zod.string()
+}))),
+  "publicationIssues": zod.array(zod.string())
+})
+
+
+export const acceptStaffInvitationBodyTokenMin = 32;
+export const acceptStaffInvitationBodyTokenMax = 200;
+
+
+
+export const AcceptStaffInvitationBody = zod.object({
+  "token": zod.string().min(acceptStaffInvitationBodyTokenMin).max(acceptStaffInvitationBodyTokenMax)
+})
+
+export const AcceptStaffInvitationResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "role": zod.enum(['owner', 'manager', 'employee']),
+  "status": zod.string(),
+  "published": zod.boolean(),
+  "locationCount": zod.int()
 })
 
 

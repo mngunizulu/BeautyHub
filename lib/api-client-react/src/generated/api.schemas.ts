@@ -93,6 +93,7 @@ export type StageStatus = typeof StageStatus[keyof typeof StageStatus];
 export const StageStatus = {
   in_progress: 'in_progress',
   planned: 'planned',
+  completed: 'completed',
 } as const;
 
 export interface Stage {
@@ -115,12 +116,420 @@ export interface SystemStatus {
   stages: Stage[];
 }
 
+export interface ProfileInput {
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  displayName: string;
+  /** @maxLength 30 */
+  phone: string;
+  emailNotifications: boolean;
+  marketingConsent: boolean;
+}
+
+export type UserProfile = ProfileInput & {
+  id: string;
+  email: string;
+  emailVerified: boolean;
+  deletionRequested: boolean;
+  isPlatformAdmin: boolean;
+};
+
 export interface SessionStatus {
   authenticated: boolean;
   configured: boolean;
   provider: string;
   role: string;
   message: string;
+  user?: UserProfile;
+}
+
+export interface ActionResult {
+  message: string;
+}
+
+export type OrganizationSummaryRole = typeof OrganizationSummaryRole[keyof typeof OrganizationSummaryRole];
+
+
+export const OrganizationSummaryRole = {
+  owner: 'owner',
+  manager: 'manager',
+  employee: 'employee',
+} as const;
+
+export interface OrganizationSummary {
+  id: string;
+  name: string;
+  role: OrganizationSummaryRole;
+  status: string;
+  published: boolean;
+  locationCount: number;
+}
+
+export interface PersonalExport {
+  profile: UserProfile;
+  organizations: OrganizationSummary[];
+  exportedAt: string;
+}
+
+export interface PaymentReference {
+  id: string;
+  provider: string;
+  status: string;
+}
+
+export interface OrganizationInput {
+  /**
+     * @minLength 2
+     * @maxLength 120
+     */
+  name: string;
+  categoryId: string;
+}
+
+export interface OrganizationProfileInput {
+  /**
+     * @minLength 2
+     * @maxLength 120
+     */
+  name: string;
+  /** @maxLength 3000 */
+  description: string;
+  /** @maxLength 200 */
+  contactEmail: string;
+  /** @maxLength 30 */
+  phone: string;
+  /** @maxLength 300 */
+  website: string;
+  categoryId: string;
+  /**
+     * @minimum 1
+     * @maximum 6
+     */
+  onboardingStep: number;
+}
+
+export interface HourInput {
+  /**
+     * @minimum 1
+     * @maximum 7
+     */
+  weekday: number;
+  /** @pattern ^([01][0-9]|2[0-3]):[0-5][0-9]$ */
+  opens: string;
+  /** @pattern ^([01][0-9]|2[0-3]):[0-5][0-9]$ */
+  closes: string;
+}
+
+export type LocationInputCountry = typeof LocationInputCountry[keyof typeof LocationInputCountry];
+
+
+export const LocationInputCountry = {
+  DE: 'DE',
+} as const;
+
+export type LocationInputContactPreference = typeof LocationInputContactPreference[keyof typeof LocationInputContactPreference];
+
+
+export const LocationInputContactPreference = {
+  email: 'email',
+  phone: 'phone',
+} as const;
+
+export interface LocationInput {
+  /**
+     * @minLength 2
+     * @maxLength 120
+     */
+  name: string;
+  country: LocationInputCountry;
+  /** @pattern ^([0-9]{5})?$ */
+  postalCode: string;
+  /** @maxLength 100 */
+  city: string;
+  /** @maxLength 150 */
+  street: string;
+  /** @maxLength 20 */
+  houseNumber: string;
+  /** @maxLength 150 */
+  addressExtra: string;
+  /** @maxLength 100 */
+  district: string;
+  /** @maxLength 80 */
+  timezone: string;
+  /**
+     * @minimum -90
+     * @maximum 90
+     * @nullable
+     */
+  latitude?: number | null;
+  /**
+     * @minimum -180
+     * @maximum 180
+     * @nullable
+     */
+  longitude?: number | null;
+  /** @maxItems 7 */
+  openingHours: HourInput[];
+  /**
+     * @minimum 0
+     * @maximum 720
+     */
+  leadTimeHours: number;
+  /**
+     * @minimum 1
+     * @maximum 730
+     */
+  advanceBookingDays: number;
+  contactPreference: LocationInputContactPreference;
+}
+
+export type ManagedLocation = LocationInput & {
+  id: string;
+  slug: string;
+  published: boolean;
+};
+
+export interface EmployeeInput {
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  displayName: string;
+  /** @maxLength 200 */
+  email: string;
+  /** @maxLength 30 */
+  phone: string;
+  locationId: string;
+  active: boolean;
+  /** @maxItems 7 */
+  workingHours: HourInput[];
+}
+
+export type ManagedEmployee = EmployeeInput & ({
+  id: string;
+  /** @nullable */
+  userId?: string | null;
+});
+
+export interface CategoryInput {
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  name: string;
+}
+
+export interface ManagedCategory {
+  id: string;
+  name: string;
+}
+
+export interface VariantInput {
+  id?: string;
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  name: string;
+  /**
+     * @minimum 0
+     * @maximum 10000000
+     */
+  priceCents: number;
+  /**
+     * @minimum 1
+     * @maximum 1440
+     */
+  durationMinutes: number;
+}
+
+export interface ServiceInput {
+  /**
+     * @minLength 1
+     * @maxLength 150
+     */
+  name: string;
+  /** @maxLength 2000 */
+  description: string;
+  locationId: string;
+  /** @nullable */
+  categoryId?: string | null;
+  /**
+     * @minimum 0
+     * @maximum 10000000
+     */
+  priceCents: number;
+  /**
+     * @minimum 1
+     * @maximum 1440
+     */
+  durationMinutes: number;
+  /**
+     * @minimum 0
+     * @maximum 240
+     */
+  preparationMinutes: number;
+  /**
+     * @minimum 0
+     * @maximum 240
+     */
+  cleanupMinutes: number;
+  published: boolean;
+  onlineBooking: boolean;
+  /** @maxItems 100 */
+  employeeIds: string[];
+  /** @maxItems 30 */
+  variants: VariantInput[];
+}
+
+export type ManagedService = ServiceInput & {
+  id: string;
+  archived: boolean;
+};
+
+export type PolicyInputLateFeeType = typeof PolicyInputLateFeeType[keyof typeof PolicyInputLateFeeType];
+
+
+export const PolicyInputLateFeeType = {
+  percentage: 'percentage',
+  fixed: 'fixed',
+} as const;
+
+export type PolicyInputNoShowFeeType = typeof PolicyInputNoShowFeeType[keyof typeof PolicyInputNoShowFeeType];
+
+
+export const PolicyInputNoShowFeeType = {
+  percentage: 'percentage',
+  fixed: 'fixed',
+} as const;
+
+export interface PolicyInput {
+  /**
+     * @minimum 0
+     * @maximum 720
+     */
+  noticeHours: number;
+  lateFeeType: PolicyInputLateFeeType;
+  /**
+     * @minimum 0
+     * @maximum 10000000
+     */
+  lateFeeValue: number;
+  noShowFeeType: PolicyInputNoShowFeeType;
+  /**
+     * @minimum 0
+     * @maximum 10000000
+     */
+  noShowFeeValue: number;
+  waiverAllowed: boolean;
+  /** @maxLength 2000 */
+  exceptions: string;
+}
+
+export type ManagedPolicy = PolicyInput & {
+  id: string;
+  version: number;
+  createdAt: string;
+};
+
+export interface PublicationInput {
+  locationId: string;
+  published: boolean;
+}
+
+export type MembershipInputRole = typeof MembershipInputRole[keyof typeof MembershipInputRole];
+
+
+export const MembershipInputRole = {
+  manager: 'manager',
+  employee: 'employee',
+} as const;
+
+export type MembershipInputStatus = typeof MembershipInputStatus[keyof typeof MembershipInputStatus];
+
+
+export const MembershipInputStatus = {
+  active: 'active',
+  inactive: 'inactive',
+  removed: 'removed',
+} as const;
+
+export interface MembershipInput {
+  role: MembershipInputRole;
+  status: MembershipInputStatus;
+}
+
+export interface ManagedMembership {
+  id: string;
+  userId: string;
+  displayName: string;
+  email: string;
+  role: string;
+  status: string;
+}
+
+export type InvitationInputRole = typeof InvitationInputRole[keyof typeof InvitationInputRole];
+
+
+export const InvitationInputRole = {
+  manager: 'manager',
+  employee: 'employee',
+} as const;
+
+export interface InvitationInput {
+  /** @maxLength 200 */
+  email: string;
+  role: InvitationInputRole;
+  locationId: string;
+}
+
+export interface ManagedInvitation {
+  id: string;
+  email: string;
+  role: string;
+  expiresAt: string;
+  accepted: boolean;
+}
+
+export interface InvitationDelivery {
+  token: string;
+  expiresAt: string;
+  message: string;
+}
+
+export interface InvitationAcceptance {
+  /**
+     * @minLength 32
+     * @maxLength 200
+     */
+  token: string;
+}
+
+export type BusinessWorkspaceRole = typeof BusinessWorkspaceRole[keyof typeof BusinessWorkspaceRole];
+
+
+export const BusinessWorkspaceRole = {
+  owner: 'owner',
+  manager: 'manager',
+  employee: 'employee',
+} as const;
+
+export interface BusinessWorkspace {
+  id: string;
+  name: string;
+  role: BusinessWorkspaceRole;
+  isDemo: boolean;
+  profile: OrganizationProfileInput;
+  locations: ManagedLocation[];
+  employees: ManagedEmployee[];
+  services: ManagedService[];
+  serviceCategories: ManagedCategory[];
+  memberships: ManagedMembership[];
+  invitations: ManagedInvitation[];
+  policies: ManagedPolicy[];
+  publicationIssues: string[];
 }
 
 /**

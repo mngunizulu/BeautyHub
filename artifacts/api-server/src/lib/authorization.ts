@@ -2,10 +2,10 @@ export type BusinessRole = "owner" | "manager" | "employee";
 export interface Principal {
   userId: string;
   isPlatformAdmin: boolean;
-  memberships: ReadonlyArray<{ organizationId: string; role: BusinessRole }>;
+  memberships: ReadonlyArray<{ organizationId: string; role: BusinessRole; status: "active" | "inactive" | "removed" }>;
 }
 
-// Pure policy only. Stage 2 must construct Principal from verified identity + DB.
+// Callers must construct principals from verified identity and persisted memberships.
 // Platform administration does not implicitly grant access to private salon CRM.
 export function canAccessOrganization(
   principal: Principal | null,
@@ -13,7 +13,7 @@ export function canAccessOrganization(
   allowedRoles: readonly BusinessRole[] = ["owner", "manager", "employee"],
 ): boolean {
   return !!principal && principal.memberships.some(
-    (membership) => membership.organizationId === organizationId && allowedRoles.includes(membership.role),
+    (membership) => membership.status === "active" && membership.organizationId === organizationId && allowedRoles.includes(membership.role),
   );
 }
 

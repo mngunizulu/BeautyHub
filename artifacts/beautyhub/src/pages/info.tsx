@@ -1,51 +1,33 @@
-import { CheckCircle2, CircleDashed, KeyRound, Loader2 } from 'lucide-react';
-import { useGetSession, getGetSessionQueryKey, useGetSystemStatus, getGetSystemStatusQueryKey, useHealthCheck, getHealthCheckQueryKey } from '@workspace/api-client-react';
+import { Link } from 'wouter';
+import { useAuth } from '@clerk/react';
+import { CheckCircle2, CircleDashed, Loader2 } from 'lucide-react';
+import { useGetSystemStatus, getGetSystemStatusQueryKey, useHealthCheck, getHealthCheckQueryKey } from '@workspace/api-client-react';
 import { ArrowLink, ErrorState } from '@/components/site';
 import { formatDateTime } from '@/lib/format';
 
 export function ForBusiness() {
   const sys = useGetSystemStatus({ query: { queryKey: getGetSystemStatusQueryKey() } });
+  const { isSignedIn } = useAuth();
   return (
     <div className="mx-auto max-w-7xl px-5 pt-12">
       <p className="font-mono text-xs uppercase tracking-wider text-muted-foreground rise">Für Salons, Studios & Praxen</p>
       <h1 className="mt-3 max-w-4xl font-display text-5xl leading-[1] sm:text-7xl rise">Dein Handwerk verdient eine <span className="italic text-primary">ruhige Bühne.</span></h1>
-      <p className="mt-6 max-w-2xl text-lg text-muted-foreground">BeautyHub wird eine Plattform, auf der Betriebe Leistungen, Preise und Zeiten klar zeigen — und später Termine verwalten. Heute ist Stufe {sys.data?.stage ?? 1}: ein öffentlicher Katalog mit Testdaten. Eine Registrierung gibt es noch nicht.</p>
-      <div className="mt-8 flex flex-wrap gap-3"><ArrowLink href="/system" testId="link-roadmap">Zum Fahrplan</ArrowLink></div>
+      <p className="mt-6 max-w-2xl text-lg text-muted-foreground">Lege deinen Betrieb an, richte ihn in sechs Schritten ein und veröffentliche ihn, sobald alles stimmt. Du kannst jederzeit unterbrechen und später weitermachen. Ein Konto kann mehrere Betriebe führen.</p>
+      <div className="mt-8 flex flex-wrap gap-3">
+        <ArrowLink href={isSignedIn ? '/unternehmen?neu=1' : '/sign-up'} testId="link-create-business">{isSignedIn ? 'Betrieb anlegen' : 'Konto erstellen und Betrieb anlegen'}</ArrowLink>
+        <Link href="/system" className="rounded-full border border-border px-6 py-3 hover:bg-secondary" data-testid="link-roadmap">Zum Fahrplan</Link>
+      </div>
       <div className="mt-16 grid gap-6 md:grid-cols-[1.3fr_1fr]">
         <div className="rounded-[1.5rem] border border-border bg-card p-8">
-          <h2 className="font-display text-3xl">Was dein Profil zeigen wird</h2>
-          <ul className="mt-5 space-y-3">{['Leistungskatalog mit Dauer und Preis in Euro', 'Öffnungszeiten pro Wochentag', 'Adresse, Viertel und Kategorie', 'Später: Online-Termine und Team-Kalender'].map((t) => <li key={t} className="flex gap-3"><CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-accent" />{t}</li>)}</ul>
+          <h2 className="font-display text-3xl">Was du heute einrichten kannst</h2>
+          <ul className="mt-5 space-y-3">{['Profil, Kategorie und Kontaktdaten', 'Standorte mit deutscher Adresse in jeder Stadt', 'Öffnungszeiten, Vorlaufzeiten und Stornoregeln', 'Team, Einladungen und Rollen', 'Leistungen mit Varianten, Preisen und Puffern'].map((t) => <li key={t} className="flex gap-3"><CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-accent" />{t}</li>)}</ul>
         </div>
         <div className="rounded-[1.5rem] bg-secondary p-8 demo-stripe">
           <h2 className="font-display text-3xl">Noch nicht möglich</h2>
-          <p className="mt-3 text-muted-foreground">Anmeldung für Unternehmen, Betriebs-Dashboard und Buchungen sind bewusst deaktiviert. Wir zeigen nichts an, was nicht funktioniert.</p>
+          <p className="mt-3 text-muted-foreground">Online-Buchungen, Kalender und Zahlungen folgen in späteren Stufen. Wir zeigen nichts an, was nicht funktioniert.</p>
           {sys.data && <p className="mt-4 font-mono text-xs">Buchungen: {sys.data.bookingEnabled ? 'aktiv' : 'deaktiviert'} · Konten: {sys.data.authenticationEnabled ? 'aktiv' : 'deaktiviert'}</p>}
         </div>
       </div>
-    </div>
-  );
-}
-
-export function SignIn() {
-  const s = useGetSession({ query: { queryKey: getGetSessionQueryKey() } });
-  return (
-    <div className="mx-auto max-w-2xl px-5 pt-16 text-center">
-      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-accent/30 rise"><KeyRound className="h-7 w-7 text-primary" /></div>
-      <h1 className="mt-6 font-display text-5xl rise">Konten kommen in <span className="italic text-primary">Stufe 2.</span></h1>
-      <p className="mt-4 text-lg text-muted-foreground">Es gibt noch keine Anmeldung, kein Passwort und keine Registrierung. Du kannst den Katalog vollständig ohne Konto nutzen.</p>
-      <div className="mt-8 rounded-[1.5rem] border border-border bg-card p-6 text-left" data-testid="card-session">
-        {s.isLoading ? <div className="h-20 animate-pulse rounded bg-muted" /> : s.isError ? <ErrorState onRetry={() => s.refetch()} /> : s.data && (
-          <>
-            <p className="text-sm" data-testid="text-session-message">{s.data.message}</p>
-            <dl className="mt-4 grid grid-cols-2 gap-3 font-mono text-xs sm:grid-cols-4">
-              {[['Status', s.data.authenticated ? 'angemeldet' : 'Gast'], ['Rolle', s.data.role], ['Anbieter', s.data.provider], ['Eingerichtet', s.data.configured ? 'ja' : 'nein']].map(([k, v]) => (
-                <div key={k} className="rounded-xl bg-secondary p-3"><dt className="opacity-60">{k}</dt><dd className="mt-1 text-sm">{v}</dd></div>
-              ))}
-            </dl>
-          </>
-        )}
-      </div>
-      <div className="mt-8"><ArrowLink href="/salons" testId="link-browse">Ohne Konto stöbern</ArrowLink></div>
     </div>
   );
 }

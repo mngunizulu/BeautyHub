@@ -1,6 +1,6 @@
 # BeautyHub
 
-German-first beauty and wellness marketplace plus multi-tenant salon management, built incrementally. The original product brief governs the ten-stage scope. Current work is **Stage 1 only**; the first usable booking milestone is Stage 4.
+German-first beauty and wellness marketplace plus multi-tenant salon management, built incrementally. The original brief and the supplied **Stage 2 of 10** instructions govern current scope. Preserve Stage 1; current work is authentication/onboarding/staff/services/policy foundations. Booking engine remains Stage 4.
 
 ## Recover a session
 Read this file, `docs/PROJECT_STATE.md`, the relevant tasks in `docs/ROADMAP.md`, then only relevant source. Verify actual code/database/test state; fix documentation discrepancies. Never regenerate completed functionality.
@@ -27,8 +27,11 @@ Read this file, `docs/PROJECT_STATE.md`, the relevant tasks in `docs/ROADMAP.md`
 ## Non-negotiable constraints
 - Do not publish or activate paid/external services without explicit approval.
 - Use real persistence. Demo data and simulated payment/message adapters must be visibly labelled.
-- Stage 1 has a public, read-only synthetic catalog. No account, booking, or payment success may be simulated.
-- Managed Clerk is the planned identity provider; Stage 1 private API namespaces fail closed with 401. Do not build local passwords/JWTs. Full identity integration is Stage 2.
+- Preserve the three fictional Stage 1 studios, nine services and existing categories. Label fictional data per record; user-created businesses are real user-entered data.
+- Managed Clerk owns registration/login/recovery/sessions. Internal users are idempotently linked to verified identity. Do not build local passwords/JWTs or trust caller headers.
+- Stage 2 includes resumable six-step onboarding, multi-organization memberships, structured arbitrary German addresses, extensible business/service categories, employee/invitation/service/variant administration, configurable versioned cancellation policies and provider-reference-only payment foundations.
+- Do not implement Stage 3/4 prematurely. No real card setup, fee collection or legally-enforceable-fee claims. Default policies are configurable data: 24 hours / 100% late cancellation / 100% no-show.
+- Invitations are expiring, single-use and verified-recipient-bound. Store only token hashes; share raw tokens once through URL fragments, not query strings/logs. No email provider is activated.
 - Derive tenant permissions from verified identity and persisted memberships, never caller-supplied tenant/role headers. Platform administration does not implicitly expose salon-private CRM.
 - Primary locale de-DE, EUR integer minor units, Europe/Berlin. Prepare centralized translations; do not implement English by duplicating business logic.
 - Only expose explicit published public fields. Private CRM and global consumer profiles stay separate.

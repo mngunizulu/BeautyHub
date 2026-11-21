@@ -15,8 +15,8 @@ const publicFields = {
   imageKey: locations.imageKey,
   timezone: locations.timezone,
   isDemo: organizations.isDemo,
-  minPriceCents: sql<number | null>`(select min(s.price_cents) from services s where s.location_id = ${locations.id} and s.published = true)`,
-  serviceCount: sql<number>`(select count(*)::int from services s where s.location_id = ${locations.id} and s.published = true)`,
+  minPriceCents: sql<number | null>`(select min(s.price_cents) from services s where s.location_id = ${locations.id} and s.published = true and s.archived = false)`,
+  serviceCount: sql<number>`(select count(*)::int from services s where s.location_id = ${locations.id} and s.published = true and s.archived = false)`,
 };
 
 // LIKE patterns are escaped in addition to parameter binding so input is literal.
@@ -33,7 +33,7 @@ export async function findPublicBusinesses(filters: { q?: string; city?: string;
       filters.q ? or(
         ilike(locations.name, literalPattern(filters.q)),
         ilike(locations.description, literalPattern(filters.q)),
-        sql`exists (select 1 from services s where s.location_id = ${locations.id} and s.published = true and s.name ilike ${literalPattern(filters.q)})`,
+        sql`exists (select 1 from services s where s.location_id = ${locations.id} and s.published = true and s.archived = false and s.name ilike ${literalPattern(filters.q)})`,
       ) : undefined,
       filters.city ? ilike(locations.city, literalPattern(filters.city)) : undefined,
       filters.category ? eq(categories.slug, filters.category) : undefined,
@@ -51,7 +51,7 @@ export async function findPublicBusiness(slug: string) {
     db.select({
       id: services.id, name: services.name, description: services.description,
       durationMinutes: services.durationMinutes, priceCents: services.priceCents,
-    }).from(services).where(and(eq(services.locationId, business.id), eq(services.published, true))).orderBy(asc(services.priceCents)),
+    }).from(services).where(and(eq(services.locationId, business.id), eq(services.published, true), eq(services.archived, false))).orderBy(asc(services.priceCents)),
     db.select({ weekday: openingHours.weekday, opens: openingHours.opens, closes: openingHours.closes })
       .from(openingHours).where(eq(openingHours.locationId, business.id)).orderBy(asc(openingHours.weekday)),
   ]);
@@ -76,7 +76,7 @@ export async function catalogSummary() {
   }).from(locations).where(eq(locations.published, true));
   const [serviceCounts] = await db.select({ count: sql<number>`count(*)::int` })
     .from(services).innerJoin(locations, eq(services.locationId, locations.id))
-    .where(and(eq(locations.published, true), eq(services.published, true)));
+    .where(and(eq(locations.published, true), eq(services.published, true), eq(services.archived, false)));
   const [categoryCounts] = await db.select({ count: sql<number>`count(*)::int` }).from(categories);
   const cities = await db.selectDistinct({ city: locations.city }).from(locations)
     .where(eq(locations.published, true)).orderBy(asc(locations.city));

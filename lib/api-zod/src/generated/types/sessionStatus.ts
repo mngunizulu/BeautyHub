@@ -5,6 +5,7 @@
  * BeautyHub Stage 1 API. Public development catalog; bookings and account activation are deferred.
  * OpenAPI spec version: 0.1.0
  */
+import type { UserProfile } from './userProfile';
 
 export interface SessionStatus {
   authenticated: boolean;
@@ -12,4 +13,5 @@ export interface SessionStatus {
   provider: string;
   role: string;
   message: string;
+  user?: UserProfile;
 }

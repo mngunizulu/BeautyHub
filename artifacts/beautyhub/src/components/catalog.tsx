@@ -15,7 +15,7 @@ export function BusinessCard({ b, index = 0 }: { b: Business; index?: number }) 
       style={{ animationDelay: `${index * 80}ms` }}>
       <div className="relative aspect-[4/3] overflow-hidden">
         <img src={imageFor(b.imageKey)} alt={`Atmosphäre bei ${b.name}`} loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
-        <DemoBadge className="absolute left-3 top-3 bg-background/90 backdrop-blur" />
+        {b.isDemo && <DemoBadge className="absolute left-3 top-3 bg-background/90 backdrop-blur" />}
       </div>
       <div className="p-5">
         <p className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">{b.categoryName}</p>

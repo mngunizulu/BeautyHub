@@ -119,6 +119,328 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SessionStatus"
+  /me:
+    get:
+      operationId: getMyProfile
+      tags: [account]
+      responses:
+        "200":
+          description: Current database identity
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UserProfile" }
+    patch:
+      operationId: updateMyProfile
+      tags: [account]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ProfileInput" }
+      responses:
+        "200":
+          description: Saved profile
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UserProfile" }
+  /me/export:
+    get:
+      operationId: exportMyData
+      tags: [account]
+      responses:
+        "200":
+          description: Personal account data export without other tenants' private records
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PersonalExport" }
+  /me/deletion-requests:
+    post:
+      operationId: requestAccountDeletion
+      tags: [account]
+      responses:
+        "200":
+          description: Idempotent deletion workflow request, not instant erasure
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ActionResult" }
+  /me/payment-methods:
+    get:
+      operationId: listMyPaymentMethods
+      tags: [account]
+      responses:
+        "200":
+          description: Only current user's safe provider associations, no raw card data
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/PaymentReference" } }
+  /organizations:
+    get:
+      operationId: listMyOrganizations
+      tags: [business]
+      responses:
+        "200":
+          description: Active memberships only
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/OrganizationSummary" } }
+    post:
+      operationId: createOrganization
+      tags: [business]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/OrganizationInput" }
+      responses:
+        "201":
+          description: Atomic organization, owner membership, draft location and default policy
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BusinessWorkspace" }
+  /organizations/{organizationId}/workspace:
+    parameters:
+      - $ref: "#/components/parameters/OrganizationId"
+    get:
+      operationId: getOrganizationWorkspace
+      tags: [business]
+      responses:
+        "200":
+          description: Authorized tenant workspace
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BusinessWorkspace" }
+  /organizations/{organizationId}/profile:
+    parameters:
+      - $ref: "#/components/parameters/OrganizationId"
+    put:
+      operationId: saveOrganizationProfile
+      tags: [business]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/OrganizationProfileInput" }
+      responses:
+        "200":
+          description: Saved organization identity
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BusinessWorkspace" }
+  /organizations/{organizationId}/locations:
+    parameters:
+      - $ref: "#/components/parameters/OrganizationId"
+    post:
+      operationId: createBusinessLocation
+      tags: [business]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LocationInput" }
+      responses:
+        "201":
+          description: Added draft location
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BusinessWorkspace" }
+  /organizations/{organizationId}/locations/{locationId}:
+    parameters:
+      - $ref: "#/components/parameters/OrganizationId"
+      - { name: locationId, in: path, required: true, schema: { type: string, format: uuid } }
+    put:
+      operationId: saveBusinessLocation
+      tags: [business]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LocationInput" }
+      responses:
+        "200":
+          description: Address, opening hours and booking settings saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BusinessWorkspace" }
+  /organizations/{organizationId}/employees:
+    parameters:
+      - $ref: "#/components/parameters/OrganizationId"
+    post:
+      operationId: createEmployee
+      tags: [business]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EmployeeInput" }
+      responses:
+        "201":
+          description: Employee created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BusinessWorkspace" }
+  /organizations/{organizationId}/employees/{employeeId}:
+    parameters:
+      - $ref: "#/components/parameters/OrganizationId"
+      - { name: employeeId, in: path, required: true, schema: { type: string, format: uuid } }
+    put:
+      operationId: saveEmployee
+      tags: [business]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EmployeeInput" }
+      responses:
+        "200":
+          description: Employee saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BusinessWorkspace" }
+  /organizations/{organizationId}/service-categories:
+    parameters:
+      - $ref: "#/components/parameters/OrganizationId"
+    post:
+      operationId: createServiceCategory
+      tags: [business]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CategoryInput" }
+      responses:
+        "201":
+          description: Organization-scoped service grouping
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BusinessWorkspace" }
+  /organizations/{organizationId}/services:
+    parameters:
+      - $ref: "#/components/parameters/OrganizationId"
+    post:
+      operationId: createBusinessService
+      tags: [business]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ServiceInput" }
+      responses:
+        "201":
+          description: Service, variants and assignments saved atomically
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BusinessWorkspace" }
+  /organizations/{organizationId}/services/{serviceId}:
+    parameters:
+      - $ref: "#/components/parameters/OrganizationId"
+      - { name: serviceId, in: path, required: true, schema: { type: string, format: uuid } }
+    put:
+      operationId: saveBusinessService
+      tags: [business]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ServiceInput" }
+      responses:
+        "200":
+          description: Updated service
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BusinessWorkspace" }
+    delete:
+      operationId: archiveBusinessService
+      tags: [business]
+      responses:
+        "200":
+          description: Soft archive preserves historical identifiers
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BusinessWorkspace" }
+  /organizations/{organizationId}/policy:
+    parameters:
+      - $ref: "#/components/parameters/OrganizationId"
+    put:
+      operationId: saveCancellationPolicy
+      tags: [business]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PolicyInput" }
+      responses:
+        "200":
+          description: New immutable policy version
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BusinessWorkspace" }
+  /organizations/{organizationId}/publication:
+    parameters:
+      - $ref: "#/components/parameters/OrganizationId"
+    put:
+      operationId: setBusinessPublication
+      tags: [business]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PublicationInput" }
+      responses:
+        "200":
+          description: Explicit validated publication or unpublication
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BusinessWorkspace" }
+  /organizations/{organizationId}/invitations:
+    parameters:
+      - $ref: "#/components/parameters/OrganizationId"
+    post:
+      operationId: createStaffInvitation
+      tags: [business]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/InvitationInput" }
+      responses:
+        "201":
+          description: Secure share-once invitation link; no email provider activated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InvitationDelivery" }
+  /organizations/{organizationId}/members/{membershipId}:
+    parameters:
+      - $ref: "#/components/parameters/OrganizationId"
+      - { name: membershipId, in: path, required: true, schema: { type: string, format: uuid } }
+    put:
+      operationId: saveOrganizationMembership
+      tags: [business]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MembershipInput" }
+      responses:
+        "200":
+          description: Owner-controlled access change with audit record
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BusinessWorkspace" }
+  /invitations/accept:
+    post:
+      operationId: acceptStaffInvitation
+      tags: [account]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/InvitationAcceptance" }
+      responses:
+        "200":
+          description: Recipient-verified atomic single-use invitation acceptance
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OrganizationSummary" }
   /business/workspace:
     get:
       operationId: getBusinessWorkspace
@@ -142,6 +464,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiErrorResponse"
 components:
+  parameters:
+    OrganizationId:
+      name: organizationId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
   responses:
     BadRequest:
       description: Invalid request
@@ -246,7 +574,7 @@ components:
       properties:
         number: { type: integer }
         title: { type: string }
-        status: { type: string, enum: [in_progress, planned] }
+        status: { type: string, enum: [in_progress, planned, completed] }
         description: { type: string }
     SystemStatus:
       type: object
@@ -274,3 +602,252 @@ components:
         provider: { type: string }
         role: { type: string }
         message: { type: string }
+        user: { $ref: "#/components/schemas/UserProfile" }
+    ProfileInput:
+      type: object
+      required: [displayName, phone, emailNotifications, marketingConsent]
+      properties:
+        displayName: { type: string, minLength: 1, maxLength: 100 }
+        phone: { type: string, maxLength: 30 }
+        emailNotifications: { type: boolean }
+        marketingConsent: { type: boolean }
+    UserProfile:
+      allOf:
+        - $ref: "#/components/schemas/ProfileInput"
+        - type: object
+          required: [id, email, emailVerified, deletionRequested, isPlatformAdmin]
+          properties:
+            id: { type: string }
+            email: { type: string }
+            emailVerified: { type: boolean }
+            deletionRequested: { type: boolean }
+            isPlatformAdmin: { type: boolean }
+    ActionResult:
+      type: object
+      required: [message]
+      properties:
+        message: { type: string }
+    PersonalExport:
+      type: object
+      required: [profile, organizations, exportedAt]
+      properties:
+        profile: { $ref: "#/components/schemas/UserProfile" }
+        organizations: { type: array, items: { $ref: "#/components/schemas/OrganizationSummary" } }
+        exportedAt: { type: string }
+    PaymentReference:
+      type: object
+      required: [id, provider, status]
+      properties:
+        id: { type: string }
+        provider: { type: string }
+        status: { type: string }
+    OrganizationInput:
+      type: object
+      required: [name, categoryId]
+      properties:
+        name: { type: string, minLength: 2, maxLength: 120 }
+        categoryId: { type: string, format: uuid }
+    OrganizationSummary:
+      type: object
+      required: [id, name, role, status, published, locationCount]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        role: { type: string, enum: [owner, manager, employee] }
+        status: { type: string }
+        published: { type: boolean }
+        locationCount: { type: integer }
+    OrganizationProfileInput:
+      type: object
+      required: [name, description, contactEmail, phone, website, categoryId, onboardingStep]
+      properties:
+        name: { type: string, minLength: 2, maxLength: 120 }
+        description: { type: string, maxLength: 3000 }
+        contactEmail: { type: string, maxLength: 200 }
+        phone: { type: string, maxLength: 30 }
+        website: { type: string, maxLength: 300 }
+        categoryId: { type: string, format: uuid }
+        onboardingStep: { type: integer, minimum: 1, maximum: 6 }
+    HourInput:
+      type: object
+      required: [weekday, opens, closes]
+      properties:
+        weekday: { type: integer, minimum: 1, maximum: 7 }
+        opens: { type: string, pattern: '^([01][0-9]|2[0-3]):[0-5][0-9]$' }
+        closes: { type: string, pattern: '^([01][0-9]|2[0-3]):[0-5][0-9]$' }
+    LocationInput:
+      type: object
+      required: [name, country, postalCode, city, street, houseNumber, addressExtra, district, timezone, openingHours, leadTimeHours, advanceBookingDays, contactPreference]
+      properties:
+        name: { type: string, minLength: 2, maxLength: 120 }
+        country: { type: string, enum: [DE] }
+        postalCode: { type: string, pattern: '^([0-9]{5})?$' }
+        city: { type: string, maxLength: 100 }
+        street: { type: string, maxLength: 150 }
+        houseNumber: { type: string, maxLength: 20 }
+        addressExtra: { type: string, maxLength: 150 }
+        district: { type: string, maxLength: 100 }
+        timezone: { type: string, maxLength: 80 }
+        latitude: { type: [number, "null"], minimum: -90, maximum: 90 }
+        longitude: { type: [number, "null"], minimum: -180, maximum: 180 }
+        openingHours: { type: array, maxItems: 7, items: { $ref: "#/components/schemas/HourInput" } }
+        leadTimeHours: { type: integer, minimum: 0, maximum: 720 }
+        advanceBookingDays: { type: integer, minimum: 1, maximum: 730 }
+        contactPreference: { type: string, enum: [email, phone] }
+    ManagedLocation:
+      allOf:
+        - $ref: "#/components/schemas/LocationInput"
+        - type: object
+          required: [id, slug, published]
+          properties:
+            id: { type: string }
+            slug: { type: string }
+            published: { type: boolean }
+    EmployeeInput:
+      type: object
+      required: [displayName, email, phone, locationId, active, workingHours]
+      properties:
+        displayName: { type: string, minLength: 1, maxLength: 100 }
+        email: { type: string, maxLength: 200 }
+        phone: { type: string, maxLength: 30 }
+        locationId: { type: string, format: uuid }
+        active: { type: boolean }
+        workingHours: { type: array, maxItems: 7, items: { $ref: "#/components/schemas/HourInput" } }
+    ManagedEmployee:
+      allOf:
+        - $ref: "#/components/schemas/EmployeeInput"
+        - type: object
+          required: [id]
+          properties:
+            id: { type: string }
+            userId: { type: [string, "null"] }
+    CategoryInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 100 }
+    ManagedCategory:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: string }
+        name: { type: string }
+    VariantInput:
+      type: object
+      required: [name, priceCents, durationMinutes]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string, minLength: 1, maxLength: 100 }
+        priceCents: { type: integer, minimum: 0, maximum: 10000000 }
+        durationMinutes: { type: integer, minimum: 1, maximum: 1440 }
+    ServiceInput:
+      type: object
+      required: [name, description, locationId, priceCents, durationMinutes, preparationMinutes, cleanupMinutes, published, onlineBooking, employeeIds, variants]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 150 }
+        description: { type: string, maxLength: 2000 }
+        locationId: { type: string, format: uuid }
+        categoryId: { type: [string, "null"] }
+        priceCents: { type: integer, minimum: 0, maximum: 10000000 }
+        durationMinutes: { type: integer, minimum: 1, maximum: 1440 }
+        preparationMinutes: { type: integer, minimum: 0, maximum: 240 }
+        cleanupMinutes: { type: integer, minimum: 0, maximum: 240 }
+        published: { type: boolean }
+        onlineBooking: { type: boolean }
+        employeeIds: { type: array, maxItems: 100, items: { type: string, format: uuid } }
+        variants: { type: array, maxItems: 30, items: { $ref: "#/components/schemas/VariantInput" } }
+    ManagedService:
+      allOf:
+        - $ref: "#/components/schemas/ServiceInput"
+        - type: object
+          required: [id, archived]
+          properties:
+            id: { type: string }
+            archived: { type: boolean }
+    PolicyInput:
+      type: object
+      required: [noticeHours, lateFeeType, lateFeeValue, noShowFeeType, noShowFeeValue, waiverAllowed, exceptions]
+      properties:
+        noticeHours: { type: integer, minimum: 0, maximum: 720 }
+        lateFeeType: { type: string, enum: [percentage, fixed] }
+        lateFeeValue: { type: integer, minimum: 0, maximum: 10000000 }
+        noShowFeeType: { type: string, enum: [percentage, fixed] }
+        noShowFeeValue: { type: integer, minimum: 0, maximum: 10000000 }
+        waiverAllowed: { type: boolean }
+        exceptions: { type: string, maxLength: 2000 }
+    ManagedPolicy:
+      allOf:
+        - $ref: "#/components/schemas/PolicyInput"
+        - type: object
+          required: [id, version, createdAt]
+          properties:
+            id: { type: string }
+            version: { type: integer }
+            createdAt: { type: string }
+    PublicationInput:
+      type: object
+      required: [locationId, published]
+      properties:
+        locationId: { type: string, format: uuid }
+        published: { type: boolean }
+    MembershipInput:
+      type: object
+      required: [role, status]
+      properties:
+        role: { type: string, enum: [manager, employee] }
+        status: { type: string, enum: [active, inactive, removed] }
+    ManagedMembership:
+      type: object
+      required: [id, userId, displayName, email, role, status]
+      properties:
+        id: { type: string }
+        userId: { type: string }
+        displayName: { type: string }
+        email: { type: string }
+        role: { type: string }
+        status: { type: string }
+    InvitationInput:
+      type: object
+      required: [email, role, locationId]
+      properties:
+        email: { type: string, format: email, maxLength: 200 }
+        role: { type: string, enum: [manager, employee] }
+        locationId: { type: string, format: uuid }
+    ManagedInvitation:
+      type: object
+      required: [id, email, role, expiresAt, accepted]
+      properties:
+        id: { type: string }
+        email: { type: string }
+        role: { type: string }
+        expiresAt: { type: string }
+        accepted: { type: boolean }
+    InvitationDelivery:
+      type: object
+      required: [token, expiresAt, message]
+      properties:
+        token: { type: string }
+        expiresAt: { type: string }
+        message: { type: string }
+    InvitationAcceptance:
+      type: object
+      required: [token]
+      properties:
+        token: { type: string, minLength: 32, maxLength: 200 }
+    BusinessWorkspace:
+      type: object
+      required: [id, name, role, isDemo, profile, locations, employees, services, serviceCategories, memberships, invitations, policies, publicationIssues]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        role: { type: string, enum: [owner, manager, employee] }
+        isDemo: { type: boolean }
+        profile: { $ref: "#/components/schemas/OrganizationProfileInput" }
+        locations: { type: array, items: { $ref: "#/components/schemas/ManagedLocation" } }
+        employees: { type: array, items: { $ref: "#/components/schemas/ManagedEmployee" } }
+        services: { type: array, items: { $ref: "#/components/schemas/ManagedService" } }
+        serviceCategories: { type: array, items: { $ref: "#/components/schemas/ManagedCategory" } }
+        memberships: { type: array, items: { $ref: "#/components/schemas/ManagedMembership" } }
+        invitations: { type: array, items: { $ref: "#/components/schemas/ManagedInvitation" } }
+        policies: { type: array, items: { $ref: "#/components/schemas/ManagedPolicy" } }
+        publicationIssues: { type: array, items: { type: string } }

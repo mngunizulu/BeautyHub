@@ -19,7 +19,7 @@ export default function Home() {
     <>
       <section className="relative mx-auto grid max-w-7xl gap-10 px-5 pt-10 pb-16 md:grid-cols-[1.15fr_1fr] md:pt-16">
         <div className="rise">
-          <DemoBadge />
+          {s?.isDemo && <DemoBadge />}
           <h1 className="mt-6 font-display text-5xl leading-[0.95] sm:text-7xl lg:text-[5.5rem]">
             Dein nächster<br />Salon wohnt<br /><span className="italic text-primary">um die Ecke.</span>
           </h1>
@@ -28,7 +28,7 @@ export default function Home() {
         </div>
         <div className="relative rise" style={{ animationDelay: '150ms' }}>
           <div className="overflow-hidden rounded-t-[12rem] rounded-b-[1.5rem] border border-border">
-            <img src={heroImage} alt="Salon-Schaufenster in einem Berliner Altbau im Abendlicht" className="h-[420px] w-full object-cover md:h-[560px]" />
+            <img src={heroImage} alt="Salon-Schaufenster in einem Altbau im Abendlicht" className="h-[420px] w-full object-cover md:h-[560px]" />
           </div>
           <div className="absolute -bottom-6 -left-4 rounded-2xl border border-border bg-card p-5 shadow-xl sm:-left-8" data-testid="card-summary">
             {summary.isLoading ? <div className="h-16 w-48 animate-pulse rounded bg-muted" /> : summary.isError ? (
@@ -40,7 +40,7 @@ export default function Home() {
                 ))}
               </dl>
             )}
-            {s?.isDemo && <p className="mt-3 max-w-[16rem] text-[11px] text-muted-foreground">Alle Zahlen beziehen sich auf synthetische Entwicklungsdaten.</p>}
+            {s?.isDemo && <p className="mt-3 max-w-[16rem] text-[11px] text-muted-foreground">Enthält gekennzeichnete synthetische Demo-Betriebe.</p>}
           </div>
         </div>
       </section>
@@ -49,13 +49,13 @@ export default function Home() {
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="font-mono text-xs uppercase tracking-wider text-accent-foreground/70">Im Katalog{s?.cities.length ? ` · ${s.cities.join(', ')}` : ''}</p>
-            <h2 className="mt-2 font-display text-4xl sm:text-5xl">Drei Adressen zum Kennenlernen</h2>
+            <h2 className="mt-2 font-display text-4xl sm:text-5xl">Adressen zum Kennenlernen</h2>
           </div>
           <ArrowLink href="/salons" testId="link-all-salons">Alle Salons ansehen</ArrowLink>
         </div>
         {list.isError ? <ErrorState onRetry={() => list.refetch()} /> : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {list.isLoading ? Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />) : list.data?.map((b, i) => <BusinessCard key={b.id} b={b} index={i} />)}
+            {list.isLoading ? Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />) : list.data?.slice(0, 6).map((b, i) => <BusinessCard key={b.id} b={b} index={i} />)}
           </div>
         )}
       </section>

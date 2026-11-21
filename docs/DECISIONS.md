@@ -27,3 +27,13 @@
 **Decision:** Platform administrator status does not implicitly authorize access to salon-private CRM records.
 **Why:** Global operations and tenant-private records have different privacy boundaries; least privilege avoids accidental broad access.
 **Consequences:** Future support access needs explicit, separately designed and audited permissions. Stage 2 loads roles only from trusted persisted data.
+
+## ADR-006 — Managed identity and independent persisted memberships
+**Decision:** Stage 2 activates managed Clerk without local passwords; identities bridge uniquely into PostgreSQL. Roles are independent per organization, checked on every request. Platform admin remains separately trusted, never an owner sign-up option. Only owners grant/revoke memberships and publish.
+**Why:** One consumer can work with multiple unrelated businesses without gaining another tenant's rights. Deactivations must take effect on subsequent requests.
+**Consequences:** No client-provided identity/role is trusted. Provider owns recovery and verified email; local profile/preferences remain editable.
+
+## ADR-007 — Explicit invitation and financial limits
+**Decision:** Hash expiring invitation tokens, verify intended email and current issuer permissions, consume atomically once; manually share fragment links because no email provider was approved. Soft archive services/variants, version policies immutably and model only opaque payment references.
+**Why:** Safe membership creation and future price/policy snapshots are needed now; real booking, card authorization, fee collection and enforceability are not authorized or ready.
+**Consequences:** No raw token persistence/logging, card-entry form, payment credential or real-money action. Future SetupIntent/off-session/BookingItem contracts are documented in architecture; actual functionality stays in later stages.

@@ -3,7 +3,7 @@ import { canAccessAdministration, canAccessOrganization, type Principal } from "
 
 const owner: Principal = {
   userId: "synthetic-owner", isPlatformAdmin: false,
-  memberships: [{ organizationId: "org-a", role: "owner" }],
+  memberships: [{ organizationId: "org-a", role: "owner", status: "active" }],
 };
 describe("fail-closed authorization policy", () => {
   it("denies anonymous business and administrator access", () => {
@@ -20,8 +20,14 @@ describe("fail-closed authorization policy", () => {
     expect(canAccessAdministration(owner)).toBe(false);
   });
   it("enforces allowed roles for sensitive operations", () => {
-    const employee: Principal = { ...owner, memberships: [{ organizationId: "org-a", role: "employee" }] };
+    const employee: Principal = { ...owner, memberships: [{ organizationId: "org-a", role: "employee", status: "active" }] };
     expect(canAccessOrganization(employee, "org-a", ["owner", "manager"])).toBe(false);
+  });
+  it("denies inactive or removed memberships even when their role is owner", () => {
+    for (const status of ["inactive", "removed"] as const) {
+      const blocked: Principal = { ...owner, memberships: [{ organizationId: "org-a", role: "owner", status }] };
+      expect(canAccessOrganization(blocked, "org-a")).toBe(false);
+    }
   });
   it("requires a matching membership even for administrators to access salon-private records", () => {
     const admin: Principal = { userId: "synthetic-admin", isPlatformAdmin: true, memberships: [] };
@@ -29,7 +35,7 @@ describe("fail-closed authorization policy", () => {
     expect(canAccessOrganization(admin, "org-a")).toBe(false);
   });
   it("supports independent roles across multiple memberships", () => {
-    const multi: Principal = { ...owner, memberships: [...owner.memberships, { organizationId: "org-b", role: "employee" }] };
+    const multi: Principal = { ...owner, memberships: [...owner.memberships, { organizationId: "org-b", role: "employee", status: "active" }] };
     expect(canAccessOrganization(multi, "org-b")).toBe(true);
     expect(canAccessOrganization(multi, "org-b", ["owner"])).toBe(false);
   });

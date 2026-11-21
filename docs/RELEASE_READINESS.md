@@ -1,6 +1,6 @@
 # Release readiness
 
-**Not ready for production. Do not publish.** Stage 1 is a development foundation, not a complete marketplace or compliant business/POS product.
+**Not ready for production. Do not publish.** Stage 2 extends the development foundation, not a complete marketplace or compliant business/POS product.
 
 ## Foundation gates
 - [x] Architecture, API contracts and continuity documentation.
@@ -9,6 +9,7 @@
 - [x] Final Stage 1 typecheck/lint/tests/desktop-mobile Preview evidence (see TEST_REPORT; browser interactions remain NOT RUN).
 
 ## Later production gates — all outstanding
+Stage 2 has real managed identity, tenant RBAC, invitation/audit and financial-policy data foundations with passing API tests. Production lifecycle, legal, payment, scale and complete end-to-end gates below still require their later-stage work.
 - [ ] Verified managed identity, account lifecycle and session security; independent dev/prod users.
 - [ ] Real tenant/location RBAC and authenticated IDOR/read/write/admin tests.
 - [ ] Transaction-safe scheduling, exclusive resources, idempotency and DST/concurrency tests.

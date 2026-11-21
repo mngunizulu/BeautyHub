@@ -12,4 +12,5 @@ export type StageStatus = typeof StageStatus[keyof typeof StageStatus];
 export const StageStatus = {
   in_progress: 'in_progress',
   planned: 'planned',
+  completed: 'completed',
 } as const;
