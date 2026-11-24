@@ -1,4 +1,5 @@
 import app from "./app";
+import { configuredBookingEmailProvider, startBookingEmailDelivery } from "./services/booking-email-delivery";
 import { logger } from "./lib/logger";
 import { pool } from "@workspace/db";
 
@@ -16,6 +17,8 @@ if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
 
+const emailProvider = configuredBookingEmailProvider();
+const stopDelivery = emailProvider ? startBookingEmailDelivery(emailProvider) : undefined;
 const server = app.listen(port, "0.0.0.0", () => {
   logger.info({ port }, "Server listening");
 });
@@ -25,7 +28,7 @@ server.on("error", () => {
 });
 for (const signal of ["SIGTERM", "SIGINT"]) {
   process.once(signal, () => {
-    server.close(() => { void pool.end().finally(() => process.exit(0)); });
+    server.close(() => { void Promise.resolve(stopDelivery?.()).then(() => pool.end()).finally(() => process.exit(0)); });
     setTimeout(() => process.exit(1), 10000).unref();
   });
 }

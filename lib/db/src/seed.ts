@@ -55,8 +55,8 @@ try {
       { locationId: id(203), name: "Pediküre", description: "Pflege und Entspannung für deine Füße.", durationMinutes: 45, priceCents: 3900 },
     ];
     await tx.insert(services).values(serviceData.map((service, i) => ({
-      ...service, id: id(301 + i), published: true,
-    }))).onConflictDoNothing();
+      ...service, id: id(301 + i), published: true, onlineBooking: false,
+    }))).onConflictDoUpdate({ target: services.id, set: { onlineBooking: false } });
   });
   process.stdout.write("Development catalog seeded: 3 synthetic studios, 9 categories, 9 services. No real accounts created.\n");
 } finally {

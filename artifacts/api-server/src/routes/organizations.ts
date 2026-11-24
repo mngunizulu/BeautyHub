@@ -12,6 +12,8 @@ import { requireAuthentication, requireOrganization, allowRoles } from "../middl
 import { input, uuid, emailOrEmpty, validHours } from "../lib/input";
 import { HttpError } from "../lib/http-error";
 import { myOrganizations, workspace, publicationIssues } from "../services/workspace";
+import { requirePlatformIntake } from "../services/platform-settings";
+import { requireLocationCapacity, startSaasTrial } from "../services/saas-subscriptions";
 import { staffRouter } from "./staff";
 import { serviceAdminRouter } from "./service-admin";
 
@@ -25,7 +27,9 @@ router.post("/organizations", async (req, res): Promise<void> => {
   const [category] = await db.select().from(categories).where(eq(categories.id, data.categoryId));
   if (!category) throw new HttpError(400, "Ungültige Unternehmenskategorie.");
   const orgId = await db.transaction(async (tx) => {
+    await requirePlatformIntake(tx, "businessRegistrationOpen");
     const [org] = await tx.insert(organizations).values({ name: data.name.trim() }).returning();
+    await startSaasTrial(tx, org!.id);
     await tx.insert(memberships).values({ userId: req.identity!.id, organizationId: org!.id, role: "owner" });
     const [location] = await tx.insert(locations).values({
       organizationId: org!.id, categoryId: category.id, name: org!.name, slug: `${slugify(org!.name)}-${randomUUID().slice(0, 8)}`,
@@ -55,6 +59,11 @@ router.put("/organizations/:organizationId/profile", allowRoles("owner", "manage
   if (data.name.trim().length < 2) throw new HttpError(400, "Unternehmensname benötigt mindestens zwei Zeichen.");
   emailOrEmpty(data.contactEmail);
   if (data.website && !/^https?:\/\/[^.\s]+\.[^\s]+$/.test(data.website)) throw new HttpError(400, "Website muss eine vollständige http(s)-Adresse sein.");
+  for (const url of [data.socialUrl, data.logoUrl]) {
+    if (url && (!URL.canParse(url) || new URL(url).protocol !== "https:")) {
+      throw new HttpError(400, "Logo und Social-Media-Link benötigen eine vollständige HTTPS-Adresse.");
+    }
+  }
   const [category] = await db.select().from(categories).where(eq(categories.id, data.categoryId));
   if (!category) throw new HttpError(400, "Unternehmenskategorie nicht gefunden.");
   const [live] = await db.select().from(locations).where(and(eq(locations.organizationId, orgId), eq(locations.published, true)));
@@ -85,6 +94,7 @@ async function saveLocation(req: Parameters<import("express").RequestHandler>[0]
   const { openingHours: hours, ...fields } = data;
   await db.transaction(async (tx) => {
     if (create) {
+      await requireLocationCapacity(tx, orgId);
       const [location] = await tx.insert(locations).values({
         ...fields, organizationId: orgId, categoryId: reference.categoryId,
         description: reference.description, imageKey: "illustration", address: `${data.street} ${data.houseNumber}`.trim(),

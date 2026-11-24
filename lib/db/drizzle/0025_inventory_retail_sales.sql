@@ -1,0 +1,3 @@
+ALTER TABLE "inventory_movements" DROP CONSTRAINT "inventory_movement_values";--> statement-breakpoint
+ALTER TABLE "inventory_movements" ADD CONSTRAINT "inventory_movement_values" CHECK ("inventory_movements"."balance" >= 0 and
+    (("inventory_movements"."kind" = 'receipt' and "inventory_movements"."quantity" > 0) or ("inventory_movements"."kind" = 'adjustment' and "inventory_movements"."quantity" <> 0) or ("inventory_movements"."kind" = 'sale' and "inventory_movements"."quantity" < 0)));

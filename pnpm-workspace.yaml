@@ -7,9 +7,6 @@ packages:
 autoInstallPeers: false
 
 catalog:
-  '@replit/vite-plugin-cartographer': ^0.5.21
-  '@replit/vite-plugin-dev-banner': ^0.1.1
-  '@replit/vite-plugin-runtime-error-modal': ^0.0.6
   '@tailwindcss/vite': ^4.1.14
   '@tanstack/react-query': ^5.90.21
   '@types/node': ^25.3.3
@@ -31,10 +28,6 @@ catalog:
   zod: 4.6.7
 
 minimumReleaseAge: 1440
-
-minimumReleaseAgeExclude:
-  - '@replit/*'
-  - stripe-replit-sync
 
 onlyBuiltDependencies:
   - '@swc/core'
@@ -63,7 +56,6 @@ overrides:
   '@tailwindcss/oxide>@tailwindcss/oxide-linux-arm64-musl': '-'
   '@tailwindcss/oxide>@tailwindcss/oxide-linux-x64-musl': '-'
   '@tailwindcss/oxide>@tailwindcss/oxide-win32-arm64-msvc': '-'
-  '@tailwindcss/oxide>@tailwindcss/oxide-win32-x64-msvc': '-'
   body-parser@^2: ^2.4.0
   brace-expansion@^5: ^5.0.12
   esbuild: 0.28.2
@@ -91,7 +83,6 @@ overrides:
   esbuild>@esbuild/sunos-x64: '-'
   esbuild>@esbuild/win32-arm64: '-'
   esbuild>@esbuild/win32-ia32: '-'
-  esbuild>@esbuild/win32-x64: '-'
   fast-uri@^3: ^3.1.9
   js-yaml: 4.3.2
   lightningcss>lightningcss-android-arm64: '-'
@@ -103,7 +94,6 @@ overrides:
   lightningcss>lightningcss-linux-arm64-musl: '-'
   lightningcss>lightningcss-linux-x64-musl: '-'
   lightningcss>lightningcss-win32-arm64-msvc: '-'
-  lightningcss>lightningcss-win32-x64-msvc: '-'
   proxy-addr@^2: ^2.0.8
   qs@^6: ^6.16.1
   rollup>@rollup/rollup-android-arm-eabi: '-'
@@ -129,7 +119,6 @@ overrides:
   rollup>@rollup/rollup-win32-arm64-msvc: '-'
   rollup>@rollup/rollup-win32-ia32-msvc: '-'
   rollup>@rollup/rollup-win32-x64-gnu: '-'
-  rollup>@rollup/rollup-win32-x64-msvc: '-'
   source-map-js@^1: ^1.2.2
   undici@^7: ^7.30.1
   zod@^4: ^4.6.6

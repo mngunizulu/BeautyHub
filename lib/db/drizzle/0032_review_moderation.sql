@@ -1,0 +1,2 @@
+ALTER TABLE "booking_review_reports" ADD COLUMN "resolved_at" timestamp with time zone;--> statement-breakpoint
+ALTER TABLE "booking_reviews" ADD COLUMN "hidden_by_moderator" boolean DEFAULT false NOT NULL;

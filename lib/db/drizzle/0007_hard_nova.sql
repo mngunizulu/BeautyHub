@@ -1,0 +1,2 @@
+ALTER TABLE "bookings" ADD COLUMN "payment_method_id" uuid;--> statement-breakpoint
+ALTER TABLE "bookings" ADD CONSTRAINT "bookings_payment_method_id_payment_provider_references_id_fk" FOREIGN KEY ("payment_method_id") REFERENCES "public"."payment_provider_references"("id") ON DELETE no action ON UPDATE no action;

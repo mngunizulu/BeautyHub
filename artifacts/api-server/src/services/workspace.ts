@@ -49,7 +49,7 @@ export async function workspace(organizationId: string, role: "owner" | "manager
     id: org.id, name: org.name, role, isDemo: org.isDemo,
     profile: {
       name: org.name, description: org.description, contactEmail: org.contactEmail,
-      phone: org.phone, website: org.website, categoryId: locs[0]?.categoryId,
+      phone: org.phone, website: org.website, socialUrl: org.socialUrl, logoUrl: org.logoUrl, categoryId: locs[0]?.categoryId,
       onboardingStep: Number(org.onboardingStep),
     },
     locations: locs.map((loc) => ({ ...loc, openingHours: hours.filter((hour) => hour.locationId === loc.id) })),

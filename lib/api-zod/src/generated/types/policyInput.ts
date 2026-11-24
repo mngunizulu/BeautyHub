@@ -13,6 +13,11 @@ export interface PolicyInput {
      * @minimum 0
      * @maximum 720
      */
+  rescheduleNoticeHours?: number;
+  /**
+     * @minimum 0
+     * @maximum 720
+     */
   noticeHours: number;
   lateFeeType: PolicyInputLateFeeType;
   /**

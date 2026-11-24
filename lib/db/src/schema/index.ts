@@ -19,4 +19,18 @@
 
 export * from "./identity";
 export * from "./catalog";
-export * from "./operations";
+export * from "./operations";export * from "./marketplace";
+export * from "./booking";
+export * from "./staff-breaks";
+export * from "./crm";
+export * from "./professional-pricing";
+export * from "./reviews";
+export * from "./booking-notifications";
+export * from "./pos";
+export * from "./inventory";
+export * from "./marketing";
+export * from "./loyalty";
+export * from "./packages";
+export * from "./subscriptions";
+export * from "./support";
+export * from "./platform-settings";

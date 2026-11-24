@@ -10,6 +10,9 @@ export const employees = pgTable("employees", {
   locationId: uuid("location_id").notNull().references(() => locations.id),
   userId: uuid("user_id").references(() => users.id),
   displayName: text("display_name").notNull(),
+  publicName: text("public_name").notNull().default(""),
+  professionalTitle: text("professional_title").notNull().default(""),
+  professionalPhotoUrl: text("professional_photo_url").notNull().default(""),
   email: text("email").notNull().default(""),
   phone: text("phone").notNull().default(""),
   active: boolean("active").notNull().default(true),
@@ -35,6 +38,7 @@ export const cancellationPolicies = pgTable("cancellation_policies", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id").notNull().references(() => organizations.id),
   version: integer("version").notNull().default(1),
+  rescheduleNoticeHours: integer("reschedule_notice_hours").notNull().default(0),
   noticeHours: integer("notice_hours").notNull().default(24),
   lateFeeType: text("late_fee_type", { enum: ["percentage", "fixed"] }).notNull().default("percentage"),
   lateFeeValue: integer("late_fee_value").notNull().default(100),
@@ -45,7 +49,7 @@ export const cancellationPolicies = pgTable("cancellation_policies", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [
   uniqueIndex("policy_tenant_version_unique").on(t.organizationId, t.version),
-  check("policy_valid_values", sql`${t.noticeHours} >= 0 and ${t.lateFeeValue} >= 0 and ${t.noShowFeeValue} >= 0 and ${t.lateFeeType} in ('percentage','fixed') and ${t.noShowFeeType} in ('percentage','fixed') and (${t.lateFeeType} <> 'percentage' or ${t.lateFeeValue} <= 100) and (${t.noShowFeeType} <> 'percentage' or ${t.noShowFeeValue} <= 100)`),
+  check("policy_valid_values", sql`${t.rescheduleNoticeHours} between 0 and 720 and ${t.noticeHours} >= 0 and ${t.lateFeeValue} >= 0 and ${t.noShowFeeValue} >= 0 and ${t.lateFeeType} in ('percentage','fixed') and ${t.noShowFeeType} in ('percentage','fixed') and (${t.lateFeeType} <> 'percentage' or ${t.lateFeeValue} <= 100) and (${t.noShowFeeType} <> 'percentage' or ${t.noShowFeeValue} <= 100)`),
 ]);
 
 // Reserved for explicit future booking-policy acceptance; never implicit consent.

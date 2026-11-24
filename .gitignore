@@ -54,3 +54,8 @@ Thumbs.db
 .cache/
 .local/
 /generated-artifacts/
+
+# Environment files
+.env
+.env.*
+!.env.example

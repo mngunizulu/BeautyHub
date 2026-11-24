@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'wouter';
 import { AlertTriangle, ArrowUpRight, Building2, FlaskConical, LogOut, Menu, RotateCw, UserRound, X } from 'lucide-react';
 import { useAuth, useClerk, useUser } from '@clerk/react';
@@ -88,43 +88,47 @@ function FooterCities() {
 export function Layout({ children }: { children: ReactNode }) {
   const [loc] = useLocation();
   const [open, setOpen] = useState(false);
+  const menuButton = useRef<HTMLButtonElement>(null);
   return (
     <div className="flex min-h-[100dvh] flex-col">
       <a href="#inhalt" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground">Zum Inhalt springen</a>
       <div className="demo-stripe border-b border-accent/40 bg-secondary text-center font-mono text-[11px] py-1.5 px-4" data-testid="text-stage-banner">
-        Stufe 2 · Konten und Betriebsverwaltung aktiv · Demo-Betriebe sind gekennzeichnet · Buchungen ab Stufe 4
+        Konten, Marktplatz und Betriebsverwaltung aktiv · Demo-Betriebe sind gekennzeichnet
       </div>
-      <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur">
+      <header onKeyDown={(event) => {
+        if (!open || event.key !== 'Escape') return;
+        event.preventDefault();
+        setOpen(false);
+        menuButton.current?.focus();
+      }} className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4">
           <Logo />
           <nav className="hidden items-center gap-7 md:flex" aria-label="Hauptnavigation">
             {nav.map((n) => (
-              <Link key={n.href} href={n.href} data-testid={`link-nav-${n.href.slice(1)}`}
+              <Link key={n.href} href={n.href} aria-current={loc === n.href ? "page" : undefined} data-testid={`link-nav-${n.href.slice(1)}`}
                 className={`relative text-sm after:absolute after:-bottom-1 after:left-0 after:h-px after:w-full after:origin-left after:bg-accent after:transition-transform after:duration-300 ${loc.startsWith(n.href) ? 'text-primary after:scale-x-100' : 'text-foreground/75 hover:text-foreground after:scale-x-0 hover:after:scale-x-100'}`}>
                 {n.label}
               </Link>
             ))}
             <SessionChip />
           </nav>
-          <button className="md:hidden rounded-full p-2 hover:bg-secondary" onClick={() => setOpen(!open)} aria-expanded={open} aria-label={open ? 'Menü schließen' : 'Menü öffnen'} data-testid="button-menu">
+          <button ref={menuButton} type="button" className="md:hidden rounded-full p-2 hover:bg-secondary" onClick={() => setOpen(!open)} aria-expanded={open} aria-controls="mobile-navigation" aria-label={open ? 'Menü schließen' : 'Menü öffnen'} data-testid="button-menu">
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
-        {open && (
-          <nav className="border-t border-border px-5 py-4 md:hidden rise" aria-label="Mobile Navigation">
-            {nav.map((n) => (
-              <Link key={n.href} href={n.href} onClick={() => setOpen(false)} className="block py-3 font-display text-2xl" data-testid={`link-mobile-${n.href.slice(1)}`}>{n.label}</Link>
-            ))}
-            <MobileAuthLinks close={() => setOpen(false)} />
-          </nav>
-        )}
+        <nav id="mobile-navigation" hidden={!open} className="border-t border-border px-5 py-4 md:hidden rise" aria-label="Mobile Navigation">
+          {nav.map((n) => (
+            <Link key={n.href} href={n.href} aria-current={loc === n.href ? "page" : undefined} onClick={() => setOpen(false)} className="block py-3 font-display text-2xl" data-testid={`link-mobile-${n.href.slice(1)}`}>{n.label}</Link>
+          ))}
+          <MobileAuthLinks close={() => setOpen(false)} />
+        </nav>
       </header>
-      <main id="inhalt" className="flex-1">{children}</main>
+      <main id="inhalt" tabIndex={-1} className="flex-1 scroll-mt-24">{children}</main>
       <footer className="mt-24 bg-primary text-primary-foreground">
         <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-[2fr_1fr_1fr]">
           <div>
             <p className="font-display text-4xl leading-tight">Gute Hände finden.<br /><span className="italic text-accent">Ohne Umwege.</span></p>
-            <p className="mt-4 max-w-md text-sm opacity-70">BeautyHub befindet sich in Entwicklungsstufe 2. Synthetische Demo-Betriebe sind einzeln gekennzeichnet; Termine lassen sich noch nicht buchen.</p>
+            <p className="mt-4 max-w-md text-sm opacity-70">Demo-Betriebe sind einzeln gekennzeichnet. Online-Termine sind bei teilnehmenden Salons verfügbar.</p>
           </div>
           <div className="space-y-2 text-sm">
             <p className="font-mono text-[11px] uppercase tracking-wider opacity-60">Entdecken</p>

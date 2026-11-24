@@ -7,10 +7,12 @@
  */
 import type { ProfileInput } from './profileInput';
 
-export type UserProfile = ProfileInput & {
+export type UserProfile = ProfileInput & ({
   id: string;
   email: string;
   emailVerified: boolean;
   deletionRequested: boolean;
+  /** @nullable */
+  deletionRequestedAt?: Date | null;
   isPlatformAdmin: boolean;
-};
+});

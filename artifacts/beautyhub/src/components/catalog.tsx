@@ -60,8 +60,8 @@ export function FilterBar({ value, cities, onChange, compact = false }: { value:
         className="flex flex-col gap-2 rounded-[1.4rem] border border-border bg-card p-2 shadow-[0_18px_40px_-30px_hsl(332_45%_26%/.6)] sm:flex-row">
         <label className="flex flex-1 items-center gap-3 rounded-2xl px-4 py-3 focus-within:bg-secondary/60 transition-colors">
           <Search className="h-4 w-4 text-muted-foreground" aria-hidden />
-          <span className="sr-only">Salonname suchen</span>
-          <input type="search" value={q} maxLength={100} onChange={(e) => setQ(e.target.value)} placeholder="Salonname, z. B. Atelier" className="w-full bg-transparent outline-none placeholder:text-muted-foreground" data-testid="input-search" />
+          <span className="sr-only">Salonname oder Leistung suchen</span>
+          <input type="search" value={q} maxLength={100} onChange={(e) => setQ(e.target.value)} placeholder="Salonname oder Leistung" className="w-full bg-transparent outline-none placeholder:text-muted-foreground" data-testid="input-search" />
           {q && <button type="button" onClick={() => { setQ(''); onChange({ ...value, q: '' }); }} aria-label="Suche leeren" className="rounded-full p-1 hover:bg-muted" data-testid="button-clear-search"><X className="h-3.5 w-3.5" /></button>}
         </label>
         <label className="flex items-center gap-2 rounded-2xl px-4 py-3 sm:border-l sm:border-border">

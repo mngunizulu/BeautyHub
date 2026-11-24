@@ -1,6 +1,10 @@
 import { Link, useParams } from 'wouter';
 import { ArrowLeft, CalendarX2, Clock, MapPin } from 'lucide-react';
 import { useGetBusiness, getGetBusinessQueryKey } from '@workspace/api-client-react';
+import { SalonBooking } from '@/components/booking';
+import { PublicGallery } from '@/components/gallery';
+import { PublicReviews } from '@/components/public-reviews';
+import { FavoriteButton } from '@/components/favorites';
 import { DemoBadge, ErrorState } from '@/components/site';
 import { dayLabel, formatCents, formatDuration, imageFor } from '@/lib/format';
 
@@ -8,6 +12,10 @@ export default function SalonDetail() {
   const { slug = '' } = useParams<{ slug: string }>();
   const q = useGetBusiness(slug, { query: { enabled: !!slug, queryKey: getGetBusinessQueryKey(slug), retry: (n, e) => (e as { status?: number })?.status !== 404 && n < 2 } });
   const b = q.data;
+  const address = b ? [b.address, b.addressExtra, [b.postalCode, b.city].filter(Boolean).join(' '), b.country].filter(Boolean).join(', ') : '';
+  const mapUrl = b && b.latitude != null && b.longitude != null
+    ? `https://www.openstreetmap.org/?mlat=${b.latitude}&mlon=${b.longitude}#map=17/${b.latitude}/${b.longitude}`
+    : `https://www.openstreetmap.org/search?query=${encodeURIComponent(address)}`;
   const notFound = (q.error as { status?: number } | null)?.status === 404;
 
   return (
@@ -24,14 +32,24 @@ export default function SalonDetail() {
             <div>
               {b.isDemo && <DemoBadge />}
               <p className="mt-5 font-mono text-xs uppercase tracking-wider text-muted-foreground">{b.categoryName}</p>
+              {b.logoUrl?.startsWith('https://') && <img src={b.logoUrl} alt="" referrerPolicy="no-referrer" className="mt-3 size-16 rounded-xl object-contain" />}
               <h1 className="mt-1 font-display text-5xl sm:text-6xl" data-testid="text-business-name">{b.name}</h1>
+              {b.verified && <p className="mt-2 text-sm font-medium text-primary">Verifizierter Betrieb</p>}
               <p className="mt-4 text-lg text-muted-foreground">{b.description}</p>
-              <p className="mt-5 flex items-start gap-2"><MapPin className="mt-1 h-4 w-4 text-accent" /><span data-testid="text-address">{b.address}<br />{b.postalCode} {b.city} · {b.district}</span></p>
-              <div className="mt-6 rounded-2xl border border-accent/50 bg-accent/15 p-5" data-testid="text-booking-notice">
+              <p className="mt-5 flex items-start gap-2"><MapPin className="mt-1 h-4 w-4 text-accent" /><span data-testid="text-address">{b.address}<br />{b.addressExtra && <>{b.addressExtra}<br /></>}{b.postalCode} {b.city} · {b.district}</span></p>
+              {!b.isDemo && <div className="my-4 flex flex-wrap gap-4 text-sm">
+                {b.phone && <a className="underline" href={`tel:${b.phone.replace(/[^+0-9]/g, '')}`}>{b.phone}</a>}
+                {b.website && /^https?:\/\//i.test(b.website) && <a className="underline" href={b.website} target="_blank" rel="noreferrer">Website</a>}
+                {b.socialUrl?.startsWith('https://') && <a className="underline" href={b.socialUrl} target="_blank" rel="noreferrer">Social Media</a>}
+                <a className="underline" href={mapUrl} target="_blank" rel="noreferrer">Auf der Karte ansehen</a>
+              </div>}
+              {b.services.some((service) => service.onlineBooking) && <a href="#salon-booking" className="mb-4 mr-4 inline-block rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground">Termin buchen</a>}
+              <FavoriteButton id={b.id} slug={b.slug} />
+              {!b.services.some((service) => service.onlineBooking) && <div className="mt-6 rounded-2xl border border-accent/50 bg-accent/15 p-5" data-testid="text-booking-notice">
                 <p className="flex items-center gap-2 font-semibold"><CalendarX2 className="h-4 w-4" /> Online-Buchung noch nicht verfügbar</p>
-                <p className="mt-1 text-sm text-muted-foreground">Termine lassen sich erst ab Stufe 4 buchen. {b.isDemo ? 'Dieser Betrieb ist ein synthetischer Datensatz für die Entwicklung — bitte nicht anrufen oder vorbeigehen.' : 'Bis dahin wende dich bitte direkt an den Betrieb.'}</p>
-                <button disabled className="mt-4 cursor-not-allowed rounded-full border border-border bg-card px-5 py-2.5 text-sm opacity-60" data-testid="button-book-disabled">Termin buchen · ab Stufe 4</button>
-              </div>
+                <p className="mt-1 text-sm text-muted-foreground">Dieser Salon bietet aktuell keine Online-Termine an. {b.isDemo ? 'Dieser Betrieb ist ein synthetischer Datensatz für die Entwicklung — bitte nicht anrufen oder vorbeigehen.' : 'Bis dahin wende dich bitte direkt an den Betrieb.'}</p>
+                <button disabled className="mt-4 cursor-not-allowed rounded-full border border-border bg-card px-5 py-2.5 text-sm opacity-60" data-testid="button-book-disabled">Termin buchen</button>
+              </div>}
             </div>
           </section>
           <section className="mt-16 grid gap-10 lg:grid-cols-[2fr_1fr]">
@@ -42,7 +60,15 @@ export default function SalonDetail() {
                   {b.services.map((s) => (
                     <li key={s.id} className="group flex items-start justify-between gap-6 py-5 transition-colors hover:bg-secondary/50 sm:px-3" data-testid={`row-service-${s.id}`}>
                       <div><p className="font-semibold">{s.name}</p><p className="mt-1 text-sm text-muted-foreground">{s.description}</p>
-                        <p className="mt-2 inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground"><Clock className="h-3 w-3" />{formatDuration(s.durationMinutes)}</p></div>
+                        <p className="mt-2 inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground"><Clock className="h-3 w-3" />{formatDuration(s.durationMinutes)}</p>
+                          {!!s.variants?.length && <ul className="mt-3 space-y-1 text-sm">
+                            {s.variants.map((variant) => (
+                              <li key={variant.id}>
+                                {variant.name} · {formatDuration(variant.durationMinutes)} · {formatCents(variant.priceCents)}
+                              </li>
+                            ))}
+                          </ul>}
+                        </div>
                       <p className="whitespace-nowrap font-display text-2xl text-primary transition-transform group-hover:-translate-x-1">{formatCents(s.priceCents)}</p>
                     </li>
                   ))}
@@ -61,6 +87,22 @@ export default function SalonDetail() {
               )}
             </aside>
           </section>
+          <div id="salon-booking" tabIndex={-1} className="mt-8 scroll-mt-24"><SalonBooking business={b} /></div>
+          <PublicGallery slug={b.slug} />
+          <PublicReviews slug={b.slug} />
+          {!!b.staff?.length && (
+            <section className="mt-10" aria-labelledby="salon-team">
+              <h2 id="salon-team" className="font-display text-3xl">Unser Team</h2>
+              <ul className="mt-4 flex flex-wrap gap-3">
+                {b.staff.map((member) => (
+                  <li key={member.id} className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3">
+                    {member.photoUrl && <img src={member.photoUrl} alt="" referrerPolicy="no-referrer" loading="lazy" className="h-12 w-12 rounded-full object-cover" />}
+                    <div><p>{member.name}</p>{member.title && <p className="text-sm text-muted-foreground">{member.title}</p>}</div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
         </>
       )}
     </div>

@@ -18,6 +18,10 @@ export interface OrganizationProfileInput {
   contactEmail: string;
   /** @maxLength 30 */
   phone: string;
+  /** @maxLength 500 */
+  socialUrl?: string;
+  /** @maxLength 500 */
+  logoUrl?: string;
   /** @maxLength 300 */
   website: string;
   categoryId: string;

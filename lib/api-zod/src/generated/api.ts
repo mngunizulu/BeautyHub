@@ -35,12 +35,21 @@ export const listBusinessesQueryCityMax = 100;
 
 export const listBusinessesQueryCategoryMax = 60;
 
+export const listBusinessesQueryServiceMax = 100;
+
+export const listBusinessesQueryMaxPriceCentsMin = 0;
+export const listBusinessesQueryMaxPriceCentsMax = 10000000;
+
+export const listBusinessesQueryDateRegExp = new RegExp('^\\d{4}-\\d{2}-\\d{2}$');
 
 
 export const ListBusinessesQueryParams = zod.object({
   "q": zod.coerce.string().max(listBusinessesQueryQMax).optional(),
   "city": zod.coerce.string().max(listBusinessesQueryCityMax).optional(),
-  "category": zod.coerce.string().max(listBusinessesQueryCategoryMax).optional()
+  "category": zod.coerce.string().max(listBusinessesQueryCategoryMax).optional(),
+  "service": zod.coerce.string().min(1).max(listBusinessesQueryServiceMax).optional(),
+  "maxPriceCents": zod.coerce.number().int().min(listBusinessesQueryMaxPriceCentsMin).max(listBusinessesQueryMaxPriceCentsMax).optional().describe('Maximum price of the matching public service or variant in EUR cents'),
+  "date": zod.coerce.string().regex(listBusinessesQueryDateRegExp).optional().describe('Local date with at least one bookable slot for a matching offering')
 })
 
 export const ListBusinessesResponseItem = zod.object({
@@ -90,12 +99,35 @@ export const GetBusinessResponse = zod.object({
   "isDemo": zod.boolean(),
   "timezone": zod.string()
 }).and(zod.object({
+  "verified": zod.boolean().optional(),
+  "addressExtra": zod.string().optional(),
+  "country": zod.string().optional(),
+  "latitude": zod.number().nullish(),
+  "longitude": zod.number().nullish(),
+  "phone": zod.string().optional(),
+  "website": zod.string().optional(),
+  "socialUrl": zod.string().optional(),
+  "logoUrl": zod.string().optional(),
+  "staff": zod.array(zod.object({
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "title": zod.string().optional(),
+  "photoUrl": zod.string().optional()
+})).optional(),
   "services": zod.array(zod.object({
+  "groupName": zod.string().nullish(),
+  "onlineBooking": zod.boolean().optional(),
   "id": zod.string(),
   "name": zod.string(),
   "description": zod.string(),
   "durationMinutes": zod.int(),
-  "priceCents": zod.int()
+  "priceCents": zod.int(),
+  "variants": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "priceCents": zod.int(),
+  "durationMinutes": zod.int()
+})).optional()
 })),
   "openingHours": zod.array(zod.object({
   "day": zod.string(),
@@ -155,6 +187,7 @@ export const GetSessionResponse = zod.object({
   "email": zod.string(),
   "emailVerified": zod.boolean(),
   "deletionRequested": zod.boolean(),
+  "deletionRequestedAt": zod.coerce.date().nullish(),
   "isPlatformAdmin": zod.boolean()
 })).optional()
 })
@@ -176,6 +209,7 @@ export const GetMyProfileResponse = zod.object({
   "email": zod.string(),
   "emailVerified": zod.boolean(),
   "deletionRequested": zod.boolean(),
+  "deletionRequestedAt": zod.coerce.date().nullish(),
   "isPlatformAdmin": zod.boolean()
 }))
 
@@ -209,6 +243,7 @@ export const UpdateMyProfileResponse = zod.object({
   "email": zod.string(),
   "emailVerified": zod.boolean(),
   "deletionRequested": zod.boolean(),
+  "deletionRequestedAt": zod.coerce.date().nullish(),
   "isPlatformAdmin": zod.boolean()
 }))
 
@@ -230,6 +265,7 @@ export const ExportMyDataResponse = zod.object({
   "email": zod.string(),
   "emailVerified": zod.boolean(),
   "deletionRequested": zod.boolean(),
+  "deletionRequestedAt": zod.coerce.date().nullish(),
   "isPlatformAdmin": zod.boolean()
 })),
   "organizations": zod.array(zod.object({
@@ -240,8 +276,31 @@ export const ExportMyDataResponse = zod.object({
   "published": zod.boolean(),
   "locationCount": zod.int()
 })),
-  "exportedAt": zod.string()
+  "exportedAt": zod.coerce.date(),
+  "records": zod.object({
+  "bookings": zod.array(zod.record(zod.string(), zod.unknown())),
+  "payments": zod.array(zod.record(zod.string(), zod.unknown())),
+  "refunds": zod.array(zod.record(zod.string(), zod.unknown())),
+  "favorites": zod.array(zod.record(zod.string(), zod.unknown())),
+  "waitlist": zod.array(zod.record(zod.string(), zod.unknown())),
+  "reviews": zod.array(zod.record(zod.string(), zod.unknown())),
+  "reviewReports": zod.array(zod.record(zod.string(), zod.unknown())),
+  "policyAcceptances": zod.array(zod.record(zod.string(), zod.unknown())),
+  "paymentMethods": zod.array(zod.record(zod.string(), zod.unknown())),
+  "marketingPreferences": zod.array(zod.record(zod.string(), zod.unknown())),
+  "loyaltyAwards": zod.array(zod.record(zod.string(), zod.unknown())),
+  "loyaltyRewards": zod.array(zod.record(zod.string(), zod.unknown())),
+  "packages": zod.array(zod.record(zod.string(), zod.unknown())),
+  "supportCases": zod.array(zod.record(zod.string(), zod.unknown()))
 })
+})
+
+
+export const WithdrawMyDeletionRequestBody = zod.object({
+  "requestedAt": zod.coerce.date()
+})
+
+export const WithdrawMyDeletionRequestResponse = zod.void()
 
 
 export const RequestAccountDeletionResponse = zod.object({
@@ -287,6 +346,10 @@ export const createOrganizationResponseProfileContactEmailMax = 200;
 
 export const createOrganizationResponseProfilePhoneMax = 30;
 
+export const createOrganizationResponseProfileSocialUrlMax = 500;
+
+export const createOrganizationResponseProfileLogoUrlMax = 500;
+
 export const createOrganizationResponseProfileWebsiteMax = 300;
 
 export const createOrganizationResponseProfileOnboardingStepMax = 6;
@@ -326,6 +389,8 @@ export const createOrganizationResponseLocationsItemOneAdvanceBookingDaysMax = 7
 
 export const createOrganizationResponseEmployeesItemOneDisplayNameMax = 100;
 
+export const createOrganizationResponseEmployeesItemOnePublicNameMax = 100;
+
 export const createOrganizationResponseEmployeesItemOneEmailMax = 200;
 
 export const createOrganizationResponseEmployeesItemOnePhoneMax = 30;
@@ -362,6 +427,9 @@ export const createOrganizationResponseServicesItemOneVariantsItemDurationMinute
 
 export const createOrganizationResponseServicesItemOneVariantsMax = 30;
 
+export const createOrganizationResponsePoliciesItemOneRescheduleNoticeHoursMin = 0;
+export const createOrganizationResponsePoliciesItemOneRescheduleNoticeHoursMax = 720;
+
 export const createOrganizationResponsePoliciesItemOneNoticeHoursMin = 0;
 export const createOrganizationResponsePoliciesItemOneNoticeHoursMax = 720;
 
@@ -385,6 +453,8 @@ export const CreateOrganizationResponse = zod.object({
   "description": zod.string().max(createOrganizationResponseProfileDescriptionMax),
   "contactEmail": zod.string().max(createOrganizationResponseProfileContactEmailMax),
   "phone": zod.string().max(createOrganizationResponseProfilePhoneMax),
+  "socialUrl": zod.string().max(createOrganizationResponseProfileSocialUrlMax).optional(),
+  "logoUrl": zod.string().max(createOrganizationResponseProfileLogoUrlMax).optional(),
   "website": zod.string().max(createOrganizationResponseProfileWebsiteMax),
   "categoryId": zod.uuid(),
   "onboardingStep": zod.int().min(1).max(createOrganizationResponseProfileOnboardingStepMax)
@@ -416,6 +486,7 @@ export const CreateOrganizationResponse = zod.object({
 }))),
   "employees": zod.array(zod.object({
   "displayName": zod.string().min(1).max(createOrganizationResponseEmployeesItemOneDisplayNameMax),
+  "publicName": zod.string().max(createOrganizationResponseEmployeesItemOnePublicNameMax).optional(),
   "email": zod.string().max(createOrganizationResponseEmployeesItemOneEmailMax),
   "phone": zod.string().max(createOrganizationResponseEmployeesItemOnePhoneMax),
   "locationId": zod.uuid(),
@@ -471,6 +542,7 @@ export const CreateOrganizationResponse = zod.object({
   "accepted": zod.boolean()
 })),
   "policies": zod.array(zod.object({
+  "rescheduleNoticeHours": zod.int().min(createOrganizationResponsePoliciesItemOneRescheduleNoticeHoursMin).max(createOrganizationResponsePoliciesItemOneRescheduleNoticeHoursMax).optional(),
   "noticeHours": zod.int().min(createOrganizationResponsePoliciesItemOneNoticeHoursMin).max(createOrganizationResponsePoliciesItemOneNoticeHoursMax),
   "lateFeeType": zod.enum(['percentage', 'fixed']),
   "lateFeeValue": zod.int().min(createOrganizationResponsePoliciesItemOneLateFeeValueMin).max(createOrganizationResponsePoliciesItemOneLateFeeValueMax),
@@ -499,6 +571,10 @@ export const getOrganizationWorkspaceResponseProfileDescriptionMax = 3000;
 export const getOrganizationWorkspaceResponseProfileContactEmailMax = 200;
 
 export const getOrganizationWorkspaceResponseProfilePhoneMax = 30;
+
+export const getOrganizationWorkspaceResponseProfileSocialUrlMax = 500;
+
+export const getOrganizationWorkspaceResponseProfileLogoUrlMax = 500;
 
 export const getOrganizationWorkspaceResponseProfileWebsiteMax = 300;
 
@@ -539,6 +615,8 @@ export const getOrganizationWorkspaceResponseLocationsItemOneAdvanceBookingDaysM
 
 export const getOrganizationWorkspaceResponseEmployeesItemOneDisplayNameMax = 100;
 
+export const getOrganizationWorkspaceResponseEmployeesItemOnePublicNameMax = 100;
+
 export const getOrganizationWorkspaceResponseEmployeesItemOneEmailMax = 200;
 
 export const getOrganizationWorkspaceResponseEmployeesItemOnePhoneMax = 30;
@@ -575,6 +653,9 @@ export const getOrganizationWorkspaceResponseServicesItemOneVariantsItemDuration
 
 export const getOrganizationWorkspaceResponseServicesItemOneVariantsMax = 30;
 
+export const getOrganizationWorkspaceResponsePoliciesItemOneRescheduleNoticeHoursMin = 0;
+export const getOrganizationWorkspaceResponsePoliciesItemOneRescheduleNoticeHoursMax = 720;
+
 export const getOrganizationWorkspaceResponsePoliciesItemOneNoticeHoursMin = 0;
 export const getOrganizationWorkspaceResponsePoliciesItemOneNoticeHoursMax = 720;
 
@@ -598,6 +679,8 @@ export const GetOrganizationWorkspaceResponse = zod.object({
   "description": zod.string().max(getOrganizationWorkspaceResponseProfileDescriptionMax),
   "contactEmail": zod.string().max(getOrganizationWorkspaceResponseProfileContactEmailMax),
   "phone": zod.string().max(getOrganizationWorkspaceResponseProfilePhoneMax),
+  "socialUrl": zod.string().max(getOrganizationWorkspaceResponseProfileSocialUrlMax).optional(),
+  "logoUrl": zod.string().max(getOrganizationWorkspaceResponseProfileLogoUrlMax).optional(),
   "website": zod.string().max(getOrganizationWorkspaceResponseProfileWebsiteMax),
   "categoryId": zod.uuid(),
   "onboardingStep": zod.int().min(1).max(getOrganizationWorkspaceResponseProfileOnboardingStepMax)
@@ -629,6 +712,7 @@ export const GetOrganizationWorkspaceResponse = zod.object({
 }))),
   "employees": zod.array(zod.object({
   "displayName": zod.string().min(1).max(getOrganizationWorkspaceResponseEmployeesItemOneDisplayNameMax),
+  "publicName": zod.string().max(getOrganizationWorkspaceResponseEmployeesItemOnePublicNameMax).optional(),
   "email": zod.string().max(getOrganizationWorkspaceResponseEmployeesItemOneEmailMax),
   "phone": zod.string().max(getOrganizationWorkspaceResponseEmployeesItemOnePhoneMax),
   "locationId": zod.uuid(),
@@ -684,6 +768,7 @@ export const GetOrganizationWorkspaceResponse = zod.object({
   "accepted": zod.boolean()
 })),
   "policies": zod.array(zod.object({
+  "rescheduleNoticeHours": zod.int().min(getOrganizationWorkspaceResponsePoliciesItemOneRescheduleNoticeHoursMin).max(getOrganizationWorkspaceResponsePoliciesItemOneRescheduleNoticeHoursMax).optional(),
   "noticeHours": zod.int().min(getOrganizationWorkspaceResponsePoliciesItemOneNoticeHoursMin).max(getOrganizationWorkspaceResponsePoliciesItemOneNoticeHoursMax),
   "lateFeeType": zod.enum(['percentage', 'fixed']),
   "lateFeeValue": zod.int().min(getOrganizationWorkspaceResponsePoliciesItemOneLateFeeValueMin).max(getOrganizationWorkspaceResponsePoliciesItemOneLateFeeValueMax),
@@ -713,6 +798,10 @@ export const saveOrganizationProfileBodyContactEmailMax = 200;
 
 export const saveOrganizationProfileBodyPhoneMax = 30;
 
+export const saveOrganizationProfileBodySocialUrlMax = 500;
+
+export const saveOrganizationProfileBodyLogoUrlMax = 500;
+
 export const saveOrganizationProfileBodyWebsiteMax = 300;
 
 export const saveOrganizationProfileBodyOnboardingStepMax = 6;
@@ -724,6 +813,8 @@ export const SaveOrganizationProfileBody = zod.object({
   "description": zod.string().max(saveOrganizationProfileBodyDescriptionMax),
   "contactEmail": zod.string().max(saveOrganizationProfileBodyContactEmailMax),
   "phone": zod.string().max(saveOrganizationProfileBodyPhoneMax),
+  "socialUrl": zod.string().max(saveOrganizationProfileBodySocialUrlMax).optional(),
+  "logoUrl": zod.string().max(saveOrganizationProfileBodyLogoUrlMax).optional(),
   "website": zod.string().max(saveOrganizationProfileBodyWebsiteMax),
   "categoryId": zod.uuid(),
   "onboardingStep": zod.int().min(1).max(saveOrganizationProfileBodyOnboardingStepMax)
@@ -737,6 +828,10 @@ export const saveOrganizationProfileResponseProfileDescriptionMax = 3000;
 export const saveOrganizationProfileResponseProfileContactEmailMax = 200;
 
 export const saveOrganizationProfileResponseProfilePhoneMax = 30;
+
+export const saveOrganizationProfileResponseProfileSocialUrlMax = 500;
+
+export const saveOrganizationProfileResponseProfileLogoUrlMax = 500;
 
 export const saveOrganizationProfileResponseProfileWebsiteMax = 300;
 
@@ -777,6 +872,8 @@ export const saveOrganizationProfileResponseLocationsItemOneAdvanceBookingDaysMa
 
 export const saveOrganizationProfileResponseEmployeesItemOneDisplayNameMax = 100;
 
+export const saveOrganizationProfileResponseEmployeesItemOnePublicNameMax = 100;
+
 export const saveOrganizationProfileResponseEmployeesItemOneEmailMax = 200;
 
 export const saveOrganizationProfileResponseEmployeesItemOnePhoneMax = 30;
@@ -813,6 +910,9 @@ export const saveOrganizationProfileResponseServicesItemOneVariantsItemDurationM
 
 export const saveOrganizationProfileResponseServicesItemOneVariantsMax = 30;
 
+export const saveOrganizationProfileResponsePoliciesItemOneRescheduleNoticeHoursMin = 0;
+export const saveOrganizationProfileResponsePoliciesItemOneRescheduleNoticeHoursMax = 720;
+
 export const saveOrganizationProfileResponsePoliciesItemOneNoticeHoursMin = 0;
 export const saveOrganizationProfileResponsePoliciesItemOneNoticeHoursMax = 720;
 
@@ -836,6 +936,8 @@ export const SaveOrganizationProfileResponse = zod.object({
   "description": zod.string().max(saveOrganizationProfileResponseProfileDescriptionMax),
   "contactEmail": zod.string().max(saveOrganizationProfileResponseProfileContactEmailMax),
   "phone": zod.string().max(saveOrganizationProfileResponseProfilePhoneMax),
+  "socialUrl": zod.string().max(saveOrganizationProfileResponseProfileSocialUrlMax).optional(),
+  "logoUrl": zod.string().max(saveOrganizationProfileResponseProfileLogoUrlMax).optional(),
   "website": zod.string().max(saveOrganizationProfileResponseProfileWebsiteMax),
   "categoryId": zod.uuid(),
   "onboardingStep": zod.int().min(1).max(saveOrganizationProfileResponseProfileOnboardingStepMax)
@@ -867,6 +969,7 @@ export const SaveOrganizationProfileResponse = zod.object({
 }))),
   "employees": zod.array(zod.object({
   "displayName": zod.string().min(1).max(saveOrganizationProfileResponseEmployeesItemOneDisplayNameMax),
+  "publicName": zod.string().max(saveOrganizationProfileResponseEmployeesItemOnePublicNameMax).optional(),
   "email": zod.string().max(saveOrganizationProfileResponseEmployeesItemOneEmailMax),
   "phone": zod.string().max(saveOrganizationProfileResponseEmployeesItemOnePhoneMax),
   "locationId": zod.uuid(),
@@ -922,6 +1025,7 @@ export const SaveOrganizationProfileResponse = zod.object({
   "accepted": zod.boolean()
 })),
   "policies": zod.array(zod.object({
+  "rescheduleNoticeHours": zod.int().min(saveOrganizationProfileResponsePoliciesItemOneRescheduleNoticeHoursMin).max(saveOrganizationProfileResponsePoliciesItemOneRescheduleNoticeHoursMax).optional(),
   "noticeHours": zod.int().min(saveOrganizationProfileResponsePoliciesItemOneNoticeHoursMin).max(saveOrganizationProfileResponsePoliciesItemOneNoticeHoursMax),
   "lateFeeType": zod.enum(['percentage', 'fixed']),
   "lateFeeValue": zod.int().min(saveOrganizationProfileResponsePoliciesItemOneLateFeeValueMin).max(saveOrganizationProfileResponsePoliciesItemOneLateFeeValueMax),
@@ -1008,6 +1112,10 @@ export const createBusinessLocationResponseProfileContactEmailMax = 200;
 
 export const createBusinessLocationResponseProfilePhoneMax = 30;
 
+export const createBusinessLocationResponseProfileSocialUrlMax = 500;
+
+export const createBusinessLocationResponseProfileLogoUrlMax = 500;
+
 export const createBusinessLocationResponseProfileWebsiteMax = 300;
 
 export const createBusinessLocationResponseProfileOnboardingStepMax = 6;
@@ -1047,6 +1155,8 @@ export const createBusinessLocationResponseLocationsItemOneAdvanceBookingDaysMax
 
 export const createBusinessLocationResponseEmployeesItemOneDisplayNameMax = 100;
 
+export const createBusinessLocationResponseEmployeesItemOnePublicNameMax = 100;
+
 export const createBusinessLocationResponseEmployeesItemOneEmailMax = 200;
 
 export const createBusinessLocationResponseEmployeesItemOnePhoneMax = 30;
@@ -1083,6 +1193,9 @@ export const createBusinessLocationResponseServicesItemOneVariantsItemDurationMi
 
 export const createBusinessLocationResponseServicesItemOneVariantsMax = 30;
 
+export const createBusinessLocationResponsePoliciesItemOneRescheduleNoticeHoursMin = 0;
+export const createBusinessLocationResponsePoliciesItemOneRescheduleNoticeHoursMax = 720;
+
 export const createBusinessLocationResponsePoliciesItemOneNoticeHoursMin = 0;
 export const createBusinessLocationResponsePoliciesItemOneNoticeHoursMax = 720;
 
@@ -1106,6 +1219,8 @@ export const CreateBusinessLocationResponse = zod.object({
   "description": zod.string().max(createBusinessLocationResponseProfileDescriptionMax),
   "contactEmail": zod.string().max(createBusinessLocationResponseProfileContactEmailMax),
   "phone": zod.string().max(createBusinessLocationResponseProfilePhoneMax),
+  "socialUrl": zod.string().max(createBusinessLocationResponseProfileSocialUrlMax).optional(),
+  "logoUrl": zod.string().max(createBusinessLocationResponseProfileLogoUrlMax).optional(),
   "website": zod.string().max(createBusinessLocationResponseProfileWebsiteMax),
   "categoryId": zod.uuid(),
   "onboardingStep": zod.int().min(1).max(createBusinessLocationResponseProfileOnboardingStepMax)
@@ -1137,6 +1252,7 @@ export const CreateBusinessLocationResponse = zod.object({
 }))),
   "employees": zod.array(zod.object({
   "displayName": zod.string().min(1).max(createBusinessLocationResponseEmployeesItemOneDisplayNameMax),
+  "publicName": zod.string().max(createBusinessLocationResponseEmployeesItemOnePublicNameMax).optional(),
   "email": zod.string().max(createBusinessLocationResponseEmployeesItemOneEmailMax),
   "phone": zod.string().max(createBusinessLocationResponseEmployeesItemOnePhoneMax),
   "locationId": zod.uuid(),
@@ -1192,6 +1308,7 @@ export const CreateBusinessLocationResponse = zod.object({
   "accepted": zod.boolean()
 })),
   "policies": zod.array(zod.object({
+  "rescheduleNoticeHours": zod.int().min(createBusinessLocationResponsePoliciesItemOneRescheduleNoticeHoursMin).max(createBusinessLocationResponsePoliciesItemOneRescheduleNoticeHoursMax).optional(),
   "noticeHours": zod.int().min(createBusinessLocationResponsePoliciesItemOneNoticeHoursMin).max(createBusinessLocationResponsePoliciesItemOneNoticeHoursMax),
   "lateFeeType": zod.enum(['percentage', 'fixed']),
   "lateFeeValue": zod.int().min(createBusinessLocationResponsePoliciesItemOneLateFeeValueMin).max(createBusinessLocationResponsePoliciesItemOneLateFeeValueMax),
@@ -1279,6 +1396,10 @@ export const saveBusinessLocationResponseProfileContactEmailMax = 200;
 
 export const saveBusinessLocationResponseProfilePhoneMax = 30;
 
+export const saveBusinessLocationResponseProfileSocialUrlMax = 500;
+
+export const saveBusinessLocationResponseProfileLogoUrlMax = 500;
+
 export const saveBusinessLocationResponseProfileWebsiteMax = 300;
 
 export const saveBusinessLocationResponseProfileOnboardingStepMax = 6;
@@ -1318,6 +1439,8 @@ export const saveBusinessLocationResponseLocationsItemOneAdvanceBookingDaysMax =
 
 export const saveBusinessLocationResponseEmployeesItemOneDisplayNameMax = 100;
 
+export const saveBusinessLocationResponseEmployeesItemOnePublicNameMax = 100;
+
 export const saveBusinessLocationResponseEmployeesItemOneEmailMax = 200;
 
 export const saveBusinessLocationResponseEmployeesItemOnePhoneMax = 30;
@@ -1354,6 +1477,9 @@ export const saveBusinessLocationResponseServicesItemOneVariantsItemDurationMinu
 
 export const saveBusinessLocationResponseServicesItemOneVariantsMax = 30;
 
+export const saveBusinessLocationResponsePoliciesItemOneRescheduleNoticeHoursMin = 0;
+export const saveBusinessLocationResponsePoliciesItemOneRescheduleNoticeHoursMax = 720;
+
 export const saveBusinessLocationResponsePoliciesItemOneNoticeHoursMin = 0;
 export const saveBusinessLocationResponsePoliciesItemOneNoticeHoursMax = 720;
 
@@ -1377,6 +1503,8 @@ export const SaveBusinessLocationResponse = zod.object({
   "description": zod.string().max(saveBusinessLocationResponseProfileDescriptionMax),
   "contactEmail": zod.string().max(saveBusinessLocationResponseProfileContactEmailMax),
   "phone": zod.string().max(saveBusinessLocationResponseProfilePhoneMax),
+  "socialUrl": zod.string().max(saveBusinessLocationResponseProfileSocialUrlMax).optional(),
+  "logoUrl": zod.string().max(saveBusinessLocationResponseProfileLogoUrlMax).optional(),
   "website": zod.string().max(saveBusinessLocationResponseProfileWebsiteMax),
   "categoryId": zod.uuid(),
   "onboardingStep": zod.int().min(1).max(saveBusinessLocationResponseProfileOnboardingStepMax)
@@ -1408,6 +1536,7 @@ export const SaveBusinessLocationResponse = zod.object({
 }))),
   "employees": zod.array(zod.object({
   "displayName": zod.string().min(1).max(saveBusinessLocationResponseEmployeesItemOneDisplayNameMax),
+  "publicName": zod.string().max(saveBusinessLocationResponseEmployeesItemOnePublicNameMax).optional(),
   "email": zod.string().max(saveBusinessLocationResponseEmployeesItemOneEmailMax),
   "phone": zod.string().max(saveBusinessLocationResponseEmployeesItemOnePhoneMax),
   "locationId": zod.uuid(),
@@ -1463,6 +1592,7 @@ export const SaveBusinessLocationResponse = zod.object({
   "accepted": zod.boolean()
 })),
   "policies": zod.array(zod.object({
+  "rescheduleNoticeHours": zod.int().min(saveBusinessLocationResponsePoliciesItemOneRescheduleNoticeHoursMin).max(saveBusinessLocationResponsePoliciesItemOneRescheduleNoticeHoursMax).optional(),
   "noticeHours": zod.int().min(saveBusinessLocationResponsePoliciesItemOneNoticeHoursMin).max(saveBusinessLocationResponsePoliciesItemOneNoticeHoursMax),
   "lateFeeType": zod.enum(['percentage', 'fixed']),
   "lateFeeValue": zod.int().min(saveBusinessLocationResponsePoliciesItemOneLateFeeValueMin).max(saveBusinessLocationResponsePoliciesItemOneLateFeeValueMax),
@@ -1485,6 +1615,8 @@ export const CreateEmployeeParams = zod.object({
 
 export const createEmployeeBodyDisplayNameMax = 100;
 
+export const createEmployeeBodyPublicNameMax = 100;
+
 export const createEmployeeBodyEmailMax = 200;
 
 export const createEmployeeBodyPhoneMax = 30;
@@ -1499,6 +1631,7 @@ export const createEmployeeBodyWorkingHoursMax = 7;
 
 export const CreateEmployeeBody = zod.object({
   "displayName": zod.string().min(1).max(createEmployeeBodyDisplayNameMax),
+  "publicName": zod.string().max(createEmployeeBodyPublicNameMax).optional(),
   "email": zod.string().max(createEmployeeBodyEmailMax),
   "phone": zod.string().max(createEmployeeBodyPhoneMax),
   "locationId": zod.uuid(),
@@ -1518,6 +1651,10 @@ export const createEmployeeResponseProfileDescriptionMax = 3000;
 export const createEmployeeResponseProfileContactEmailMax = 200;
 
 export const createEmployeeResponseProfilePhoneMax = 30;
+
+export const createEmployeeResponseProfileSocialUrlMax = 500;
+
+export const createEmployeeResponseProfileLogoUrlMax = 500;
 
 export const createEmployeeResponseProfileWebsiteMax = 300;
 
@@ -1558,6 +1695,8 @@ export const createEmployeeResponseLocationsItemOneAdvanceBookingDaysMax = 730;
 
 export const createEmployeeResponseEmployeesItemOneDisplayNameMax = 100;
 
+export const createEmployeeResponseEmployeesItemOnePublicNameMax = 100;
+
 export const createEmployeeResponseEmployeesItemOneEmailMax = 200;
 
 export const createEmployeeResponseEmployeesItemOnePhoneMax = 30;
@@ -1594,6 +1733,9 @@ export const createEmployeeResponseServicesItemOneVariantsItemDurationMinutesMax
 
 export const createEmployeeResponseServicesItemOneVariantsMax = 30;
 
+export const createEmployeeResponsePoliciesItemOneRescheduleNoticeHoursMin = 0;
+export const createEmployeeResponsePoliciesItemOneRescheduleNoticeHoursMax = 720;
+
 export const createEmployeeResponsePoliciesItemOneNoticeHoursMin = 0;
 export const createEmployeeResponsePoliciesItemOneNoticeHoursMax = 720;
 
@@ -1617,6 +1759,8 @@ export const CreateEmployeeResponse = zod.object({
   "description": zod.string().max(createEmployeeResponseProfileDescriptionMax),
   "contactEmail": zod.string().max(createEmployeeResponseProfileContactEmailMax),
   "phone": zod.string().max(createEmployeeResponseProfilePhoneMax),
+  "socialUrl": zod.string().max(createEmployeeResponseProfileSocialUrlMax).optional(),
+  "logoUrl": zod.string().max(createEmployeeResponseProfileLogoUrlMax).optional(),
   "website": zod.string().max(createEmployeeResponseProfileWebsiteMax),
   "categoryId": zod.uuid(),
   "onboardingStep": zod.int().min(1).max(createEmployeeResponseProfileOnboardingStepMax)
@@ -1648,6 +1792,7 @@ export const CreateEmployeeResponse = zod.object({
 }))),
   "employees": zod.array(zod.object({
   "displayName": zod.string().min(1).max(createEmployeeResponseEmployeesItemOneDisplayNameMax),
+  "publicName": zod.string().max(createEmployeeResponseEmployeesItemOnePublicNameMax).optional(),
   "email": zod.string().max(createEmployeeResponseEmployeesItemOneEmailMax),
   "phone": zod.string().max(createEmployeeResponseEmployeesItemOnePhoneMax),
   "locationId": zod.uuid(),
@@ -1703,6 +1848,7 @@ export const CreateEmployeeResponse = zod.object({
   "accepted": zod.boolean()
 })),
   "policies": zod.array(zod.object({
+  "rescheduleNoticeHours": zod.int().min(createEmployeeResponsePoliciesItemOneRescheduleNoticeHoursMin).max(createEmployeeResponsePoliciesItemOneRescheduleNoticeHoursMax).optional(),
   "noticeHours": zod.int().min(createEmployeeResponsePoliciesItemOneNoticeHoursMin).max(createEmployeeResponsePoliciesItemOneNoticeHoursMax),
   "lateFeeType": zod.enum(['percentage', 'fixed']),
   "lateFeeValue": zod.int().min(createEmployeeResponsePoliciesItemOneLateFeeValueMin).max(createEmployeeResponsePoliciesItemOneLateFeeValueMax),
@@ -1726,6 +1872,8 @@ export const SaveEmployeeParams = zod.object({
 
 export const saveEmployeeBodyDisplayNameMax = 100;
 
+export const saveEmployeeBodyPublicNameMax = 100;
+
 export const saveEmployeeBodyEmailMax = 200;
 
 export const saveEmployeeBodyPhoneMax = 30;
@@ -1740,6 +1888,7 @@ export const saveEmployeeBodyWorkingHoursMax = 7;
 
 export const SaveEmployeeBody = zod.object({
   "displayName": zod.string().min(1).max(saveEmployeeBodyDisplayNameMax),
+  "publicName": zod.string().max(saveEmployeeBodyPublicNameMax).optional(),
   "email": zod.string().max(saveEmployeeBodyEmailMax),
   "phone": zod.string().max(saveEmployeeBodyPhoneMax),
   "locationId": zod.uuid(),
@@ -1759,6 +1908,10 @@ export const saveEmployeeResponseProfileDescriptionMax = 3000;
 export const saveEmployeeResponseProfileContactEmailMax = 200;
 
 export const saveEmployeeResponseProfilePhoneMax = 30;
+
+export const saveEmployeeResponseProfileSocialUrlMax = 500;
+
+export const saveEmployeeResponseProfileLogoUrlMax = 500;
 
 export const saveEmployeeResponseProfileWebsiteMax = 300;
 
@@ -1799,6 +1952,8 @@ export const saveEmployeeResponseLocationsItemOneAdvanceBookingDaysMax = 730;
 
 export const saveEmployeeResponseEmployeesItemOneDisplayNameMax = 100;
 
+export const saveEmployeeResponseEmployeesItemOnePublicNameMax = 100;
+
 export const saveEmployeeResponseEmployeesItemOneEmailMax = 200;
 
 export const saveEmployeeResponseEmployeesItemOnePhoneMax = 30;
@@ -1835,6 +1990,9 @@ export const saveEmployeeResponseServicesItemOneVariantsItemDurationMinutesMax =
 
 export const saveEmployeeResponseServicesItemOneVariantsMax = 30;
 
+export const saveEmployeeResponsePoliciesItemOneRescheduleNoticeHoursMin = 0;
+export const saveEmployeeResponsePoliciesItemOneRescheduleNoticeHoursMax = 720;
+
 export const saveEmployeeResponsePoliciesItemOneNoticeHoursMin = 0;
 export const saveEmployeeResponsePoliciesItemOneNoticeHoursMax = 720;
 
@@ -1858,6 +2016,8 @@ export const SaveEmployeeResponse = zod.object({
   "description": zod.string().max(saveEmployeeResponseProfileDescriptionMax),
   "contactEmail": zod.string().max(saveEmployeeResponseProfileContactEmailMax),
   "phone": zod.string().max(saveEmployeeResponseProfilePhoneMax),
+  "socialUrl": zod.string().max(saveEmployeeResponseProfileSocialUrlMax).optional(),
+  "logoUrl": zod.string().max(saveEmployeeResponseProfileLogoUrlMax).optional(),
   "website": zod.string().max(saveEmployeeResponseProfileWebsiteMax),
   "categoryId": zod.uuid(),
   "onboardingStep": zod.int().min(1).max(saveEmployeeResponseProfileOnboardingStepMax)
@@ -1889,6 +2049,7 @@ export const SaveEmployeeResponse = zod.object({
 }))),
   "employees": zod.array(zod.object({
   "displayName": zod.string().min(1).max(saveEmployeeResponseEmployeesItemOneDisplayNameMax),
+  "publicName": zod.string().max(saveEmployeeResponseEmployeesItemOnePublicNameMax).optional(),
   "email": zod.string().max(saveEmployeeResponseEmployeesItemOneEmailMax),
   "phone": zod.string().max(saveEmployeeResponseEmployeesItemOnePhoneMax),
   "locationId": zod.uuid(),
@@ -1944,6 +2105,7 @@ export const SaveEmployeeResponse = zod.object({
   "accepted": zod.boolean()
 })),
   "policies": zod.array(zod.object({
+  "rescheduleNoticeHours": zod.int().min(saveEmployeeResponsePoliciesItemOneRescheduleNoticeHoursMin).max(saveEmployeeResponsePoliciesItemOneRescheduleNoticeHoursMax).optional(),
   "noticeHours": zod.int().min(saveEmployeeResponsePoliciesItemOneNoticeHoursMin).max(saveEmployeeResponsePoliciesItemOneNoticeHoursMax),
   "lateFeeType": zod.enum(['percentage', 'fixed']),
   "lateFeeValue": zod.int().min(saveEmployeeResponsePoliciesItemOneLateFeeValueMin).max(saveEmployeeResponsePoliciesItemOneLateFeeValueMax),
@@ -1980,6 +2142,10 @@ export const createServiceCategoryResponseProfileDescriptionMax = 3000;
 export const createServiceCategoryResponseProfileContactEmailMax = 200;
 
 export const createServiceCategoryResponseProfilePhoneMax = 30;
+
+export const createServiceCategoryResponseProfileSocialUrlMax = 500;
+
+export const createServiceCategoryResponseProfileLogoUrlMax = 500;
 
 export const createServiceCategoryResponseProfileWebsiteMax = 300;
 
@@ -2020,6 +2186,8 @@ export const createServiceCategoryResponseLocationsItemOneAdvanceBookingDaysMax 
 
 export const createServiceCategoryResponseEmployeesItemOneDisplayNameMax = 100;
 
+export const createServiceCategoryResponseEmployeesItemOnePublicNameMax = 100;
+
 export const createServiceCategoryResponseEmployeesItemOneEmailMax = 200;
 
 export const createServiceCategoryResponseEmployeesItemOnePhoneMax = 30;
@@ -2056,6 +2224,9 @@ export const createServiceCategoryResponseServicesItemOneVariantsItemDurationMin
 
 export const createServiceCategoryResponseServicesItemOneVariantsMax = 30;
 
+export const createServiceCategoryResponsePoliciesItemOneRescheduleNoticeHoursMin = 0;
+export const createServiceCategoryResponsePoliciesItemOneRescheduleNoticeHoursMax = 720;
+
 export const createServiceCategoryResponsePoliciesItemOneNoticeHoursMin = 0;
 export const createServiceCategoryResponsePoliciesItemOneNoticeHoursMax = 720;
 
@@ -2079,6 +2250,8 @@ export const CreateServiceCategoryResponse = zod.object({
   "description": zod.string().max(createServiceCategoryResponseProfileDescriptionMax),
   "contactEmail": zod.string().max(createServiceCategoryResponseProfileContactEmailMax),
   "phone": zod.string().max(createServiceCategoryResponseProfilePhoneMax),
+  "socialUrl": zod.string().max(createServiceCategoryResponseProfileSocialUrlMax).optional(),
+  "logoUrl": zod.string().max(createServiceCategoryResponseProfileLogoUrlMax).optional(),
   "website": zod.string().max(createServiceCategoryResponseProfileWebsiteMax),
   "categoryId": zod.uuid(),
   "onboardingStep": zod.int().min(1).max(createServiceCategoryResponseProfileOnboardingStepMax)
@@ -2110,6 +2283,7 @@ export const CreateServiceCategoryResponse = zod.object({
 }))),
   "employees": zod.array(zod.object({
   "displayName": zod.string().min(1).max(createServiceCategoryResponseEmployeesItemOneDisplayNameMax),
+  "publicName": zod.string().max(createServiceCategoryResponseEmployeesItemOnePublicNameMax).optional(),
   "email": zod.string().max(createServiceCategoryResponseEmployeesItemOneEmailMax),
   "phone": zod.string().max(createServiceCategoryResponseEmployeesItemOnePhoneMax),
   "locationId": zod.uuid(),
@@ -2165,6 +2339,7 @@ export const CreateServiceCategoryResponse = zod.object({
   "accepted": zod.boolean()
 })),
   "policies": zod.array(zod.object({
+  "rescheduleNoticeHours": zod.int().min(createServiceCategoryResponsePoliciesItemOneRescheduleNoticeHoursMin).max(createServiceCategoryResponsePoliciesItemOneRescheduleNoticeHoursMax).optional(),
   "noticeHours": zod.int().min(createServiceCategoryResponsePoliciesItemOneNoticeHoursMin).max(createServiceCategoryResponsePoliciesItemOneNoticeHoursMax),
   "lateFeeType": zod.enum(['percentage', 'fixed']),
   "lateFeeValue": zod.int().min(createServiceCategoryResponsePoliciesItemOneLateFeeValueMin).max(createServiceCategoryResponsePoliciesItemOneLateFeeValueMax),
@@ -2242,6 +2417,10 @@ export const createBusinessServiceResponseProfileContactEmailMax = 200;
 
 export const createBusinessServiceResponseProfilePhoneMax = 30;
 
+export const createBusinessServiceResponseProfileSocialUrlMax = 500;
+
+export const createBusinessServiceResponseProfileLogoUrlMax = 500;
+
 export const createBusinessServiceResponseProfileWebsiteMax = 300;
 
 export const createBusinessServiceResponseProfileOnboardingStepMax = 6;
@@ -2281,6 +2460,8 @@ export const createBusinessServiceResponseLocationsItemOneAdvanceBookingDaysMax 
 
 export const createBusinessServiceResponseEmployeesItemOneDisplayNameMax = 100;
 
+export const createBusinessServiceResponseEmployeesItemOnePublicNameMax = 100;
+
 export const createBusinessServiceResponseEmployeesItemOneEmailMax = 200;
 
 export const createBusinessServiceResponseEmployeesItemOnePhoneMax = 30;
@@ -2317,6 +2498,9 @@ export const createBusinessServiceResponseServicesItemOneVariantsItemDurationMin
 
 export const createBusinessServiceResponseServicesItemOneVariantsMax = 30;
 
+export const createBusinessServiceResponsePoliciesItemOneRescheduleNoticeHoursMin = 0;
+export const createBusinessServiceResponsePoliciesItemOneRescheduleNoticeHoursMax = 720;
+
 export const createBusinessServiceResponsePoliciesItemOneNoticeHoursMin = 0;
 export const createBusinessServiceResponsePoliciesItemOneNoticeHoursMax = 720;
 
@@ -2340,6 +2524,8 @@ export const CreateBusinessServiceResponse = zod.object({
   "description": zod.string().max(createBusinessServiceResponseProfileDescriptionMax),
   "contactEmail": zod.string().max(createBusinessServiceResponseProfileContactEmailMax),
   "phone": zod.string().max(createBusinessServiceResponseProfilePhoneMax),
+  "socialUrl": zod.string().max(createBusinessServiceResponseProfileSocialUrlMax).optional(),
+  "logoUrl": zod.string().max(createBusinessServiceResponseProfileLogoUrlMax).optional(),
   "website": zod.string().max(createBusinessServiceResponseProfileWebsiteMax),
   "categoryId": zod.uuid(),
   "onboardingStep": zod.int().min(1).max(createBusinessServiceResponseProfileOnboardingStepMax)
@@ -2371,6 +2557,7 @@ export const CreateBusinessServiceResponse = zod.object({
 }))),
   "employees": zod.array(zod.object({
   "displayName": zod.string().min(1).max(createBusinessServiceResponseEmployeesItemOneDisplayNameMax),
+  "publicName": zod.string().max(createBusinessServiceResponseEmployeesItemOnePublicNameMax).optional(),
   "email": zod.string().max(createBusinessServiceResponseEmployeesItemOneEmailMax),
   "phone": zod.string().max(createBusinessServiceResponseEmployeesItemOnePhoneMax),
   "locationId": zod.uuid(),
@@ -2426,6 +2613,7 @@ export const CreateBusinessServiceResponse = zod.object({
   "accepted": zod.boolean()
 })),
   "policies": zod.array(zod.object({
+  "rescheduleNoticeHours": zod.int().min(createBusinessServiceResponsePoliciesItemOneRescheduleNoticeHoursMin).max(createBusinessServiceResponsePoliciesItemOneRescheduleNoticeHoursMax).optional(),
   "noticeHours": zod.int().min(createBusinessServiceResponsePoliciesItemOneNoticeHoursMin).max(createBusinessServiceResponsePoliciesItemOneNoticeHoursMax),
   "lateFeeType": zod.enum(['percentage', 'fixed']),
   "lateFeeValue": zod.int().min(createBusinessServiceResponsePoliciesItemOneLateFeeValueMin).max(createBusinessServiceResponsePoliciesItemOneLateFeeValueMax),
@@ -2504,6 +2692,10 @@ export const saveBusinessServiceResponseProfileContactEmailMax = 200;
 
 export const saveBusinessServiceResponseProfilePhoneMax = 30;
 
+export const saveBusinessServiceResponseProfileSocialUrlMax = 500;
+
+export const saveBusinessServiceResponseProfileLogoUrlMax = 500;
+
 export const saveBusinessServiceResponseProfileWebsiteMax = 300;
 
 export const saveBusinessServiceResponseProfileOnboardingStepMax = 6;
@@ -2543,6 +2735,8 @@ export const saveBusinessServiceResponseLocationsItemOneAdvanceBookingDaysMax = 
 
 export const saveBusinessServiceResponseEmployeesItemOneDisplayNameMax = 100;
 
+export const saveBusinessServiceResponseEmployeesItemOnePublicNameMax = 100;
+
 export const saveBusinessServiceResponseEmployeesItemOneEmailMax = 200;
 
 export const saveBusinessServiceResponseEmployeesItemOnePhoneMax = 30;
@@ -2579,6 +2773,9 @@ export const saveBusinessServiceResponseServicesItemOneVariantsItemDurationMinut
 
 export const saveBusinessServiceResponseServicesItemOneVariantsMax = 30;
 
+export const saveBusinessServiceResponsePoliciesItemOneRescheduleNoticeHoursMin = 0;
+export const saveBusinessServiceResponsePoliciesItemOneRescheduleNoticeHoursMax = 720;
+
 export const saveBusinessServiceResponsePoliciesItemOneNoticeHoursMin = 0;
 export const saveBusinessServiceResponsePoliciesItemOneNoticeHoursMax = 720;
 
@@ -2602,6 +2799,8 @@ export const SaveBusinessServiceResponse = zod.object({
   "description": zod.string().max(saveBusinessServiceResponseProfileDescriptionMax),
   "contactEmail": zod.string().max(saveBusinessServiceResponseProfileContactEmailMax),
   "phone": zod.string().max(saveBusinessServiceResponseProfilePhoneMax),
+  "socialUrl": zod.string().max(saveBusinessServiceResponseProfileSocialUrlMax).optional(),
+  "logoUrl": zod.string().max(saveBusinessServiceResponseProfileLogoUrlMax).optional(),
   "website": zod.string().max(saveBusinessServiceResponseProfileWebsiteMax),
   "categoryId": zod.uuid(),
   "onboardingStep": zod.int().min(1).max(saveBusinessServiceResponseProfileOnboardingStepMax)
@@ -2633,6 +2832,7 @@ export const SaveBusinessServiceResponse = zod.object({
 }))),
   "employees": zod.array(zod.object({
   "displayName": zod.string().min(1).max(saveBusinessServiceResponseEmployeesItemOneDisplayNameMax),
+  "publicName": zod.string().max(saveBusinessServiceResponseEmployeesItemOnePublicNameMax).optional(),
   "email": zod.string().max(saveBusinessServiceResponseEmployeesItemOneEmailMax),
   "phone": zod.string().max(saveBusinessServiceResponseEmployeesItemOnePhoneMax),
   "locationId": zod.uuid(),
@@ -2688,6 +2888,7 @@ export const SaveBusinessServiceResponse = zod.object({
   "accepted": zod.boolean()
 })),
   "policies": zod.array(zod.object({
+  "rescheduleNoticeHours": zod.int().min(saveBusinessServiceResponsePoliciesItemOneRescheduleNoticeHoursMin).max(saveBusinessServiceResponsePoliciesItemOneRescheduleNoticeHoursMax).optional(),
   "noticeHours": zod.int().min(saveBusinessServiceResponsePoliciesItemOneNoticeHoursMin).max(saveBusinessServiceResponsePoliciesItemOneNoticeHoursMax),
   "lateFeeType": zod.enum(['percentage', 'fixed']),
   "lateFeeValue": zod.int().min(saveBusinessServiceResponsePoliciesItemOneLateFeeValueMin).max(saveBusinessServiceResponsePoliciesItemOneLateFeeValueMax),
@@ -2717,6 +2918,10 @@ export const archiveBusinessServiceResponseProfileDescriptionMax = 3000;
 export const archiveBusinessServiceResponseProfileContactEmailMax = 200;
 
 export const archiveBusinessServiceResponseProfilePhoneMax = 30;
+
+export const archiveBusinessServiceResponseProfileSocialUrlMax = 500;
+
+export const archiveBusinessServiceResponseProfileLogoUrlMax = 500;
 
 export const archiveBusinessServiceResponseProfileWebsiteMax = 300;
 
@@ -2757,6 +2962,8 @@ export const archiveBusinessServiceResponseLocationsItemOneAdvanceBookingDaysMax
 
 export const archiveBusinessServiceResponseEmployeesItemOneDisplayNameMax = 100;
 
+export const archiveBusinessServiceResponseEmployeesItemOnePublicNameMax = 100;
+
 export const archiveBusinessServiceResponseEmployeesItemOneEmailMax = 200;
 
 export const archiveBusinessServiceResponseEmployeesItemOnePhoneMax = 30;
@@ -2793,6 +3000,9 @@ export const archiveBusinessServiceResponseServicesItemOneVariantsItemDurationMi
 
 export const archiveBusinessServiceResponseServicesItemOneVariantsMax = 30;
 
+export const archiveBusinessServiceResponsePoliciesItemOneRescheduleNoticeHoursMin = 0;
+export const archiveBusinessServiceResponsePoliciesItemOneRescheduleNoticeHoursMax = 720;
+
 export const archiveBusinessServiceResponsePoliciesItemOneNoticeHoursMin = 0;
 export const archiveBusinessServiceResponsePoliciesItemOneNoticeHoursMax = 720;
 
@@ -2816,6 +3026,8 @@ export const ArchiveBusinessServiceResponse = zod.object({
   "description": zod.string().max(archiveBusinessServiceResponseProfileDescriptionMax),
   "contactEmail": zod.string().max(archiveBusinessServiceResponseProfileContactEmailMax),
   "phone": zod.string().max(archiveBusinessServiceResponseProfilePhoneMax),
+  "socialUrl": zod.string().max(archiveBusinessServiceResponseProfileSocialUrlMax).optional(),
+  "logoUrl": zod.string().max(archiveBusinessServiceResponseProfileLogoUrlMax).optional(),
   "website": zod.string().max(archiveBusinessServiceResponseProfileWebsiteMax),
   "categoryId": zod.uuid(),
   "onboardingStep": zod.int().min(1).max(archiveBusinessServiceResponseProfileOnboardingStepMax)
@@ -2847,6 +3059,7 @@ export const ArchiveBusinessServiceResponse = zod.object({
 }))),
   "employees": zod.array(zod.object({
   "displayName": zod.string().min(1).max(archiveBusinessServiceResponseEmployeesItemOneDisplayNameMax),
+  "publicName": zod.string().max(archiveBusinessServiceResponseEmployeesItemOnePublicNameMax).optional(),
   "email": zod.string().max(archiveBusinessServiceResponseEmployeesItemOneEmailMax),
   "phone": zod.string().max(archiveBusinessServiceResponseEmployeesItemOnePhoneMax),
   "locationId": zod.uuid(),
@@ -2902,6 +3115,7 @@ export const ArchiveBusinessServiceResponse = zod.object({
   "accepted": zod.boolean()
 })),
   "policies": zod.array(zod.object({
+  "rescheduleNoticeHours": zod.int().min(archiveBusinessServiceResponsePoliciesItemOneRescheduleNoticeHoursMin).max(archiveBusinessServiceResponsePoliciesItemOneRescheduleNoticeHoursMax).optional(),
   "noticeHours": zod.int().min(archiveBusinessServiceResponsePoliciesItemOneNoticeHoursMin).max(archiveBusinessServiceResponsePoliciesItemOneNoticeHoursMax),
   "lateFeeType": zod.enum(['percentage', 'fixed']),
   "lateFeeValue": zod.int().min(archiveBusinessServiceResponsePoliciesItemOneLateFeeValueMin).max(archiveBusinessServiceResponsePoliciesItemOneLateFeeValueMax),
@@ -2922,6 +3136,9 @@ export const SaveCancellationPolicyParams = zod.object({
   "organizationId": zod.uuid()
 })
 
+export const saveCancellationPolicyBodyRescheduleNoticeHoursMin = 0;
+export const saveCancellationPolicyBodyRescheduleNoticeHoursMax = 720;
+
 export const saveCancellationPolicyBodyNoticeHoursMin = 0;
 export const saveCancellationPolicyBodyNoticeHoursMax = 720;
 
@@ -2936,6 +3153,7 @@ export const saveCancellationPolicyBodyExceptionsMax = 2000;
 
 
 export const SaveCancellationPolicyBody = zod.object({
+  "rescheduleNoticeHours": zod.int().min(saveCancellationPolicyBodyRescheduleNoticeHoursMin).max(saveCancellationPolicyBodyRescheduleNoticeHoursMax).optional(),
   "noticeHours": zod.int().min(saveCancellationPolicyBodyNoticeHoursMin).max(saveCancellationPolicyBodyNoticeHoursMax),
   "lateFeeType": zod.enum(['percentage', 'fixed']),
   "lateFeeValue": zod.int().min(saveCancellationPolicyBodyLateFeeValueMin).max(saveCancellationPolicyBodyLateFeeValueMax),
@@ -2953,6 +3171,10 @@ export const saveCancellationPolicyResponseProfileDescriptionMax = 3000;
 export const saveCancellationPolicyResponseProfileContactEmailMax = 200;
 
 export const saveCancellationPolicyResponseProfilePhoneMax = 30;
+
+export const saveCancellationPolicyResponseProfileSocialUrlMax = 500;
+
+export const saveCancellationPolicyResponseProfileLogoUrlMax = 500;
 
 export const saveCancellationPolicyResponseProfileWebsiteMax = 300;
 
@@ -2993,6 +3215,8 @@ export const saveCancellationPolicyResponseLocationsItemOneAdvanceBookingDaysMax
 
 export const saveCancellationPolicyResponseEmployeesItemOneDisplayNameMax = 100;
 
+export const saveCancellationPolicyResponseEmployeesItemOnePublicNameMax = 100;
+
 export const saveCancellationPolicyResponseEmployeesItemOneEmailMax = 200;
 
 export const saveCancellationPolicyResponseEmployeesItemOnePhoneMax = 30;
@@ -3029,6 +3253,9 @@ export const saveCancellationPolicyResponseServicesItemOneVariantsItemDurationMi
 
 export const saveCancellationPolicyResponseServicesItemOneVariantsMax = 30;
 
+export const saveCancellationPolicyResponsePoliciesItemOneRescheduleNoticeHoursMin = 0;
+export const saveCancellationPolicyResponsePoliciesItemOneRescheduleNoticeHoursMax = 720;
+
 export const saveCancellationPolicyResponsePoliciesItemOneNoticeHoursMin = 0;
 export const saveCancellationPolicyResponsePoliciesItemOneNoticeHoursMax = 720;
 
@@ -3052,6 +3279,8 @@ export const SaveCancellationPolicyResponse = zod.object({
   "description": zod.string().max(saveCancellationPolicyResponseProfileDescriptionMax),
   "contactEmail": zod.string().max(saveCancellationPolicyResponseProfileContactEmailMax),
   "phone": zod.string().max(saveCancellationPolicyResponseProfilePhoneMax),
+  "socialUrl": zod.string().max(saveCancellationPolicyResponseProfileSocialUrlMax).optional(),
+  "logoUrl": zod.string().max(saveCancellationPolicyResponseProfileLogoUrlMax).optional(),
   "website": zod.string().max(saveCancellationPolicyResponseProfileWebsiteMax),
   "categoryId": zod.uuid(),
   "onboardingStep": zod.int().min(1).max(saveCancellationPolicyResponseProfileOnboardingStepMax)
@@ -3083,6 +3312,7 @@ export const SaveCancellationPolicyResponse = zod.object({
 }))),
   "employees": zod.array(zod.object({
   "displayName": zod.string().min(1).max(saveCancellationPolicyResponseEmployeesItemOneDisplayNameMax),
+  "publicName": zod.string().max(saveCancellationPolicyResponseEmployeesItemOnePublicNameMax).optional(),
   "email": zod.string().max(saveCancellationPolicyResponseEmployeesItemOneEmailMax),
   "phone": zod.string().max(saveCancellationPolicyResponseEmployeesItemOnePhoneMax),
   "locationId": zod.uuid(),
@@ -3138,6 +3368,7 @@ export const SaveCancellationPolicyResponse = zod.object({
   "accepted": zod.boolean()
 })),
   "policies": zod.array(zod.object({
+  "rescheduleNoticeHours": zod.int().min(saveCancellationPolicyResponsePoliciesItemOneRescheduleNoticeHoursMin).max(saveCancellationPolicyResponsePoliciesItemOneRescheduleNoticeHoursMax).optional(),
   "noticeHours": zod.int().min(saveCancellationPolicyResponsePoliciesItemOneNoticeHoursMin).max(saveCancellationPolicyResponsePoliciesItemOneNoticeHoursMax),
   "lateFeeType": zod.enum(['percentage', 'fixed']),
   "lateFeeValue": zod.int().min(saveCancellationPolicyResponsePoliciesItemOneLateFeeValueMin).max(saveCancellationPolicyResponsePoliciesItemOneLateFeeValueMax),
@@ -3171,6 +3402,10 @@ export const setBusinessPublicationResponseProfileDescriptionMax = 3000;
 export const setBusinessPublicationResponseProfileContactEmailMax = 200;
 
 export const setBusinessPublicationResponseProfilePhoneMax = 30;
+
+export const setBusinessPublicationResponseProfileSocialUrlMax = 500;
+
+export const setBusinessPublicationResponseProfileLogoUrlMax = 500;
 
 export const setBusinessPublicationResponseProfileWebsiteMax = 300;
 
@@ -3211,6 +3446,8 @@ export const setBusinessPublicationResponseLocationsItemOneAdvanceBookingDaysMax
 
 export const setBusinessPublicationResponseEmployeesItemOneDisplayNameMax = 100;
 
+export const setBusinessPublicationResponseEmployeesItemOnePublicNameMax = 100;
+
 export const setBusinessPublicationResponseEmployeesItemOneEmailMax = 200;
 
 export const setBusinessPublicationResponseEmployeesItemOnePhoneMax = 30;
@@ -3247,6 +3484,9 @@ export const setBusinessPublicationResponseServicesItemOneVariantsItemDurationMi
 
 export const setBusinessPublicationResponseServicesItemOneVariantsMax = 30;
 
+export const setBusinessPublicationResponsePoliciesItemOneRescheduleNoticeHoursMin = 0;
+export const setBusinessPublicationResponsePoliciesItemOneRescheduleNoticeHoursMax = 720;
+
 export const setBusinessPublicationResponsePoliciesItemOneNoticeHoursMin = 0;
 export const setBusinessPublicationResponsePoliciesItemOneNoticeHoursMax = 720;
 
@@ -3270,6 +3510,8 @@ export const SetBusinessPublicationResponse = zod.object({
   "description": zod.string().max(setBusinessPublicationResponseProfileDescriptionMax),
   "contactEmail": zod.string().max(setBusinessPublicationResponseProfileContactEmailMax),
   "phone": zod.string().max(setBusinessPublicationResponseProfilePhoneMax),
+  "socialUrl": zod.string().max(setBusinessPublicationResponseProfileSocialUrlMax).optional(),
+  "logoUrl": zod.string().max(setBusinessPublicationResponseProfileLogoUrlMax).optional(),
   "website": zod.string().max(setBusinessPublicationResponseProfileWebsiteMax),
   "categoryId": zod.uuid(),
   "onboardingStep": zod.int().min(1).max(setBusinessPublicationResponseProfileOnboardingStepMax)
@@ -3301,6 +3543,7 @@ export const SetBusinessPublicationResponse = zod.object({
 }))),
   "employees": zod.array(zod.object({
   "displayName": zod.string().min(1).max(setBusinessPublicationResponseEmployeesItemOneDisplayNameMax),
+  "publicName": zod.string().max(setBusinessPublicationResponseEmployeesItemOnePublicNameMax).optional(),
   "email": zod.string().max(setBusinessPublicationResponseEmployeesItemOneEmailMax),
   "phone": zod.string().max(setBusinessPublicationResponseEmployeesItemOnePhoneMax),
   "locationId": zod.uuid(),
@@ -3356,6 +3599,7 @@ export const SetBusinessPublicationResponse = zod.object({
   "accepted": zod.boolean()
 })),
   "policies": zod.array(zod.object({
+  "rescheduleNoticeHours": zod.int().min(setBusinessPublicationResponsePoliciesItemOneRescheduleNoticeHoursMin).max(setBusinessPublicationResponsePoliciesItemOneRescheduleNoticeHoursMax).optional(),
   "noticeHours": zod.int().min(setBusinessPublicationResponsePoliciesItemOneNoticeHoursMin).max(setBusinessPublicationResponsePoliciesItemOneNoticeHoursMax),
   "lateFeeType": zod.enum(['percentage', 'fixed']),
   "lateFeeValue": zod.int().min(setBusinessPublicationResponsePoliciesItemOneLateFeeValueMin).max(setBusinessPublicationResponsePoliciesItemOneLateFeeValueMax),
@@ -3412,6 +3656,10 @@ export const saveOrganizationMembershipResponseProfileContactEmailMax = 200;
 
 export const saveOrganizationMembershipResponseProfilePhoneMax = 30;
 
+export const saveOrganizationMembershipResponseProfileSocialUrlMax = 500;
+
+export const saveOrganizationMembershipResponseProfileLogoUrlMax = 500;
+
 export const saveOrganizationMembershipResponseProfileWebsiteMax = 300;
 
 export const saveOrganizationMembershipResponseProfileOnboardingStepMax = 6;
@@ -3451,6 +3699,8 @@ export const saveOrganizationMembershipResponseLocationsItemOneAdvanceBookingDay
 
 export const saveOrganizationMembershipResponseEmployeesItemOneDisplayNameMax = 100;
 
+export const saveOrganizationMembershipResponseEmployeesItemOnePublicNameMax = 100;
+
 export const saveOrganizationMembershipResponseEmployeesItemOneEmailMax = 200;
 
 export const saveOrganizationMembershipResponseEmployeesItemOnePhoneMax = 30;
@@ -3487,6 +3737,9 @@ export const saveOrganizationMembershipResponseServicesItemOneVariantsItemDurati
 
 export const saveOrganizationMembershipResponseServicesItemOneVariantsMax = 30;
 
+export const saveOrganizationMembershipResponsePoliciesItemOneRescheduleNoticeHoursMin = 0;
+export const saveOrganizationMembershipResponsePoliciesItemOneRescheduleNoticeHoursMax = 720;
+
 export const saveOrganizationMembershipResponsePoliciesItemOneNoticeHoursMin = 0;
 export const saveOrganizationMembershipResponsePoliciesItemOneNoticeHoursMax = 720;
 
@@ -3510,6 +3763,8 @@ export const SaveOrganizationMembershipResponse = zod.object({
   "description": zod.string().max(saveOrganizationMembershipResponseProfileDescriptionMax),
   "contactEmail": zod.string().max(saveOrganizationMembershipResponseProfileContactEmailMax),
   "phone": zod.string().max(saveOrganizationMembershipResponseProfilePhoneMax),
+  "socialUrl": zod.string().max(saveOrganizationMembershipResponseProfileSocialUrlMax).optional(),
+  "logoUrl": zod.string().max(saveOrganizationMembershipResponseProfileLogoUrlMax).optional(),
   "website": zod.string().max(saveOrganizationMembershipResponseProfileWebsiteMax),
   "categoryId": zod.uuid(),
   "onboardingStep": zod.int().min(1).max(saveOrganizationMembershipResponseProfileOnboardingStepMax)
@@ -3541,6 +3796,7 @@ export const SaveOrganizationMembershipResponse = zod.object({
 }))),
   "employees": zod.array(zod.object({
   "displayName": zod.string().min(1).max(saveOrganizationMembershipResponseEmployeesItemOneDisplayNameMax),
+  "publicName": zod.string().max(saveOrganizationMembershipResponseEmployeesItemOnePublicNameMax).optional(),
   "email": zod.string().max(saveOrganizationMembershipResponseEmployeesItemOneEmailMax),
   "phone": zod.string().max(saveOrganizationMembershipResponseEmployeesItemOnePhoneMax),
   "locationId": zod.uuid(),
@@ -3596,6 +3852,7 @@ export const SaveOrganizationMembershipResponse = zod.object({
   "accepted": zod.boolean()
 })),
   "policies": zod.array(zod.object({
+  "rescheduleNoticeHours": zod.int().min(saveOrganizationMembershipResponsePoliciesItemOneRescheduleNoticeHoursMin).max(saveOrganizationMembershipResponsePoliciesItemOneRescheduleNoticeHoursMax).optional(),
   "noticeHours": zod.int().min(saveOrganizationMembershipResponsePoliciesItemOneNoticeHoursMin).max(saveOrganizationMembershipResponsePoliciesItemOneNoticeHoursMax),
   "lateFeeType": zod.enum(['percentage', 'fixed']),
   "lateFeeValue": zod.int().min(saveOrganizationMembershipResponsePoliciesItemOneLateFeeValueMin).max(saveOrganizationMembershipResponsePoliciesItemOneLateFeeValueMax),
@@ -3635,5 +3892,3322 @@ export const GetBusinessWorkspaceResponse = zod.void()
 
 
 export const GetAdminWorkspaceResponse = zod.void()
+
+
+export const ListPublicGalleryParams = zod.object({
+  "slug": zod.coerce.string()
+})
+
+export const ListPublicGalleryResponseItem = zod.object({
+  "id": zod.uuid(),
+  "alt": zod.string()
+})
+export const ListPublicGalleryResponse = zod.array(ListPublicGalleryResponseItem)
+
+
+export const GetPublicGalleryImageParams = zod.object({
+  "photoId": zod.uuid()
+})
+
+export const GetPublicGalleryImageResponse = zod.unknown()
+
+
+export const ListManagedGalleryParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid()
+})
+
+export const ListManagedGalleryResponseItem = zod.object({
+  "id": zod.uuid(),
+  "alt": zod.string()
+})
+export const ListManagedGalleryResponse = zod.array(ListManagedGalleryResponseItem)
+
+
+export const UploadGalleryPhotoParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid()
+})
+
+export const uploadGalleryPhotoQueryAltMax = 160;
+
+
+
+export const UploadGalleryPhotoQueryParams = zod.object({
+  "alt": zod.coerce.string().min(1).max(uploadGalleryPhotoQueryAltMax)
+})
+
+export const UploadGalleryPhotoResponse = zod.object({
+  "id": zod.uuid(),
+  "alt": zod.string()
+})
+
+
+export const GetManagedGalleryImageParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid(),
+  "photoId": zod.uuid()
+})
+
+export const GetManagedGalleryImageResponse = zod.unknown()
+
+
+export const DeleteGalleryPhotoParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid(),
+  "photoId": zod.uuid()
+})
+
+export const DeleteGalleryPhotoResponse = zod.void()
+
+
+export const ListMyFavoritesResponseItem = zod.object({
+  "id": zod.uuid(),
+  "slug": zod.string(),
+  "name": zod.string(),
+  "city": zod.string()
+})
+export const ListMyFavoritesResponse = zod.array(ListMyFavoritesResponseItem)
+
+
+export const SaveFavoriteParams = zod.object({
+  "locationId": zod.uuid()
+})
+
+export const SaveFavoriteResponse = zod.void()
+
+
+export const RemoveFavoriteParams = zod.object({
+  "locationId": zod.uuid()
+})
+
+export const RemoveFavoriteResponse = zod.void()
+
+
+/**
+ * Calculate a non-reserving quote for online-enabled services and active variants.
+ */
+export const quoteBookingPathSlugMax = 100;
+
+
+export const quoteBookingPathSlugRegExp = new RegExp('^[a-z0-9-]+$');
+
+
+export const QuoteBookingParams = zod.object({
+  "slug": zod.coerce.string().min(1).max(quoteBookingPathSlugMax).regex(quoteBookingPathSlugRegExp)
+})
+
+export const quoteBookingBodyItemsMax = 12;
+
+
+
+export const QuoteBookingBody = zod.object({
+  "items": zod.array(zod.object({
+  "serviceId": zod.uuid(),
+  "variantId": zod.uuid().optional()
+})).min(1).max(quoteBookingBodyItemsMax)
+})
+
+export const QuoteBookingResponse = zod.object({
+  "priceCents": zod.int(),
+  "durationMinutes": zod.int(),
+  "occupiedMinutes": zod.int(),
+  "items": zod.array(zod.object({
+  "serviceId": zod.uuid(),
+  "variantId": zod.uuid().nullable(),
+  "name": zod.string(),
+  "variantName": zod.string().nullable(),
+  "employeeId": zod.uuid().optional(),
+  "professionalName": zod.string().optional(),
+  "priceCents": zod.int(),
+  "durationMinutes": zod.int(),
+  "preparationMinutes": zod.int(),
+  "cleanupMinutes": zod.int()
+}))
+})
+
+
+export const ListPublicBusinessReviewsParams = zod.object({
+  "slug": zod.coerce.string()
+})
+
+export const listPublicBusinessReviewsQueryOffsetMin = 0;
+export const listPublicBusinessReviewsQueryOffsetMax = 99999;
+
+
+
+export const ListPublicBusinessReviewsQueryParams = zod.object({
+  "sort": zod.enum(['newest', 'highest', 'lowest']).optional(),
+  "offset": zod.coerce.number().int().min(listPublicBusinessReviewsQueryOffsetMin).max(listPublicBusinessReviewsQueryOffsetMax).optional()
+})
+
+export const listPublicBusinessReviewsResponseReviewsItemRatingMax = 5;
+
+
+
+export const ListPublicBusinessReviewsResponse = zod.object({
+  "count": zod.int(),
+  "average": zod.number().nullable(),
+  "reviews": zod.array(zod.object({
+  "id": zod.uuid(),
+  "rating": zod.int().min(1).max(listPublicBusinessReviewsResponseReviewsItemRatingMax),
+  "comment": zod.string(),
+  "reply": zod.string(),
+  "date": zod.coerce.date()
+}))
+})
+
+
+export const GetBusinessAvailableDatesParams = zod.object({
+  "slug": zod.coerce.string()
+})
+
+export const getBusinessAvailableDatesBodyItemsMax = 12;
+
+
+
+export const GetBusinessAvailableDatesBody = zod.object({
+  "from": zod.coerce.date(),
+  "items": zod.array(zod.object({
+  "serviceId": zod.uuid(),
+  "variantId": zod.uuid().optional()
+})).min(1).max(getBusinessAvailableDatesBodyItemsMax)
+})
+
+export const GetBusinessAvailableDatesResponseItem = zod.object({
+  "date": zod.coerce.date(),
+  "available": zod.boolean()
+})
+export const GetBusinessAvailableDatesResponse = zod.array(GetBusinessAvailableDatesResponseItem)
+
+
+export const CheckBookingAvailabilityParams = zod.object({
+  "slug": zod.coerce.string()
+})
+
+export const CheckBookingAvailabilityBody = zod.object({
+  "date": zod.coerce.date(),
+  "professionalId": zod.uuid().optional(),
+  "items": zod.array(zod.object({
+  "serviceId": zod.uuid(),
+  "variantId": zod.uuid().optional()
+}))
+})
+
+export const CheckBookingAvailabilityResponse = zod.object({
+  "quote": zod.object({
+  "priceCents": zod.int(),
+  "durationMinutes": zod.int(),
+  "occupiedMinutes": zod.int(),
+  "items": zod.array(zod.object({
+  "serviceId": zod.uuid(),
+  "variantId": zod.uuid().nullable(),
+  "name": zod.string(),
+  "variantName": zod.string().nullable(),
+  "employeeId": zod.uuid().optional(),
+  "professionalName": zod.string().optional(),
+  "priceCents": zod.int(),
+  "durationMinutes": zod.int(),
+  "preparationMinutes": zod.int(),
+  "cleanupMinutes": zod.int()
+}))
+}),
+  "slots": zod.array(zod.object({
+  "employeeId": zod.uuid(),
+  "employeeName": zod.string(),
+  "professionalTitle": zod.string().optional(),
+  "professionalPhotoUrl": zod.string().optional(),
+  "mixed": zod.boolean().optional(),
+  "quote": zod.object({
+  "priceCents": zod.int(),
+  "durationMinutes": zod.int(),
+  "occupiedMinutes": zod.int(),
+  "items": zod.array(zod.object({
+  "serviceId": zod.uuid(),
+  "variantId": zod.uuid().nullable(),
+  "name": zod.string(),
+  "variantName": zod.string().nullable(),
+  "employeeId": zod.uuid().optional(),
+  "professionalName": zod.string().optional(),
+  "priceCents": zod.int(),
+  "durationMinutes": zod.int(),
+  "preparationMinutes": zod.int(),
+  "cleanupMinutes": zod.int()
+}))
+}).optional(),
+  "startsAt": zod.coerce.date(),
+  "endsAt": zod.coerce.date()
+})),
+  "professionalChoice": zod.object({
+  "individual": zod.boolean(),
+  "any": zod.boolean()
+}).optional(),
+  "policy": zod.record(zod.string(), zod.unknown()).nullable()
+})
+
+
+export const CreateAppointmentParams = zod.object({
+  "slug": zod.coerce.string()
+})
+
+export const createAppointmentBodyAppointmentNoteMax = 500;
+
+export const createAppointmentBodyExpectedProfessionalsMax = 12;
+
+
+
+export const CreateAppointmentBody = zod.object({
+  "items": zod.array(zod.object({
+  "serviceId": zod.uuid(),
+  "variantId": zod.uuid().optional()
+})),
+  "employeeId": zod.uuid(),
+  "startsAt": zod.coerce.date(),
+  "idempotencyKey": zod.uuid(),
+  "policyVersion": zod.int(),
+  "expectedPriceCents": zod.int(),
+  "paymentMethodId": zod.uuid(),
+  "acceptPolicy": zod.literal(true),
+  "appointmentNote": zod.string().max(createAppointmentBodyAppointmentNoteMax).optional(),
+  "expectedEndsAt": zod.coerce.date().optional(),
+  "expectedProfessionals": zod.array(zod.uuid()).min(1).max(createAppointmentBodyExpectedProfessionalsMax).optional()
+})
+
+export const createAppointmentResponseReviewRatingMax = 5;
+
+
+
+export const CreateAppointmentResponse = zod.object({
+  "id": zod.uuid(),
+  "locationId": zod.uuid(),
+  "employeeId": zod.uuid(),
+  "startsAt": zod.coerce.date(),
+  "endsAt": zod.coerce.date(),
+  "appointmentNote": zod.string().nullish(),
+  "rescheduleNoticeHours": zod.int().optional(),
+  "reviewRating": zod.int().min(1).max(createAppointmentResponseReviewRatingMax).nullish(),
+  "status": zod.enum(['confirmed', 'cancelled', 'completed', 'no_show']),
+  "items": zod.array(zod.record(zod.string(), zod.unknown())),
+  "priceCents": zod.int(),
+  "durationMinutes": zod.int(),
+  "salon": zod.string().optional(),
+  "slug": zod.string().optional(),
+  "timezone": zod.string().optional(),
+  "employeeName": zod.string().optional(),
+  "customerName": zod.string().optional(),
+  "source": zod.enum(['online', 'manual', 'walk_in']).optional()
+})
+
+
+export const JoinBookingWaitlistParams = zod.object({
+  "slug": zod.coerce.string()
+})
+
+export const JoinBookingWaitlistBody = zod.object({
+  "date": zod.coerce.date()
+})
+
+export const JoinBookingWaitlistResponse = zod.void()
+
+
+export const listMyAppointmentsResponseReviewRatingMax = 5;
+
+
+
+export const ListMyAppointmentsResponseItem = zod.object({
+  "id": zod.uuid(),
+  "locationId": zod.uuid(),
+  "employeeId": zod.uuid(),
+  "startsAt": zod.coerce.date(),
+  "endsAt": zod.coerce.date(),
+  "appointmentNote": zod.string().nullish(),
+  "rescheduleNoticeHours": zod.int().optional(),
+  "reviewRating": zod.int().min(1).max(listMyAppointmentsResponseReviewRatingMax).nullish(),
+  "status": zod.enum(['confirmed', 'cancelled', 'completed', 'no_show']),
+  "items": zod.array(zod.record(zod.string(), zod.unknown())),
+  "priceCents": zod.int(),
+  "durationMinutes": zod.int(),
+  "salon": zod.string().optional(),
+  "slug": zod.string().optional(),
+  "timezone": zod.string().optional(),
+  "employeeName": zod.string().optional(),
+  "customerName": zod.string().optional(),
+  "source": zod.enum(['online', 'manual', 'walk_in']).optional()
+})
+export const ListMyAppointmentsResponse = zod.array(ListMyAppointmentsResponseItem)
+
+
+export const listReviewModerationQueueQueryOffsetMin = 0;
+export const listReviewModerationQueueQueryOffsetMax = 1000000;
+
+
+
+export const ListReviewModerationQueueQueryParams = zod.object({
+  "offset": zod.coerce.number().int().min(listReviewModerationQueueQueryOffsetMin).max(listReviewModerationQueueQueryOffsetMax).optional()
+})
+
+export const listReviewModerationQueueResponseReviewsItemRatingMax = 5;
+
+
+
+export const ListReviewModerationQueueResponse = zod.object({
+  "hasMore": zod.boolean(),
+  "reviews": zod.array(zod.object({
+  "id": zod.uuid(),
+  "comment": zod.string(),
+  "reply": zod.string(),
+  "rating": zod.int().min(1).max(listReviewModerationQueueResponseReviewsItemRatingMax),
+  "hidden": zod.boolean(),
+  "location": zod.string(),
+  "report": zod.object({
+  "reason": zod.enum(['spam', 'abuse', 'personal_information', 'other']),
+  "details": zod.string(),
+  "pendingCount": zod.int(),
+  "reportedAt": zod.coerce.date()
+}).nullable()
+}))
+})
+
+
+export const ModerateReportedReviewParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const ModerateReportedReviewBody = zod.object({
+  "action": zod.enum(['dismiss', 'hide', 'restore'])
+})
+
+export const ModerateReportedReviewResponse = zod.void()
+
+
+export const ListOrganizationPackagesParams = zod.object({
+  "organizationId": zod.uuid()
+})
+
+export const listOrganizationPackagesResponseOneNameMax = 120;
+
+export const listOrganizationPackagesResponseOneVisitsMin = 2;
+export const listOrganizationPackagesResponseOneVisitsMax = 50;
+
+export const listOrganizationPackagesResponseOnePriceCentsMax = 10000000;
+
+export const listOrganizationPackagesResponseOneValidDaysMax = 730;
+
+
+
+export const ListOrganizationPackagesResponseItem = zod.object({
+  "kind": zod.enum(['package', 'membership']).optional(),
+  "name": zod.string().min(1).max(listOrganizationPackagesResponseOneNameMax),
+  "serviceId": zod.uuid(),
+  "visits": zod.int().min(listOrganizationPackagesResponseOneVisitsMin).max(listOrganizationPackagesResponseOneVisitsMax),
+  "priceCents": zod.int().min(1).max(listOrganizationPackagesResponseOnePriceCentsMax),
+  "validDays": zod.int().min(1).max(listOrganizationPackagesResponseOneValidDaysMax)
+}).and(zod.object({
+  "active": zod.boolean()
+})).and(zod.object({
+  "id": zod.uuid(),
+  "organizationId": zod.uuid()
+}))
+export const ListOrganizationPackagesResponse = zod.array(ListOrganizationPackagesResponseItem)
+
+
+export const CreateOrganizationPackageParams = zod.object({
+  "organizationId": zod.uuid()
+})
+
+export const createOrganizationPackageBodyNameMax = 120;
+
+export const createOrganizationPackageBodyVisitsMin = 2;
+export const createOrganizationPackageBodyVisitsMax = 50;
+
+export const createOrganizationPackageBodyPriceCentsMax = 10000000;
+
+export const createOrganizationPackageBodyValidDaysMax = 730;
+
+
+
+export const CreateOrganizationPackageBody = zod.object({
+  "kind": zod.enum(['package', 'membership']).optional(),
+  "name": zod.string().min(1).max(createOrganizationPackageBodyNameMax),
+  "serviceId": zod.uuid(),
+  "visits": zod.int().min(createOrganizationPackageBodyVisitsMin).max(createOrganizationPackageBodyVisitsMax),
+  "priceCents": zod.int().min(1).max(createOrganizationPackageBodyPriceCentsMax),
+  "validDays": zod.int().min(1).max(createOrganizationPackageBodyValidDaysMax)
+})
+
+export const createOrganizationPackageResponseOneNameMax = 120;
+
+export const createOrganizationPackageResponseOneVisitsMin = 2;
+export const createOrganizationPackageResponseOneVisitsMax = 50;
+
+export const createOrganizationPackageResponseOnePriceCentsMax = 10000000;
+
+export const createOrganizationPackageResponseOneValidDaysMax = 730;
+
+
+
+export const CreateOrganizationPackageResponse = zod.object({
+  "kind": zod.enum(['package', 'membership']).optional(),
+  "name": zod.string().min(1).max(createOrganizationPackageResponseOneNameMax),
+  "serviceId": zod.uuid(),
+  "visits": zod.int().min(createOrganizationPackageResponseOneVisitsMin).max(createOrganizationPackageResponseOneVisitsMax),
+  "priceCents": zod.int().min(1).max(createOrganizationPackageResponseOnePriceCentsMax),
+  "validDays": zod.int().min(1).max(createOrganizationPackageResponseOneValidDaysMax)
+}).and(zod.object({
+  "active": zod.boolean()
+})).and(zod.object({
+  "id": zod.uuid(),
+  "organizationId": zod.uuid()
+}))
+
+
+export const UpdateOrganizationPackageParams = zod.object({
+  "organizationId": zod.uuid(),
+  "id": zod.uuid()
+})
+
+export const UpdateOrganizationPackageBody = zod.object({
+  "active": zod.boolean()
+})
+
+export const updateOrganizationPackageResponseOneNameMax = 120;
+
+export const updateOrganizationPackageResponseOneVisitsMin = 2;
+export const updateOrganizationPackageResponseOneVisitsMax = 50;
+
+export const updateOrganizationPackageResponseOnePriceCentsMax = 10000000;
+
+export const updateOrganizationPackageResponseOneValidDaysMax = 730;
+
+
+
+export const UpdateOrganizationPackageResponse = zod.object({
+  "kind": zod.enum(['package', 'membership']).optional(),
+  "name": zod.string().min(1).max(updateOrganizationPackageResponseOneNameMax),
+  "serviceId": zod.uuid(),
+  "visits": zod.int().min(updateOrganizationPackageResponseOneVisitsMin).max(updateOrganizationPackageResponseOneVisitsMax),
+  "priceCents": zod.int().min(1).max(updateOrganizationPackageResponseOnePriceCentsMax),
+  "validDays": zod.int().min(1).max(updateOrganizationPackageResponseOneValidDaysMax)
+}).and(zod.object({
+  "active": zod.boolean()
+})).and(zod.object({
+  "id": zod.uuid(),
+  "organizationId": zod.uuid()
+}))
+
+
+export const listMyServicePackagesResponseRemainingMin = 0;
+
+
+
+export const ListMyServicePackagesResponseItem = zod.object({
+  "kind": zod.enum(['package', 'membership']).optional(),
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "service": zod.string(),
+  "business": zod.string(),
+  "remaining": zod.int().min(listMyServicePackagesResponseRemainingMin),
+  "expiresAt": zod.coerce.date(),
+  "priceCents": zod.int()
+})
+export const ListMyServicePackagesResponse = zod.array(ListMyServicePackagesResponseItem)
+
+
+export const ListServicePackageOffersResponseItem = zod.object({
+  "kind": zod.enum(['package', 'membership']).optional(),
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "service": zod.string(),
+  "business": zod.string(),
+  "visits": zod.int(),
+  "priceCents": zod.int(),
+  "validDays": zod.int()
+})
+export const ListServicePackageOffersResponse = zod.array(ListServicePackageOffersResponseItem)
+
+
+export const SimulateCustomerPackagePurchaseParams = zod.object({
+  "id": zod.uuid()
+})
+
+
+
+
+export const SimulateCustomerPackagePurchaseBody = zod.object({
+  "requestId": zod.uuid(),
+  "expectedPriceCents": zod.int().min(1)
+})
+
+export const SimulateCustomerPackagePurchaseResponse = zod.object({
+  "id": zod.uuid()
+})
+
+
+export const ApplyPackageAtCheckoutParams = zod.object({
+  "organizationId": zod.uuid(),
+  "id": zod.uuid()
+})
+
+export const ApplyPackageAtCheckoutResponse = zod.void()
+
+
+export const IssueOrganizationGiftVoucherParams = zod.object({
+  "organizationId": zod.uuid()
+})
+
+export const issueOrganizationGiftVoucherBodyDiscountCentsMax = 100000;
+
+
+
+export const IssueOrganizationGiftVoucherBody = zod.object({
+  "discountCents": zod.int().min(1).max(issueOrganizationGiftVoucherBodyDiscountCentsMax),
+  "requestId": zod.uuid()
+})
+
+export const issueOrganizationGiftVoucherResponseOneCodeRegExp = new RegExp('^[A-Z0-9-]{4,32}$');
+export const issueOrganizationGiftVoucherResponseOneDiscountCentsMax = 2147483647;
+
+
+
+export const IssueOrganizationGiftVoucherResponse = zod.object({
+  "code": zod.string().regex(issueOrganizationGiftVoucherResponseOneCodeRegExp),
+  "discountCents": zod.int().min(1).max(issueOrganizationGiftVoucherResponseOneDiscountCentsMax)
+}).and(zod.object({
+  "isGift": zod.boolean().optional(),
+  "id": zod.uuid(),
+  "organizationId": zod.uuid(),
+  "expiresAt": zod.coerce.date().nullable(),
+  "redeemedAt": zod.coerce.date().nullable()
+}))
+
+
+
+
+
+export const ListMyLoyaltyRewardsResponseItem = zod.object({
+  "code": zod.string(),
+  "discountCents": zod.int().min(1),
+  "redeemedAt": zod.coerce.date().nullable()
+}).and(zod.object({
+  "name": zod.string()
+}))
+export const ListMyLoyaltyRewardsResponse = zod.array(ListMyLoyaltyRewardsResponseItem)
+
+
+export const ExchangeMyLoyaltyPointsParams = zod.object({
+  "organizationId": zod.uuid()
+})
+
+export const ExchangeMyLoyaltyPointsBody = zod.object({
+  "requestId": zod.uuid()
+})
+
+
+
+
+export const ExchangeMyLoyaltyPointsResponse = zod.object({
+  "code": zod.string(),
+  "discountCents": zod.int().min(1),
+  "redeemedAt": zod.coerce.date().nullable()
+})
+
+
+export const listMyLoyaltyBalancesResponsePointsMin = 0;
+
+
+
+export const ListMyLoyaltyBalancesResponseItem = zod.object({
+  "organizationId": zod.uuid(),
+  "name": zod.string(),
+  "points": zod.int().min(listMyLoyaltyBalancesResponsePointsMin)
+})
+export const ListMyLoyaltyBalancesResponse = zod.array(ListMyLoyaltyBalancesResponseItem)
+
+
+export const GetBusinessSaasSubscriptionParams = zod.object({
+  "organizationId": zod.uuid()
+})
+
+export const getBusinessSaasSubscriptionResponsePlansItemOneNameMax = 80;
+
+export const getBusinessSaasSubscriptionResponsePlansItemOneMonthlyCentsMin = 0;
+export const getBusinessSaasSubscriptionResponsePlansItemOneMonthlyCentsMax = 10000000;
+
+export const getBusinessSaasSubscriptionResponsePlansItemOneLocationLimitMax = 1000;
+
+export const getBusinessSaasSubscriptionResponsePlansItemOneTrialDaysMin = 0;
+export const getBusinessSaasSubscriptionResponsePlansItemOneTrialDaysMax = 90;
+
+
+
+export const GetBusinessSaasSubscriptionResponse = zod.object({
+  "currency": zod.literal("EUR"),
+  "plans": zod.array(zod.object({
+  "name": zod.string().min(1).max(getBusinessSaasSubscriptionResponsePlansItemOneNameMax),
+  "monthlyCents": zod.int().min(getBusinessSaasSubscriptionResponsePlansItemOneMonthlyCentsMin).max(getBusinessSaasSubscriptionResponsePlansItemOneMonthlyCentsMax),
+  "locationLimit": zod.int().min(1).max(getBusinessSaasSubscriptionResponsePlansItemOneLocationLimitMax),
+  "trialDays": zod.int().min(getBusinessSaasSubscriptionResponsePlansItemOneTrialDaysMin).max(getBusinessSaasSubscriptionResponsePlansItemOneTrialDaysMax)
+}).and(zod.object({
+  "code": zod.enum(['starter', 'professional', 'enterprise'])
+}))),
+  "locationCount": zod.int(),
+  "current": zod.object({
+  "organizationId": zod.uuid(),
+  "planCode": zod.enum(['starter', 'professional', 'enterprise']),
+  "state": zod.enum(['trial', 'active', 'cancelled', 'expired']),
+  "periodEndsAt": zod.coerce.date()
+}).nullable(),
+  "history": zod.array(zod.object({
+  "organizationId": zod.uuid(),
+  "requestId": zod.uuid(),
+  "planCode": zod.enum(['starter', 'professional', 'enterprise']),
+  "action": zod.enum(['trial', 'activate', 'cancel']),
+  "amountCents": zod.int(),
+  "createdAt": zod.coerce.date(),
+  "periodEndsAt": zod.coerce.date()
+}))
+})
+
+
+export const ChangeBusinessSaasSubscriptionParams = zod.object({
+  "organizationId": zod.uuid()
+})
+
+export const changeBusinessSaasSubscriptionBodyOneExpectedCentsMin = 0;
+
+
+
+export const ChangeBusinessSaasSubscriptionBody = zod.union([zod.object({
+  "action": zod.literal("activate"),
+  "planCode": zod.enum(['starter', 'professional', 'enterprise']),
+  "expectedCents": zod.int().min(changeBusinessSaasSubscriptionBodyOneExpectedCentsMin),
+  "requestId": zod.uuid()
+}),zod.object({
+  "action": zod.literal("cancel"),
+  "requestId": zod.uuid()
+})])
+
+export const ChangeBusinessSaasSubscriptionResponse = zod.void()
+
+
+export const listCustomerSupportCasesQueryOffsetMin = 0;
+export const listCustomerSupportCasesQueryOffsetMax = 1000000;
+
+
+
+export const ListCustomerSupportCasesQueryParams = zod.object({
+  "state": zod.enum(['open', 'resolved']).optional(),
+  "offset": zod.coerce.number().int().min(listCustomerSupportCasesQueryOffsetMin).max(listCustomerSupportCasesQueryOffsetMax).optional()
+})
+
+export const ListCustomerSupportCasesResponse = zod.object({
+  "cases": zod.array(zod.object({
+  "id": zod.uuid(),
+  "subject": zod.string(),
+  "state": zod.enum(['open', 'resolved']),
+  "updatedAt": zod.coerce.date()
+})),
+  "hasMore": zod.boolean()
+})
+
+
+export const createCustomerSupportCaseBodyOneBodyMax = 4000;
+
+export const createCustomerSupportCaseBodyTwoSubjectMax = 120;
+
+
+
+export const CreateCustomerSupportCaseBody = zod.object({
+  "body": zod.string().min(1).max(createCustomerSupportCaseBodyOneBodyMax),
+  "requestId": zod.uuid()
+}).and(zod.object({
+  "subject": zod.string().min(1).max(createCustomerSupportCaseBodyTwoSubjectMax)
+}))
+
+export const CreateCustomerSupportCaseResponse = zod.object({
+  "id": zod.uuid(),
+  "subject": zod.string(),
+  "state": zod.enum(['open', 'resolved']),
+  "updatedAt": zod.coerce.date()
+})
+
+
+export const GetCustomerSupportCaseParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const getCustomerSupportCaseQueryOffsetMin = 0;
+export const getCustomerSupportCaseQueryOffsetMax = 1000000;
+
+
+
+export const GetCustomerSupportCaseQueryParams = zod.object({
+  "offset": zod.coerce.number().int().min(getCustomerSupportCaseQueryOffsetMin).max(getCustomerSupportCaseQueryOffsetMax).optional()
+})
+
+export const GetCustomerSupportCaseResponse = zod.object({
+  "id": zod.uuid(),
+  "subject": zod.string(),
+  "state": zod.enum(['open', 'resolved']),
+  "updatedAt": zod.coerce.date()
+}).and(zod.object({
+  "hasOlder": zod.boolean(),
+  "messages": zod.array(zod.object({
+  "id": zod.uuid(),
+  "kind": zod.enum(['customer', 'staff', 'resolved', 'reopened']),
+  "body": zod.string(),
+  "createdAt": zod.coerce.date()
+}))
+}))
+
+
+export const ReplyToCustomerSupportCaseParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const replyToCustomerSupportCaseBodyBodyMax = 4000;
+
+
+
+export const ReplyToCustomerSupportCaseBody = zod.object({
+  "body": zod.string().min(1).max(replyToCustomerSupportCaseBodyBodyMax),
+  "requestId": zod.uuid()
+})
+
+export const ReplyToCustomerSupportCaseResponse = zod.void()
+
+
+export const listPlatformSupportCasesQueryOffsetMin = 0;
+export const listPlatformSupportCasesQueryOffsetMax = 1000000;
+
+
+
+export const ListPlatformSupportCasesQueryParams = zod.object({
+  "state": zod.enum(['open', 'resolved']).optional(),
+  "offset": zod.coerce.number().int().min(listPlatformSupportCasesQueryOffsetMin).max(listPlatformSupportCasesQueryOffsetMax).optional()
+})
+
+export const ListPlatformSupportCasesResponse = zod.object({
+  "cases": zod.array(zod.object({
+  "id": zod.uuid(),
+  "subject": zod.string(),
+  "state": zod.enum(['open', 'resolved']),
+  "updatedAt": zod.coerce.date()
+})),
+  "hasMore": zod.boolean()
+})
+
+
+export const GetPlatformSupportCaseParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const getPlatformSupportCaseQueryOffsetMin = 0;
+export const getPlatformSupportCaseQueryOffsetMax = 1000000;
+
+
+
+export const GetPlatformSupportCaseQueryParams = zod.object({
+  "offset": zod.coerce.number().int().min(getPlatformSupportCaseQueryOffsetMin).max(getPlatformSupportCaseQueryOffsetMax).optional()
+})
+
+export const GetPlatformSupportCaseResponse = zod.object({
+  "id": zod.uuid(),
+  "subject": zod.string(),
+  "state": zod.enum(['open', 'resolved']),
+  "updatedAt": zod.coerce.date()
+}).and(zod.object({
+  "hasOlder": zod.boolean(),
+  "messages": zod.array(zod.object({
+  "id": zod.uuid(),
+  "kind": zod.enum(['customer', 'staff', 'resolved', 'reopened']),
+  "body": zod.string(),
+  "createdAt": zod.coerce.date()
+}))
+}))
+
+
+export const ReplyToPlatformSupportCaseParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const replyToPlatformSupportCaseBodyBodyMax = 4000;
+
+
+
+export const ReplyToPlatformSupportCaseBody = zod.object({
+  "body": zod.string().min(1).max(replyToPlatformSupportCaseBodyBodyMax),
+  "requestId": zod.uuid()
+})
+
+export const ReplyToPlatformSupportCaseResponse = zod.void()
+
+
+export const ChangePlatformSupportCaseStateParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const ChangePlatformSupportCaseStateBody = zod.object({
+  "state": zod.enum(['open', 'resolved'])
+})
+
+export const ChangePlatformSupportCaseStateResponse = zod.void()
+
+
+export const GetPlatformSettingsResponse = zod.object({
+  "current": zod.object({
+  "businessRegistrationOpen": zod.boolean(),
+  "supportIntakeOpen": zod.boolean()
+}),
+  "history": zod.array(zod.object({
+  "id": zod.uuid(),
+  "previous": zod.object({
+  "businessRegistrationOpen": zod.boolean(),
+  "supportIntakeOpen": zod.boolean()
+}),
+  "current": zod.object({
+  "businessRegistrationOpen": zod.boolean(),
+  "supportIntakeOpen": zod.boolean()
+}),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+export const UpdatePlatformSettingsBody = zod.object({
+  "expected": zod.object({
+  "businessRegistrationOpen": zod.boolean(),
+  "supportIntakeOpen": zod.boolean()
+}),
+  "next": zod.object({
+  "businessRegistrationOpen": zod.boolean(),
+  "supportIntakeOpen": zod.boolean()
+})
+})
+
+export const UpdatePlatformSettingsResponse = zod.void()
+
+
+export const GetPlatformAnalyticsQueryParams = zod.object({
+  "from": zod.date(),
+  "to": zod.date()
+})
+
+export const getPlatformAnalyticsResponseBusinessTotalMin = 0;
+
+export const getPlatformAnalyticsResponseBusinessVerifiedMin = 0;
+
+export const getPlatformAnalyticsResponseBusinessSuspendedMin = 0;
+
+export const getPlatformAnalyticsResponseCustomersTotalMin = 0;
+
+export const getPlatformAnalyticsResponseCustomersDeletionRequestedMin = 0;
+
+export const getPlatformAnalyticsResponseVisitsTotalMin = 0;
+
+export const getPlatformAnalyticsResponseVisitsCompletedMin = 0;
+
+export const getPlatformAnalyticsResponseVisitsCancelledMin = 0;
+
+export const getPlatformAnalyticsResponseVisitsNoShowsMin = 0;
+
+export const getPlatformAnalyticsResponseSubscriptionsTrialMin = 0;
+
+export const getPlatformAnalyticsResponseSubscriptionsActiveMin = 0;
+
+export const getPlatformAnalyticsResponseSubscriptionsExpiredMin = 0;
+
+export const getPlatformAnalyticsResponseSubscriptionsCancelledMin = 0;
+
+export const getPlatformAnalyticsResponseBillingActivationsMin = 0;
+
+export const getPlatformAnalyticsResponseBillingSimulatedCentsMin = 0;
+
+export const getPlatformAnalyticsResponseSupportOpenMin = 0;
+
+export const getPlatformAnalyticsResponseSupportResolvedMin = 0;
+
+
+
+export const GetPlatformAnalyticsResponse = zod.object({
+  "timezone": zod.literal("Europe/Berlin"),
+  "currency": zod.literal("EUR"),
+  "from": zod.coerce.date(),
+  "to": zod.coerce.date(),
+  "business": zod.object({
+  "total": zod.int().min(getPlatformAnalyticsResponseBusinessTotalMin),
+  "verified": zod.int().min(getPlatformAnalyticsResponseBusinessVerifiedMin),
+  "suspended": zod.int().min(getPlatformAnalyticsResponseBusinessSuspendedMin)
+}),
+  "customers": zod.object({
+  "total": zod.int().min(getPlatformAnalyticsResponseCustomersTotalMin),
+  "deletionRequested": zod.int().min(getPlatformAnalyticsResponseCustomersDeletionRequestedMin)
+}),
+  "visits": zod.object({
+  "total": zod.int().min(getPlatformAnalyticsResponseVisitsTotalMin),
+  "completed": zod.int().min(getPlatformAnalyticsResponseVisitsCompletedMin),
+  "cancelled": zod.int().min(getPlatformAnalyticsResponseVisitsCancelledMin),
+  "noShows": zod.int().min(getPlatformAnalyticsResponseVisitsNoShowsMin)
+}),
+  "subscriptions": zod.object({
+  "trial": zod.int().min(getPlatformAnalyticsResponseSubscriptionsTrialMin),
+  "active": zod.int().min(getPlatformAnalyticsResponseSubscriptionsActiveMin),
+  "expired": zod.int().min(getPlatformAnalyticsResponseSubscriptionsExpiredMin),
+  "cancelled": zod.int().min(getPlatformAnalyticsResponseSubscriptionsCancelledMin)
+}),
+  "billing": zod.object({
+  "activations": zod.int().min(getPlatformAnalyticsResponseBillingActivationsMin),
+  "simulatedCents": zod.int().min(getPlatformAnalyticsResponseBillingSimulatedCentsMin)
+}),
+  "support": zod.object({
+  "open": zod.int().min(getPlatformAnalyticsResponseSupportOpenMin),
+  "resolved": zod.int().min(getPlatformAnalyticsResponseSupportResolvedMin)
+})
+})
+
+
+export const listPlatformCustomersQuerySearchMax = 160;
+
+export const listPlatformCustomersQueryOffsetMin = 0;
+export const listPlatformCustomersQueryOffsetMax = 1000000;
+
+
+
+export const ListPlatformCustomersQueryParams = zod.object({
+  "search": zod.coerce.string().max(listPlatformCustomersQuerySearchMax).optional(),
+  "scope": zod.enum(['all', 'pending', 'reviewed']).optional(),
+  "offset": zod.coerce.number().int().min(listPlatformCustomersQueryOffsetMin).max(listPlatformCustomersQueryOffsetMax).optional()
+})
+
+export const listPlatformCustomersResponseCustomersItemActiveOwnershipsMin = 0;
+
+
+
+export const ListPlatformCustomersResponse = zod.object({
+  "hasMore": zod.boolean(),
+  "customers": zod.array(zod.object({
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "email": zod.string(),
+  "emailVerified": zod.boolean(),
+  "deletionRequestedAt": zod.coerce.date().nullable(),
+  "reviewedAt": zod.coerce.date().nullable(),
+  "activeOwnerships": zod.int().min(listPlatformCustomersResponseCustomersItemActiveOwnershipsMin),
+  "canRehearseErasure": zod.boolean()
+}))
+})
+
+
+export const EraseReviewedDevelopmentCustomerParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const EraseReviewedDevelopmentCustomerBody = zod.object({
+  "requestedAt": zod.coerce.date()
+})
+
+export const EraseReviewedDevelopmentCustomerResponse = zod.void()
+
+
+export const AssessCustomerDeletionRequestParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const assessCustomerDeletionRequestResponseActiveOwnershipsMin = 0;
+
+export const assessCustomerDeletionRequestResponseStaffProfilesMin = 0;
+
+export const assessCustomerDeletionRequestResponseBookingsMin = 0;
+
+export const assessCustomerDeletionRequestResponseConfirmedBookingsMin = 0;
+
+export const assessCustomerDeletionRequestResponsePaymentReferencesMin = 0;
+
+export const assessCustomerDeletionRequestResponseBookingPaymentsMin = 0;
+
+export const assessCustomerDeletionRequestResponsePackagesMin = 0;
+
+export const assessCustomerDeletionRequestResponseSupportCasesMin = 0;
+
+export const assessCustomerDeletionRequestResponseBusinessActionsMin = 0;
+
+export const assessCustomerDeletionRequestResponsePolicyAcceptancesMin = 0;
+
+
+
+export const AssessCustomerDeletionRequestResponse = zod.object({
+  "activeOwnerships": zod.int().min(assessCustomerDeletionRequestResponseActiveOwnershipsMin),
+  "staffProfiles": zod.int().min(assessCustomerDeletionRequestResponseStaffProfilesMin),
+  "bookings": zod.int().min(assessCustomerDeletionRequestResponseBookingsMin),
+  "confirmedBookings": zod.int().min(assessCustomerDeletionRequestResponseConfirmedBookingsMin),
+  "paymentReferences": zod.int().min(assessCustomerDeletionRequestResponsePaymentReferencesMin),
+  "bookingPayments": zod.int().min(assessCustomerDeletionRequestResponseBookingPaymentsMin),
+  "packages": zod.int().min(assessCustomerDeletionRequestResponsePackagesMin),
+  "supportCases": zod.int().min(assessCustomerDeletionRequestResponseSupportCasesMin),
+  "businessActions": zod.int().min(assessCustomerDeletionRequestResponseBusinessActionsMin),
+  "policyAcceptances": zod.int().min(assessCustomerDeletionRequestResponsePolicyAcceptancesMin)
+})
+
+
+export const ReviewCustomerDeletionRequestParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const ReviewCustomerDeletionRequestBody = zod.object({
+  "requestedAt": zod.coerce.date()
+})
+
+export const ReviewCustomerDeletionRequestResponse = zod.object({
+  "reviewedAt": zod.coerce.date()
+})
+
+
+export const listPlatformBusinessesQuerySearchMax = 120;
+
+export const listPlatformBusinessesQueryOffsetMin = 0;
+export const listPlatformBusinessesQueryOffsetMax = 1000000;
+
+
+
+export const ListPlatformBusinessesQueryParams = zod.object({
+  "search": zod.coerce.string().max(listPlatformBusinessesQuerySearchMax).optional(),
+  "offset": zod.coerce.number().int().min(listPlatformBusinessesQueryOffsetMin).max(listPlatformBusinessesQueryOffsetMax).optional()
+})
+
+export const ListPlatformBusinessesResponse = zod.object({
+  "hasMore": zod.boolean(),
+  "businesses": zod.array(zod.object({
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "verifiedAt": zod.coerce.date().nullable(),
+  "suspendedAt": zod.coerce.date().nullable()
+}).and(zod.object({
+  "locationCount": zod.int()
+})))
+})
+
+
+export const ModeratePlatformBusinessParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const ModeratePlatformBusinessBody = zod.object({
+  "action": zod.enum(['verify', 'unverify', 'suspend', 'reactivate'])
+})
+
+export const ModeratePlatformBusinessResponse = zod.object({
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "verifiedAt": zod.coerce.date().nullable(),
+  "suspendedAt": zod.coerce.date().nullable()
+})
+
+
+export const listPlatformSaasPlansResponseOneNameMax = 80;
+
+export const listPlatformSaasPlansResponseOneMonthlyCentsMin = 0;
+export const listPlatformSaasPlansResponseOneMonthlyCentsMax = 10000000;
+
+export const listPlatformSaasPlansResponseOneLocationLimitMax = 1000;
+
+export const listPlatformSaasPlansResponseOneTrialDaysMin = 0;
+export const listPlatformSaasPlansResponseOneTrialDaysMax = 90;
+
+
+
+export const ListPlatformSaasPlansResponseItem = zod.object({
+  "name": zod.string().min(1).max(listPlatformSaasPlansResponseOneNameMax),
+  "monthlyCents": zod.int().min(listPlatformSaasPlansResponseOneMonthlyCentsMin).max(listPlatformSaasPlansResponseOneMonthlyCentsMax),
+  "locationLimit": zod.int().min(1).max(listPlatformSaasPlansResponseOneLocationLimitMax),
+  "trialDays": zod.int().min(listPlatformSaasPlansResponseOneTrialDaysMin).max(listPlatformSaasPlansResponseOneTrialDaysMax)
+}).and(zod.object({
+  "code": zod.enum(['starter', 'professional', 'enterprise'])
+}))
+export const ListPlatformSaasPlansResponse = zod.array(ListPlatformSaasPlansResponseItem)
+
+
+export const UpdatePlatformSaasPlanParams = zod.object({
+  "code": zod.enum(['starter', 'professional', 'enterprise'])
+})
+
+export const updatePlatformSaasPlanBodyNameMax = 80;
+
+export const updatePlatformSaasPlanBodyMonthlyCentsMin = 0;
+export const updatePlatformSaasPlanBodyMonthlyCentsMax = 10000000;
+
+export const updatePlatformSaasPlanBodyLocationLimitMax = 1000;
+
+export const updatePlatformSaasPlanBodyTrialDaysMin = 0;
+export const updatePlatformSaasPlanBodyTrialDaysMax = 90;
+
+
+
+export const UpdatePlatformSaasPlanBody = zod.object({
+  "name": zod.string().min(1).max(updatePlatformSaasPlanBodyNameMax),
+  "monthlyCents": zod.int().min(updatePlatformSaasPlanBodyMonthlyCentsMin).max(updatePlatformSaasPlanBodyMonthlyCentsMax),
+  "locationLimit": zod.int().min(1).max(updatePlatformSaasPlanBodyLocationLimitMax),
+  "trialDays": zod.int().min(updatePlatformSaasPlanBodyTrialDaysMin).max(updatePlatformSaasPlanBodyTrialDaysMax)
+})
+
+export const updatePlatformSaasPlanResponseOneNameMax = 80;
+
+export const updatePlatformSaasPlanResponseOneMonthlyCentsMin = 0;
+export const updatePlatformSaasPlanResponseOneMonthlyCentsMax = 10000000;
+
+export const updatePlatformSaasPlanResponseOneLocationLimitMax = 1000;
+
+export const updatePlatformSaasPlanResponseOneTrialDaysMin = 0;
+export const updatePlatformSaasPlanResponseOneTrialDaysMax = 90;
+
+
+
+export const UpdatePlatformSaasPlanResponse = zod.object({
+  "name": zod.string().min(1).max(updatePlatformSaasPlanResponseOneNameMax),
+  "monthlyCents": zod.int().min(updatePlatformSaasPlanResponseOneMonthlyCentsMin).max(updatePlatformSaasPlanResponseOneMonthlyCentsMax),
+  "locationLimit": zod.int().min(1).max(updatePlatformSaasPlanResponseOneLocationLimitMax),
+  "trialDays": zod.int().min(updatePlatformSaasPlanResponseOneTrialDaysMin).max(updatePlatformSaasPlanResponseOneTrialDaysMax)
+}).and(zod.object({
+  "code": zod.enum(['starter', 'professional', 'enterprise'])
+}))
+
+
+export const GetOrganizationAnalyticsParams = zod.object({
+  "organizationId": zod.uuid()
+})
+
+export const GetOrganizationAnalyticsQueryParams = zod.object({
+  "from": zod.date(),
+  "to": zod.date(),
+  "locationId": zod.uuid().optional()
+})
+
+export const getOrganizationAnalyticsResponseLocationsItemCapacityMinutesMin = 0;
+
+export const getOrganizationAnalyticsResponseLocationsItemOccupiedMinutesMin = 0;
+
+export const getOrganizationAnalyticsResponseCustomersNewMin = 0;
+
+export const getOrganizationAnalyticsResponseCustomersRepeatMin = 0;
+
+
+
+export const GetOrganizationAnalyticsResponse = zod.object({
+  "from": zod.coerce.date(),
+  "to": zod.coerce.date(),
+  "currency": zod.enum(['EUR']),
+  "locations": zod.array(zod.object({
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "bookings": zod.int(),
+  "completed": zod.int(),
+  "cancelled": zod.int(),
+  "noShows": zod.int(),
+  "receivedCents": zod.int(),
+  "refundedCents": zod.int(),
+  "lowStock": zod.int(),
+  "units": zod.int(),
+  "inventoryValueCents": zod.int(),
+  "unpricedUnits": zod.int(),
+  "capacityMinutes": zod.int().min(getOrganizationAnalyticsResponseLocationsItemCapacityMinutesMin),
+  "occupiedMinutes": zod.int().min(getOrganizationAnalyticsResponseLocationsItemOccupiedMinutesMin)
+})),
+  "staff": zod.array(zod.object({
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "completed": zod.int(),
+  "minutes": zod.int(),
+  "receivedCents": zod.int(),
+  "refundedCents": zod.int()
+})),
+  "services": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "completed": zod.int(),
+  "receivedCents": zod.int(),
+  "refundedCents": zod.int()
+})),
+  "customers": zod.object({
+  "new": zod.int().min(getOrganizationAnalyticsResponseCustomersNewMin),
+  "repeat": zod.int().min(getOrganizationAnalyticsResponseCustomersRepeatMin)
+}),
+  "marketing": zod.object({
+  "captures": zod.int(),
+  "recipients": zod.int()
+})
+})
+
+
+export const GetOrganizationLoyaltyProgramParams = zod.object({
+  "organizationId": zod.uuid()
+})
+
+export const getOrganizationLoyaltyProgramResponsePointsPerVisitMin = 0;
+export const getOrganizationLoyaltyProgramResponsePointsPerVisitMax = 1000;
+
+
+
+export const GetOrganizationLoyaltyProgramResponse = zod.object({
+  "pointsPerVisit": zod.int().min(getOrganizationLoyaltyProgramResponsePointsPerVisitMin).max(getOrganizationLoyaltyProgramResponsePointsPerVisitMax)
+})
+
+
+export const UpdateOrganizationLoyaltyProgramParams = zod.object({
+  "organizationId": zod.uuid()
+})
+
+export const updateOrganizationLoyaltyProgramBodyPointsPerVisitMin = 0;
+export const updateOrganizationLoyaltyProgramBodyPointsPerVisitMax = 1000;
+
+
+
+export const UpdateOrganizationLoyaltyProgramBody = zod.object({
+  "pointsPerVisit": zod.int().min(updateOrganizationLoyaltyProgramBodyPointsPerVisitMin).max(updateOrganizationLoyaltyProgramBodyPointsPerVisitMax)
+})
+
+export const updateOrganizationLoyaltyProgramResponsePointsPerVisitMin = 0;
+export const updateOrganizationLoyaltyProgramResponsePointsPerVisitMax = 1000;
+
+
+
+export const UpdateOrganizationLoyaltyProgramResponse = zod.object({
+  "pointsPerVisit": zod.int().min(updateOrganizationLoyaltyProgramResponsePointsPerVisitMin).max(updateOrganizationLoyaltyProgramResponsePointsPerVisitMax)
+})
+
+
+export const ReportPublicReviewParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const reportPublicReviewBodyDetailsMax = 1000;
+
+
+
+export const ReportPublicReviewBody = zod.object({
+  "reason": zod.enum(['spam', 'abuse', 'personal_information', 'other']),
+  "details": zod.string().max(reportPublicReviewBodyDetailsMax).optional()
+})
+
+export const ReportPublicReviewResponse = zod.void()
+
+
+export const PublishMyAppointmentReviewParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const publishMyAppointmentReviewBodyRatingMax = 5;
+
+export const publishMyAppointmentReviewBodyCommentMax = 2000;
+
+
+
+export const PublishMyAppointmentReviewBody = zod.object({
+  "rating": zod.int().min(1).max(publishMyAppointmentReviewBodyRatingMax),
+  "comment": zod.string().max(publishMyAppointmentReviewBodyCommentMax)
+})
+
+export const publishMyAppointmentReviewResponseRatingMax = 5;
+
+
+
+export const PublishMyAppointmentReviewResponse = zod.object({
+  "rating": zod.int().min(1).max(publishMyAppointmentReviewResponseRatingMax)
+})
+
+
+export const ListMyAppointmentEventsParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const ListMyAppointmentEventsResponseItem = zod.object({
+  "kind": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "estimatedFeeCents": zod.int().nullable()
+})
+export const ListMyAppointmentEventsResponse = zod.array(ListMyAppointmentEventsResponseItem)
+
+
+export const CancelMyAppointmentParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const CancelMyAppointmentResponse = zod.void()
+
+
+export const GetMyAppointmentPaymentHistoryParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const getMyAppointmentPaymentHistoryResponsePackageCoveredCentsMin = 0;
+
+
+
+export const GetMyAppointmentPaymentHistoryResponse = zod.object({
+  "packageCoveredCents": zod.int().min(getMyAppointmentPaymentHistoryResponsePackageCoveredCentsMin).optional(),
+  "currency": zod.enum(['EUR']),
+  "payments": zod.array(zod.object({
+  "id": zod.uuid(),
+  "kind": zod.enum(['deposit', 'settlement']),
+  "method": zod.enum(['cash', 'simulated_card']),
+  "amountCents": zod.int(),
+  "discountCents": zod.int(),
+  "createdAt": zod.coerce.date()
+})),
+  "refunds": zod.array(zod.object({
+  "id": zod.uuid(),
+  "paymentId": zod.uuid(),
+  "amountCents": zod.int(),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+export const DownloadMyAppointmentCalendarParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const DownloadMyAppointmentCalendarResponse = zod.unknown()
+
+
+export const CheckRescheduleAvailabilityParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const CheckRescheduleAvailabilityBody = zod.object({
+  "date": zod.coerce.date()
+})
+
+export const CheckRescheduleAvailabilityResponse = zod.object({
+  "quote": zod.object({
+  "priceCents": zod.int(),
+  "durationMinutes": zod.int(),
+  "occupiedMinutes": zod.int(),
+  "items": zod.array(zod.object({
+  "serviceId": zod.uuid(),
+  "variantId": zod.uuid().nullable(),
+  "name": zod.string(),
+  "variantName": zod.string().nullable(),
+  "employeeId": zod.uuid().optional(),
+  "professionalName": zod.string().optional(),
+  "priceCents": zod.int(),
+  "durationMinutes": zod.int(),
+  "preparationMinutes": zod.int(),
+  "cleanupMinutes": zod.int()
+}))
+}),
+  "slots": zod.array(zod.object({
+  "employeeId": zod.uuid(),
+  "employeeName": zod.string(),
+  "professionalTitle": zod.string().optional(),
+  "professionalPhotoUrl": zod.string().optional(),
+  "mixed": zod.boolean().optional(),
+  "quote": zod.object({
+  "priceCents": zod.int(),
+  "durationMinutes": zod.int(),
+  "occupiedMinutes": zod.int(),
+  "items": zod.array(zod.object({
+  "serviceId": zod.uuid(),
+  "variantId": zod.uuid().nullable(),
+  "name": zod.string(),
+  "variantName": zod.string().nullable(),
+  "employeeId": zod.uuid().optional(),
+  "professionalName": zod.string().optional(),
+  "priceCents": zod.int(),
+  "durationMinutes": zod.int(),
+  "preparationMinutes": zod.int(),
+  "cleanupMinutes": zod.int()
+}))
+}).optional(),
+  "startsAt": zod.coerce.date(),
+  "endsAt": zod.coerce.date()
+})),
+  "professionalChoice": zod.object({
+  "individual": zod.boolean(),
+  "any": zod.boolean()
+}).optional(),
+  "policy": zod.record(zod.string(), zod.unknown()).nullable()
+})
+
+
+export const RescheduleMyAppointmentParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const RescheduleMyAppointmentBody = zod.object({
+  "startsAt": zod.coerce.date(),
+  "employeeId": zod.uuid()
+})
+
+export const rescheduleMyAppointmentResponseReviewRatingMax = 5;
+
+
+
+export const RescheduleMyAppointmentResponse = zod.object({
+  "id": zod.uuid(),
+  "locationId": zod.uuid(),
+  "employeeId": zod.uuid(),
+  "startsAt": zod.coerce.date(),
+  "endsAt": zod.coerce.date(),
+  "appointmentNote": zod.string().nullish(),
+  "rescheduleNoticeHours": zod.int().optional(),
+  "reviewRating": zod.int().min(1).max(rescheduleMyAppointmentResponseReviewRatingMax).nullish(),
+  "status": zod.enum(['confirmed', 'cancelled', 'completed', 'no_show']),
+  "items": zod.array(zod.record(zod.string(), zod.unknown())),
+  "priceCents": zod.int(),
+  "durationMinutes": zod.int(),
+  "salon": zod.string().optional(),
+  "slug": zod.string().optional(),
+  "timezone": zod.string().optional(),
+  "employeeName": zod.string().optional(),
+  "customerName": zod.string().optional(),
+  "source": zod.enum(['online', 'manual', 'walk_in']).optional()
+})
+
+
+export const ListBusinessAppointmentsParams = zod.object({
+  "organizationId": zod.uuid()
+})
+
+export const ListBusinessAppointmentsQueryParams = zod.object({
+  "from": zod.date(),
+  "to": zod.date()
+})
+
+export const listBusinessAppointmentsResponseReviewRatingMax = 5;
+
+
+
+export const ListBusinessAppointmentsResponseItem = zod.object({
+  "id": zod.uuid(),
+  "locationId": zod.uuid(),
+  "employeeId": zod.uuid(),
+  "startsAt": zod.coerce.date(),
+  "endsAt": zod.coerce.date(),
+  "appointmentNote": zod.string().nullish(),
+  "rescheduleNoticeHours": zod.int().optional(),
+  "reviewRating": zod.int().min(1).max(listBusinessAppointmentsResponseReviewRatingMax).nullish(),
+  "status": zod.enum(['confirmed', 'cancelled', 'completed', 'no_show']),
+  "items": zod.array(zod.record(zod.string(), zod.unknown())),
+  "priceCents": zod.int(),
+  "durationMinutes": zod.int(),
+  "salon": zod.string().optional(),
+  "slug": zod.string().optional(),
+  "timezone": zod.string().optional(),
+  "employeeName": zod.string().optional(),
+  "customerName": zod.string().optional(),
+  "source": zod.enum(['online', 'manual', 'walk_in']).optional()
+})
+export const ListBusinessAppointmentsResponse = zod.array(ListBusinessAppointmentsResponseItem)
+
+
+export const CreateCalendarAppointmentParams = zod.object({
+  "organizationId": zod.uuid()
+})
+
+export const createCalendarAppointmentBodyItemsMax = 12;
+
+export const createCalendarAppointmentBodyGuestNameMax = 100;
+
+
+
+export const CreateCalendarAppointmentBody = zod.object({
+  "locationId": zod.uuid(),
+  "items": zod.array(zod.object({
+  "serviceId": zod.uuid(),
+  "variantId": zod.uuid().optional()
+})).min(1).max(createCalendarAppointmentBodyItemsMax),
+  "source": zod.enum(['manual', 'walk_in']),
+  "employeeId": zod.uuid(),
+  "startsAt": zod.coerce.date(),
+  "idempotencyKey": zod.uuid(),
+  "guestName": zod.string().min(1).max(createCalendarAppointmentBodyGuestNameMax)
+})
+
+export const createCalendarAppointmentResponseReviewRatingMax = 5;
+
+
+
+export const CreateCalendarAppointmentResponse = zod.object({
+  "id": zod.uuid(),
+  "locationId": zod.uuid(),
+  "employeeId": zod.uuid(),
+  "startsAt": zod.coerce.date(),
+  "endsAt": zod.coerce.date(),
+  "appointmentNote": zod.string().nullish(),
+  "rescheduleNoticeHours": zod.int().optional(),
+  "reviewRating": zod.int().min(1).max(createCalendarAppointmentResponseReviewRatingMax).nullish(),
+  "status": zod.enum(['confirmed', 'cancelled', 'completed', 'no_show']),
+  "items": zod.array(zod.record(zod.string(), zod.unknown())),
+  "priceCents": zod.int(),
+  "durationMinutes": zod.int(),
+  "salon": zod.string().optional(),
+  "slug": zod.string().optional(),
+  "timezone": zod.string().optional(),
+  "employeeName": zod.string().optional(),
+  "customerName": zod.string().optional(),
+  "source": zod.enum(['online', 'manual', 'walk_in']).optional()
+})
+
+
+export const CheckCalendarAppointmentAvailabilityParams = zod.object({
+  "organizationId": zod.uuid()
+})
+
+export const checkCalendarAppointmentAvailabilityBodyItemsMax = 12;
+
+
+
+export const CheckCalendarAppointmentAvailabilityBody = zod.object({
+  "locationId": zod.uuid(),
+  "date": zod.coerce.date(),
+  "items": zod.array(zod.object({
+  "serviceId": zod.uuid(),
+  "variantId": zod.uuid().optional()
+})).min(1).max(checkCalendarAppointmentAvailabilityBodyItemsMax),
+  "source": zod.enum(['manual', 'walk_in'])
+})
+
+export const CheckCalendarAppointmentAvailabilityResponse = zod.object({
+  "quote": zod.object({
+  "priceCents": zod.int(),
+  "durationMinutes": zod.int(),
+  "occupiedMinutes": zod.int(),
+  "items": zod.array(zod.object({
+  "serviceId": zod.uuid(),
+  "variantId": zod.uuid().nullable(),
+  "name": zod.string(),
+  "variantName": zod.string().nullable(),
+  "employeeId": zod.uuid().optional(),
+  "professionalName": zod.string().optional(),
+  "priceCents": zod.int(),
+  "durationMinutes": zod.int(),
+  "preparationMinutes": zod.int(),
+  "cleanupMinutes": zod.int()
+}))
+}),
+  "slots": zod.array(zod.object({
+  "employeeId": zod.uuid(),
+  "employeeName": zod.string(),
+  "professionalTitle": zod.string().optional(),
+  "professionalPhotoUrl": zod.string().optional(),
+  "mixed": zod.boolean().optional(),
+  "quote": zod.object({
+  "priceCents": zod.int(),
+  "durationMinutes": zod.int(),
+  "occupiedMinutes": zod.int(),
+  "items": zod.array(zod.object({
+  "serviceId": zod.uuid(),
+  "variantId": zod.uuid().nullable(),
+  "name": zod.string(),
+  "variantName": zod.string().nullable(),
+  "employeeId": zod.uuid().optional(),
+  "professionalName": zod.string().optional(),
+  "priceCents": zod.int(),
+  "durationMinutes": zod.int(),
+  "preparationMinutes": zod.int(),
+  "cleanupMinutes": zod.int()
+}))
+}).optional(),
+  "startsAt": zod.coerce.date(),
+  "endsAt": zod.coerce.date()
+})),
+  "professionalChoice": zod.object({
+  "individual": zod.boolean(),
+  "any": zod.boolean()
+}).optional(),
+  "policy": zod.record(zod.string(), zod.unknown()).nullable()
+})
+
+
+export const ChangeBusinessAppointmentStatusParams = zod.object({
+  "organizationId": zod.uuid(),
+  "id": zod.uuid()
+})
+
+export const ChangeBusinessAppointmentStatusBody = zod.object({
+  "status": zod.enum(['cancelled', 'completed', 'no_show'])
+})
+
+export const ChangeBusinessAppointmentStatusResponse = zod.void()
+
+
+export const ListBusinessBookingWaitlistParams = zod.object({
+  "organizationId": zod.uuid()
+})
+
+export const ListBusinessBookingWaitlistResponseItem = zod.object({
+  "locationId": zod.uuid(),
+  "date": zod.coerce.date(),
+  "salon": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+export const ListBusinessBookingWaitlistResponse = zod.array(ListBusinessBookingWaitlistResponseItem)
+
+
+export const GetLocationBookingSettingsParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid()
+})
+
+export const GetLocationBookingSettingsResponse = zod.record(zod.string(), zod.unknown())
+
+
+export const CreateBookingBlockParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid()
+})
+
+export const CreateBookingBlockBody = zod.object({
+  "employeeId": zod.uuid().optional(),
+  "startsAt": zod.coerce.date(),
+  "endsAt": zod.coerce.date(),
+  "reason": zod.string()
+})
+
+export const CreateBookingBlockResponse = zod.record(zod.string(), zod.unknown())
+
+
+export const DeleteBookingBlockParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid(),
+  "id": zod.uuid()
+})
+
+export const DeleteBookingBlockResponse = zod.void()
+
+
+export const CreateBookingResourceParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid()
+})
+
+export const CreateBookingResourceBody = zod.object({
+  "name": zod.string(),
+  "serviceIds": zod.array(zod.uuid())
+})
+
+export const CreateBookingResourceResponse = zod.record(zod.string(), zod.unknown())
+
+
+export const DeleteBookingResourceParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid(),
+  "id": zod.uuid()
+})
+
+export const DeleteBookingResourceResponse = zod.void()
+
+
+export const SetupSimulatedPaymentMethodResponse = zod.object({
+  "id": zod.string(),
+  "provider": zod.string(),
+  "status": zod.string()
+})
+
+
+export const ListMyBookingWaitlistResponseItem = zod.object({
+  "locationId": zod.uuid(),
+  "salon": zod.string(),
+  "slug": zod.string(),
+  "date": zod.coerce.date(),
+  "openedAt": zod.coerce.date().nullable()
+})
+export const ListMyBookingWaitlistResponse = zod.array(ListMyBookingWaitlistResponseItem)
+
+
+export const LeaveMyBookingWaitlistParams = zod.object({
+  "locationId": zod.uuid(),
+  "date": zod.date()
+})
+
+export const LeaveMyBookingWaitlistResponse = zod.void()
+
+
+export const ListPosVouchersParams = zod.object({
+  "organizationId": zod.uuid()
+})
+
+export const listPosVouchersResponseOneCodeRegExp = new RegExp('^[A-Z0-9-]{4,32}$');
+export const listPosVouchersResponseOneDiscountCentsMax = 2147483647;
+
+
+
+export const ListPosVouchersResponseItem = zod.object({
+  "code": zod.string().regex(listPosVouchersResponseOneCodeRegExp),
+  "discountCents": zod.int().min(1).max(listPosVouchersResponseOneDiscountCentsMax)
+}).and(zod.object({
+  "isGift": zod.boolean().optional(),
+  "id": zod.uuid(),
+  "organizationId": zod.uuid(),
+  "expiresAt": zod.coerce.date().nullable(),
+  "redeemedAt": zod.coerce.date().nullable()
+}))
+export const ListPosVouchersResponse = zod.array(ListPosVouchersResponseItem)
+
+
+export const CreatePosVoucherParams = zod.object({
+  "organizationId": zod.uuid()
+})
+
+export const createPosVoucherBodyOneCodeRegExp = new RegExp('^[A-Z0-9-]{4,32}$');
+export const createPosVoucherBodyOneDiscountCentsMax = 2147483647;
+
+
+
+export const CreatePosVoucherBody = zod.object({
+  "code": zod.string().regex(createPosVoucherBodyOneCodeRegExp),
+  "discountCents": zod.int().min(1).max(createPosVoucherBodyOneDiscountCentsMax)
+}).and(zod.object({
+  "expiresAt": zod.coerce.date().optional()
+}))
+
+export const createPosVoucherResponseOneCodeRegExp = new RegExp('^[A-Z0-9-]{4,32}$');
+export const createPosVoucherResponseOneDiscountCentsMax = 2147483647;
+
+
+
+export const CreatePosVoucherResponse = zod.object({
+  "code": zod.string().regex(createPosVoucherResponseOneCodeRegExp),
+  "discountCents": zod.int().min(1).max(createPosVoucherResponseOneDiscountCentsMax)
+}).and(zod.object({
+  "isGift": zod.boolean().optional(),
+  "id": zod.uuid(),
+  "organizationId": zod.uuid(),
+  "expiresAt": zod.coerce.date().nullable(),
+  "redeemedAt": zod.coerce.date().nullable()
+}))
+
+
+export const QuotePosVoucherParams = zod.object({
+  "organizationId": zod.uuid(),
+  "code": zod.coerce.string()
+})
+
+export const quotePosVoucherResponseCodeRegExp = new RegExp('^[A-Z0-9-]{4,32}$');
+export const quotePosVoucherResponseDiscountCentsMax = 2147483647;
+
+
+
+export const QuotePosVoucherResponse = zod.object({
+  "code": zod.string().regex(quotePosVoucherResponseCodeRegExp),
+  "discountCents": zod.int().min(1).max(quotePosVoucherResponseDiscountCentsMax)
+})
+
+
+export const RecordRetailSaleParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid()
+})
+
+export const recordRetailSaleBodyVoucherCodeMin = 4;
+export const recordRetailSaleBodyVoucherCodeMax = 32;
+
+export const recordRetailSaleBodyItemsItemDescriptionMax = 120;
+
+export const recordRetailSaleBodyItemsItemUnitCentsMax = 10000000;
+
+export const recordRetailSaleBodyItemsItemQuantityMax = 100;
+
+export const recordRetailSaleBodyItemsMax = 20;
+
+
+
+export const RecordRetailSaleBody = zod.object({
+  "idempotencyKey": zod.uuid(),
+  "voucherCode": zod.string().min(recordRetailSaleBodyVoucherCodeMin).max(recordRetailSaleBodyVoucherCodeMax).nullish(),
+  "method": zod.enum(['cash', 'simulated_card']),
+  "items": zod.array(zod.object({
+  "productId": zod.uuid().optional(),
+  "description": zod.string().min(1).max(recordRetailSaleBodyItemsItemDescriptionMax),
+  "unitCents": zod.int().min(1).max(recordRetailSaleBodyItemsItemUnitCentsMax),
+  "quantity": zod.int().min(1).max(recordRetailSaleBodyItemsItemQuantityMax)
+})).min(1).max(recordRetailSaleBodyItemsMax)
+})
+
+export const recordRetailSaleResponseOneVoucherCodeMin = 4;
+export const recordRetailSaleResponseOneVoucherCodeMax = 32;
+
+export const recordRetailSaleResponseOneItemsItemDescriptionMax = 120;
+
+export const recordRetailSaleResponseOneItemsItemUnitCentsMax = 10000000;
+
+export const recordRetailSaleResponseOneItemsItemQuantityMax = 100;
+
+export const recordRetailSaleResponseOneItemsMax = 20;
+
+
+
+export const RecordRetailSaleResponse = zod.object({
+  "idempotencyKey": zod.uuid(),
+  "voucherCode": zod.string().min(recordRetailSaleResponseOneVoucherCodeMin).max(recordRetailSaleResponseOneVoucherCodeMax).nullish(),
+  "method": zod.enum(['cash', 'simulated_card']),
+  "items": zod.array(zod.object({
+  "productId": zod.uuid().optional(),
+  "description": zod.string().min(1).max(recordRetailSaleResponseOneItemsItemDescriptionMax),
+  "unitCents": zod.int().min(1).max(recordRetailSaleResponseOneItemsItemUnitCentsMax),
+  "quantity": zod.int().min(1).max(recordRetailSaleResponseOneItemsItemQuantityMax)
+})).min(1).max(recordRetailSaleResponseOneItemsMax)
+}).and(zod.object({
+  "id": zod.uuid(),
+  "locationId": zod.uuid(),
+  "actorId": zod.uuid(),
+  "amountCents": zod.int(),
+  "discountCents": zod.int().optional(),
+  "createdAt": zod.coerce.date()
+}))
+
+
+export const GetRetailSaleBalanceParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid(),
+  "saleId": zod.uuid()
+})
+
+export const getRetailSaleBalanceResponseSaleOneVoucherCodeMin = 4;
+export const getRetailSaleBalanceResponseSaleOneVoucherCodeMax = 32;
+
+export const getRetailSaleBalanceResponseSaleOneItemsItemDescriptionMax = 120;
+
+export const getRetailSaleBalanceResponseSaleOneItemsItemUnitCentsMax = 10000000;
+
+export const getRetailSaleBalanceResponseSaleOneItemsItemQuantityMax = 100;
+
+export const getRetailSaleBalanceResponseSaleOneItemsMax = 20;
+
+export const getRetailSaleBalanceResponseRefundsItemOneAmountCentsMax = 2147483647;
+
+export const getRetailSaleBalanceResponseRefundsItemOneReasonMax = 240;
+
+
+
+export const GetRetailSaleBalanceResponse = zod.object({
+  "sale": zod.object({
+  "idempotencyKey": zod.uuid(),
+  "voucherCode": zod.string().min(getRetailSaleBalanceResponseSaleOneVoucherCodeMin).max(getRetailSaleBalanceResponseSaleOneVoucherCodeMax).nullish(),
+  "method": zod.enum(['cash', 'simulated_card']),
+  "items": zod.array(zod.object({
+  "productId": zod.uuid().optional(),
+  "description": zod.string().min(1).max(getRetailSaleBalanceResponseSaleOneItemsItemDescriptionMax),
+  "unitCents": zod.int().min(1).max(getRetailSaleBalanceResponseSaleOneItemsItemUnitCentsMax),
+  "quantity": zod.int().min(1).max(getRetailSaleBalanceResponseSaleOneItemsItemQuantityMax)
+})).min(1).max(getRetailSaleBalanceResponseSaleOneItemsMax)
+}).and(zod.object({
+  "id": zod.uuid(),
+  "locationId": zod.uuid(),
+  "actorId": zod.uuid(),
+  "amountCents": zod.int(),
+  "discountCents": zod.int().optional(),
+  "createdAt": zod.coerce.date()
+})),
+  "refunds": zod.array(zod.object({
+  "idempotencyKey": zod.uuid(),
+  "amountCents": zod.int().min(1).max(getRetailSaleBalanceResponseRefundsItemOneAmountCentsMax),
+  "reason": zod.string().min(1).max(getRetailSaleBalanceResponseRefundsItemOneReasonMax)
+}).and(zod.object({
+  "id": zod.uuid(),
+  "saleId": zod.uuid(),
+  "actorId": zod.uuid(),
+  "createdAt": zod.coerce.date()
+}))),
+  "refundableCents": zod.int()
+})
+
+
+export const RecordRetailRefundParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid(),
+  "saleId": zod.uuid()
+})
+
+export const recordRetailRefundBodyAmountCentsMax = 2147483647;
+
+export const recordRetailRefundBodyReasonMax = 240;
+
+
+
+export const RecordRetailRefundBody = zod.object({
+  "idempotencyKey": zod.uuid(),
+  "amountCents": zod.int().min(1).max(recordRetailRefundBodyAmountCentsMax),
+  "reason": zod.string().min(1).max(recordRetailRefundBodyReasonMax)
+})
+
+export const recordRetailRefundResponseOneAmountCentsMax = 2147483647;
+
+export const recordRetailRefundResponseOneReasonMax = 240;
+
+
+
+export const RecordRetailRefundResponse = zod.object({
+  "idempotencyKey": zod.uuid(),
+  "amountCents": zod.int().min(1).max(recordRetailRefundResponseOneAmountCentsMax),
+  "reason": zod.string().min(1).max(recordRetailRefundResponseOneReasonMax)
+}).and(zod.object({
+  "id": zod.uuid(),
+  "saleId": zod.uuid(),
+  "actorId": zod.uuid(),
+  "createdAt": zod.coerce.date()
+}))
+
+
+export const DownloadRetailReceiptParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid(),
+  "saleId": zod.uuid()
+})
+
+export const DownloadRetailReceiptResponse = zod.string()
+
+
+export const GetAppointmentTransactionsParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid()
+})
+
+export const getAppointmentTransactionsQueryPageDefault = 0;
+export const getAppointmentTransactionsQueryPageMin = 0;
+export const getAppointmentTransactionsQueryPageMax = 99999;
+
+
+
+export const GetAppointmentTransactionsQueryParams = zod.object({
+  "date": zod.date(),
+  "page": zod.coerce.number().int().min(getAppointmentTransactionsQueryPageMin).max(getAppointmentTransactionsQueryPageMax).default(getAppointmentTransactionsQueryPageDefault)
+})
+
+export const GetAppointmentTransactionsResponse = zod.object({
+  "count": zod.int(),
+  "date": zod.coerce.date(),
+  "timezone": zod.string(),
+  "currency": zod.enum(['EUR']),
+  "totals": zod.array(zod.object({
+  "method": zod.enum(['cash', 'simulated_card']),
+  "receivedCents": zod.int(),
+  "discountCents": zod.int(),
+  "refundedCents": zod.int()
+})),
+  "entries": zod.array(zod.object({
+  "id": zod.uuid(),
+  "bookingId": zod.uuid().nullable(),
+  "paymentId": zod.uuid(),
+  "recordedAt": zod.coerce.date(),
+  "discountCents": zod.int(),
+  "method": zod.enum(['cash', 'simulated_card']),
+  "kind": zod.enum(['deposit', 'settlement', 'refund', 'retail', 'retail_refund']),
+  "amountCents": zod.int()
+}))
+})
+
+
+export const GetAppointmentPaymentBalanceParams = zod.object({
+  "organizationId": zod.uuid(),
+  "id": zod.uuid()
+})
+
+export const getAppointmentPaymentBalanceResponsePackageCoveredCentsMin = 0;
+
+export const getAppointmentPaymentBalanceResponseRefundsItemOneAmountCentsMax = 2147483647;
+
+export const getAppointmentPaymentBalanceResponseRefundsItemOneReasonMax = 240;
+
+
+
+export const GetAppointmentPaymentBalanceResponse = zod.object({
+  "packageCoveredCents": zod.int().min(getAppointmentPaymentBalanceResponsePackageCoveredCentsMin).optional(),
+  "currency": zod.enum(['EUR']),
+  "paidCents": zod.int(),
+  "discountCents": zod.int(),
+  "outstandingCents": zod.int(),
+  "refundedCents": zod.int(),
+  "entries": zod.array(zod.object({
+  "idempotencyKey": zod.uuid(),
+  "amountCents": zod.int(),
+  "kind": zod.enum(['deposit', 'settlement']),
+  "method": zod.enum(['cash', 'simulated_card']),
+  "discountCents": zod.int(),
+  "voucherCode": zod.string().nullish(),
+  "discountReason": zod.string().nullable(),
+  "id": zod.uuid(),
+  "bookingId": zod.uuid(),
+  "actorId": zod.uuid(),
+  "providerReference": zod.string().nullable(),
+  "createdAt": zod.coerce.date()
+})),
+  "refunds": zod.array(zod.object({
+  "idempotencyKey": zod.uuid(),
+  "amountCents": zod.int().min(1).max(getAppointmentPaymentBalanceResponseRefundsItemOneAmountCentsMax),
+  "reason": zod.string().min(1).max(getAppointmentPaymentBalanceResponseRefundsItemOneReasonMax)
+}).and(zod.object({
+  "id": zod.uuid(),
+  "paymentId": zod.uuid(),
+  "actorId": zod.uuid(),
+  "createdAt": zod.coerce.date()
+})))
+})
+
+
+export const RecordAppointmentPaymentParams = zod.object({
+  "organizationId": zod.uuid(),
+  "id": zod.uuid()
+})
+
+export const recordAppointmentPaymentBodyVoucherCodeMin = 4;
+export const recordAppointmentPaymentBodyVoucherCodeMax = 32;
+
+export const recordAppointmentPaymentBodyAmountCentsMax = 2147483647;
+
+export const recordAppointmentPaymentBodyDiscountCentsMin = 0;
+export const recordAppointmentPaymentBodyDiscountCentsMax = 2147483647;
+
+export const recordAppointmentPaymentBodyDiscountReasonMax = 240;
+
+
+
+export const RecordAppointmentPaymentBody = zod.object({
+  "idempotencyKey": zod.uuid(),
+  "voucherCode": zod.string().min(recordAppointmentPaymentBodyVoucherCodeMin).max(recordAppointmentPaymentBodyVoucherCodeMax).optional(),
+  "amountCents": zod.int().min(1).max(recordAppointmentPaymentBodyAmountCentsMax),
+  "discountCents": zod.int().min(recordAppointmentPaymentBodyDiscountCentsMin).max(recordAppointmentPaymentBodyDiscountCentsMax).optional(),
+  "discountReason": zod.string().min(1).max(recordAppointmentPaymentBodyDiscountReasonMax).optional(),
+  "kind": zod.enum(['deposit', 'settlement']),
+  "method": zod.enum(['cash', 'simulated_card'])
+})
+
+export const RecordAppointmentPaymentResponse = zod.object({
+  "idempotencyKey": zod.uuid(),
+  "amountCents": zod.int(),
+  "kind": zod.enum(['deposit', 'settlement']),
+  "method": zod.enum(['cash', 'simulated_card']),
+  "discountCents": zod.int(),
+  "voucherCode": zod.string().nullish(),
+  "discountReason": zod.string().nullable(),
+  "id": zod.uuid(),
+  "bookingId": zod.uuid(),
+  "actorId": zod.uuid(),
+  "providerReference": zod.string().nullable(),
+  "createdAt": zod.coerce.date()
+})
+
+
+export const RecordAppointmentRefundParams = zod.object({
+  "organizationId": zod.uuid(),
+  "id": zod.uuid(),
+  "paymentId": zod.uuid()
+})
+
+export const recordAppointmentRefundBodyAmountCentsMax = 2147483647;
+
+export const recordAppointmentRefundBodyReasonMax = 240;
+
+
+
+export const RecordAppointmentRefundBody = zod.object({
+  "idempotencyKey": zod.uuid(),
+  "amountCents": zod.int().min(1).max(recordAppointmentRefundBodyAmountCentsMax),
+  "reason": zod.string().min(1).max(recordAppointmentRefundBodyReasonMax)
+})
+
+export const recordAppointmentRefundResponseOneAmountCentsMax = 2147483647;
+
+export const recordAppointmentRefundResponseOneReasonMax = 240;
+
+
+
+export const RecordAppointmentRefundResponse = zod.object({
+  "idempotencyKey": zod.uuid(),
+  "amountCents": zod.int().min(1).max(recordAppointmentRefundResponseOneAmountCentsMax),
+  "reason": zod.string().min(1).max(recordAppointmentRefundResponseOneReasonMax)
+}).and(zod.object({
+  "id": zod.uuid(),
+  "paymentId": zod.uuid(),
+  "actorId": zod.uuid(),
+  "createdAt": zod.coerce.date()
+}))
+
+
+export const DownloadAppointmentPaymentReceiptParams = zod.object({
+  "organizationId": zod.uuid(),
+  "id": zod.uuid(),
+  "paymentId": zod.uuid()
+})
+
+export const DownloadAppointmentPaymentReceiptResponse = zod.string()
+
+
+export const GetCalendarMoveSlotsParams = zod.object({
+  "organizationId": zod.uuid(),
+  "id": zod.uuid()
+})
+
+export const GetCalendarMoveSlotsBody = zod.object({
+  "date": zod.coerce.date()
+})
+
+export const GetCalendarMoveSlotsResponse = zod.object({
+  "slots": zod.array(zod.object({
+  "employeeId": zod.uuid(),
+  "employeeName": zod.string(),
+  "professionalTitle": zod.string().optional(),
+  "professionalPhotoUrl": zod.string().optional(),
+  "mixed": zod.boolean().optional(),
+  "quote": zod.object({
+  "priceCents": zod.int(),
+  "durationMinutes": zod.int(),
+  "occupiedMinutes": zod.int(),
+  "items": zod.array(zod.object({
+  "serviceId": zod.uuid(),
+  "variantId": zod.uuid().nullable(),
+  "name": zod.string(),
+  "variantName": zod.string().nullable(),
+  "employeeId": zod.uuid().optional(),
+  "professionalName": zod.string().optional(),
+  "priceCents": zod.int(),
+  "durationMinutes": zod.int(),
+  "preparationMinutes": zod.int(),
+  "cleanupMinutes": zod.int()
+}))
+}).optional(),
+  "startsAt": zod.coerce.date(),
+  "endsAt": zod.coerce.date()
+}))
+})
+
+
+export const RescheduleCalendarAppointmentParams = zod.object({
+  "organizationId": zod.uuid(),
+  "id": zod.uuid()
+})
+
+export const RescheduleCalendarAppointmentBody = zod.object({
+  "startsAt": zod.coerce.date(),
+  "employeeId": zod.uuid(),
+  "expectedStartsAt": zod.coerce.date(),
+  "expectedEmployeeId": zod.uuid()
+})
+
+export const rescheduleCalendarAppointmentResponseReviewRatingMax = 5;
+
+
+
+export const RescheduleCalendarAppointmentResponse = zod.object({
+  "id": zod.uuid(),
+  "locationId": zod.uuid(),
+  "employeeId": zod.uuid(),
+  "startsAt": zod.coerce.date(),
+  "endsAt": zod.coerce.date(),
+  "appointmentNote": zod.string().nullish(),
+  "rescheduleNoticeHours": zod.int().optional(),
+  "reviewRating": zod.int().min(1).max(rescheduleCalendarAppointmentResponseReviewRatingMax).nullish(),
+  "status": zod.enum(['confirmed', 'cancelled', 'completed', 'no_show']),
+  "items": zod.array(zod.record(zod.string(), zod.unknown())),
+  "priceCents": zod.int(),
+  "durationMinutes": zod.int(),
+  "salon": zod.string().optional(),
+  "slug": zod.string().optional(),
+  "timezone": zod.string().optional(),
+  "employeeName": zod.string().optional(),
+  "customerName": zod.string().optional(),
+  "source": zod.enum(['online', 'manual', 'walk_in']).optional()
+})
+
+
+export const ListStaffBreaksParams = zod.object({
+  "organizationId": zod.uuid(),
+  "employeeId": zod.uuid()
+})
+
+export const listStaffBreaksResponseWeekdayMax = 7;
+
+
+
+export const ListStaffBreaksResponseItem = zod.object({
+  "weekday": zod.int().min(1).max(listStaffBreaksResponseWeekdayMax),
+  "begins": zod.string(),
+  "ends": zod.string()
+})
+export const ListStaffBreaksResponse = zod.array(ListStaffBreaksResponseItem)
+
+
+export const ReplaceStaffBreaksParams = zod.object({
+  "organizationId": zod.uuid(),
+  "employeeId": zod.uuid()
+})
+
+export const replaceStaffBreaksBodyWeekdayMax = 7;
+
+
+
+export const ReplaceStaffBreaksBodyItem = zod.object({
+  "weekday": zod.int().min(1).max(replaceStaffBreaksBodyWeekdayMax),
+  "begins": zod.string(),
+  "ends": zod.string()
+})
+export const ReplaceStaffBreaksBody = zod.array(ReplaceStaffBreaksBodyItem)
+
+export const replaceStaffBreaksResponseWeekdayMax = 7;
+
+
+
+export const ReplaceStaffBreaksResponseItem = zod.object({
+  "weekday": zod.int().min(1).max(replaceStaffBreaksResponseWeekdayMax),
+  "begins": zod.string(),
+  "ends": zod.string()
+})
+export const ReplaceStaffBreaksResponse = zod.array(ReplaceStaffBreaksResponseItem)
+
+
+export const FindCrmCustomersParams = zod.object({
+  "organizationId": zod.uuid()
+})
+
+export const findCrmCustomersQueryQMax = 100;
+
+export const findCrmCustomersQueryTagMax = 40;
+
+export const findCrmCustomersQueryMinVisitsRegExp = new RegExp('^\\d{1,4}$');
+
+
+export const FindCrmCustomersQueryParams = zod.object({
+  "q": zod.coerce.string().max(findCrmCustomersQueryQMax).optional(),
+  "tag": zod.coerce.string().max(findCrmCustomersQueryTagMax).optional(),
+  "minVisits": zod.coerce.string().regex(findCrmCustomersQueryMinVisitsRegExp).optional()
+})
+
+export const FindCrmCustomersResponseItem = zod.object({
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "email": zod.string(),
+  "phone": zod.string(),
+  "contactPreference": zod.enum(['none', 'email', 'phone']),
+  "notes": zod.string(),
+  "tags": zod.array(zod.string()),
+  "revision": zod.int(),
+  "updatedAt": zod.coerce.date(),
+  "completedVisits": zod.int().optional()
+})
+export const FindCrmCustomersResponse = zod.array(FindCrmCustomersResponseItem)
+
+
+export const CreateCrmCustomerParams = zod.object({
+  "organizationId": zod.uuid()
+})
+
+export const CreateCrmCustomerBody = zod.object({
+  "name": zod.string(),
+  "email": zod.string(),
+  "phone": zod.string(),
+  "contactPreference": zod.enum(['none', 'email', 'phone']),
+  "notes": zod.string(),
+  "tags": zod.array(zod.string())
+})
+
+export const CreateCrmCustomerResponse = zod.object({
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "email": zod.string(),
+  "phone": zod.string(),
+  "contactPreference": zod.enum(['none', 'email', 'phone']),
+  "notes": zod.string(),
+  "tags": zod.array(zod.string()),
+  "revision": zod.int(),
+  "updatedAt": zod.coerce.date(),
+  "completedVisits": zod.int().optional()
+})
+
+
+export const UpdateCrmCustomerParams = zod.object({
+  "organizationId": zod.uuid(),
+  "id": zod.uuid()
+})
+
+export const UpdateCrmCustomerBody = zod.object({
+  "name": zod.string(),
+  "email": zod.string(),
+  "phone": zod.string(),
+  "contactPreference": zod.enum(['none', 'email', 'phone']),
+  "notes": zod.string(),
+  "tags": zod.array(zod.string()),
+  "revision": zod.int()
+})
+
+export const UpdateCrmCustomerResponse = zod.object({
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "email": zod.string(),
+  "phone": zod.string(),
+  "contactPreference": zod.enum(['none', 'email', 'phone']),
+  "notes": zod.string(),
+  "tags": zod.array(zod.string()),
+  "revision": zod.int(),
+  "updatedAt": zod.coerce.date(),
+  "completedVisits": zod.int().optional()
+})
+
+
+export const ListCrmAppointmentsParams = zod.object({
+  "organizationId": zod.uuid(),
+  "id": zod.uuid()
+})
+
+export const ListCrmAppointmentsResponse = zod.object({
+  "history": zod.array(zod.object({
+  "bookingId": zod.uuid(),
+  "startsAt": zod.coerce.date(),
+  "status": zod.string(),
+  "salon": zod.string(),
+  "timezone": zod.string(),
+  "items": zod.array(zod.record(zod.string(), zod.unknown())),
+  "name": zod.string().optional()
+})),
+  "candidates": zod.array(zod.object({
+  "bookingId": zod.uuid(),
+  "startsAt": zod.coerce.date(),
+  "status": zod.string(),
+  "salon": zod.string(),
+  "timezone": zod.string(),
+  "items": zod.array(zod.record(zod.string(), zod.unknown())),
+  "name": zod.string().optional()
+}))
+})
+
+
+export const LinkCrmAppointmentParams = zod.object({
+  "organizationId": zod.uuid(),
+  "id": zod.uuid(),
+  "bookingId": zod.uuid()
+})
+
+export const LinkCrmAppointmentResponse = zod.void()
+
+
+export const UnlinkCrmAppointmentParams = zod.object({
+  "organizationId": zod.uuid(),
+  "id": zod.uuid(),
+  "bookingId": zod.uuid()
+})
+
+export const UnlinkCrmAppointmentResponse = zod.void()
+
+
+export const ListCrmAttachmentsParams = zod.object({
+  "organizationId": zod.uuid(),
+  "id": zod.uuid()
+})
+
+export const ListCrmAttachmentsResponseItem = zod.object({
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+export const ListCrmAttachmentsResponse = zod.array(ListCrmAttachmentsResponseItem)
+
+
+export const UploadCrmAttachmentParams = zod.object({
+  "organizationId": zod.uuid(),
+  "id": zod.uuid()
+})
+
+export const UploadCrmAttachmentHeader = zod.object({
+  "X-Attachment-Name": zod.string().describe('Percent-encoded PDF filename')
+})
+
+export const UploadCrmAttachmentResponse = zod.object({
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+
+
+export const DownloadCrmAttachmentParams = zod.object({
+  "organizationId": zod.uuid(),
+  "id": zod.uuid(),
+  "attachmentId": zod.uuid()
+})
+
+export const DownloadCrmAttachmentResponse = zod.unknown()
+
+
+export const DeleteCrmAttachmentParams = zod.object({
+  "organizationId": zod.uuid(),
+  "id": zod.uuid(),
+  "attachmentId": zod.uuid()
+})
+
+export const DeleteCrmAttachmentResponse = zod.void()
+
+
+export const GetProfessionalPricingParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid()
+})
+
+export const GetProfessionalPricingResponse = zod.record(zod.string(), zod.unknown())
+
+
+export const UpdateProfessionalPricingParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid()
+})
+
+export const UpdateProfessionalPricingBody = zod.object({
+  "differentialPricing": zod.boolean(),
+  "allowProfessionalChoice": zod.boolean(),
+  "allowAnyProfessional": zod.boolean()
+})
+
+export const UpdateProfessionalPricingResponse = zod.void()
+
+
+export const UpdateProfessionalProfileParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid(),
+  "employeeId": zod.uuid()
+})
+
+export const updateProfessionalProfileBodyProfessionalTitleMax = 100;
+
+export const updateProfessionalProfileBodyProfessionalPhotoUrlMax = 1000;
+
+
+
+export const UpdateProfessionalProfileBody = zod.object({
+  "professionalTitle": zod.string().max(updateProfessionalProfileBodyProfessionalTitleMax),
+  "professionalPhotoUrl": zod.string().max(updateProfessionalProfileBodyProfessionalPhotoUrlMax)
+})
+
+export const UpdateProfessionalProfileResponse = zod.void()
+
+
+export const UpdateProfessionalOverrideParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid()
+})
+
+export const updateProfessionalOverrideBodyPriceCentsMin = 0;
+export const updateProfessionalOverrideBodyPriceCentsMax = 10000000;
+
+export const updateProfessionalOverrideBodyDurationMinutesMax = 720;
+
+
+
+export const UpdateProfessionalOverrideBody = zod.object({
+  "employeeId": zod.uuid(),
+  "serviceId": zod.uuid(),
+  "variantId": zod.uuid().nullable(),
+  "priceCents": zod.int().min(updateProfessionalOverrideBodyPriceCentsMin).max(updateProfessionalOverrideBodyPriceCentsMax).nullable(),
+  "durationMinutes": zod.int().min(1).max(updateProfessionalOverrideBodyDurationMinutesMax).nullable()
+})
+
+export const UpdateProfessionalOverrideResponse = zod.void()
+
+
+export const ListInventoryProductsParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid()
+})
+
+export const listInventoryProductsResponseOneSkuMax = 40;
+
+export const listInventoryProductsResponseOneNameMax = 120;
+
+export const listInventoryProductsResponseOneCategoryMax = 120;
+
+export const listInventoryProductsResponseOneSupplierMax = 120;
+
+export const listInventoryProductsResponseOneImageUrlMax = 500;
+
+export const listInventoryProductsResponseOnePurchaseCostCentsMin = 0;
+export const listInventoryProductsResponseOnePurchaseCostCentsMax = 10000000;
+
+export const listInventoryProductsResponseOneUnitCentsMax = 10000000;
+
+export const listInventoryProductsResponseOneReorderAtMin = 0;
+export const listInventoryProductsResponseOneReorderAtMax = 1000000;
+
+export const listInventoryProductsResponseTwoStockMin = 0;
+
+
+
+export const ListInventoryProductsResponseItem = zod.object({
+  "sku": zod.string().min(1).max(listInventoryProductsResponseOneSkuMax),
+  "name": zod.string().min(1).max(listInventoryProductsResponseOneNameMax),
+  "category": zod.string().max(listInventoryProductsResponseOneCategoryMax),
+  "supplier": zod.string().max(listInventoryProductsResponseOneSupplierMax),
+  "imageUrl": zod.string().max(listInventoryProductsResponseOneImageUrlMax),
+  "purchaseCostCents": zod.int().min(listInventoryProductsResponseOnePurchaseCostCentsMin).max(listInventoryProductsResponseOnePurchaseCostCentsMax).nullish(),
+  "unitCents": zod.int().min(1).max(listInventoryProductsResponseOneUnitCentsMax),
+  "reorderAt": zod.int().min(listInventoryProductsResponseOneReorderAtMin).max(listInventoryProductsResponseOneReorderAtMax),
+  "archived": zod.boolean()
+}).and(zod.object({
+  "id": zod.uuid(),
+  "locationId": zod.uuid(),
+  "stock": zod.int().min(listInventoryProductsResponseTwoStockMin),
+  "archived": zod.boolean()
+}))
+export const ListInventoryProductsResponse = zod.array(ListInventoryProductsResponseItem)
+
+
+export const CreateInventoryProductParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid()
+})
+
+export const createInventoryProductBodySkuMax = 40;
+
+export const createInventoryProductBodyNameMax = 120;
+
+export const createInventoryProductBodyCategoryMax = 120;
+
+export const createInventoryProductBodySupplierMax = 120;
+
+export const createInventoryProductBodyImageUrlMax = 500;
+
+export const createInventoryProductBodyPurchaseCostCentsMin = 0;
+export const createInventoryProductBodyPurchaseCostCentsMax = 10000000;
+
+export const createInventoryProductBodyUnitCentsMax = 10000000;
+
+export const createInventoryProductBodyReorderAtMin = 0;
+export const createInventoryProductBodyReorderAtMax = 1000000;
+
+
+
+export const CreateInventoryProductBody = zod.object({
+  "sku": zod.string().min(1).max(createInventoryProductBodySkuMax),
+  "name": zod.string().min(1).max(createInventoryProductBodyNameMax),
+  "category": zod.string().max(createInventoryProductBodyCategoryMax),
+  "supplier": zod.string().max(createInventoryProductBodySupplierMax),
+  "imageUrl": zod.string().max(createInventoryProductBodyImageUrlMax),
+  "purchaseCostCents": zod.int().min(createInventoryProductBodyPurchaseCostCentsMin).max(createInventoryProductBodyPurchaseCostCentsMax).nullish(),
+  "unitCents": zod.int().min(1).max(createInventoryProductBodyUnitCentsMax),
+  "reorderAt": zod.int().min(createInventoryProductBodyReorderAtMin).max(createInventoryProductBodyReorderAtMax),
+  "archived": zod.boolean().optional()
+})
+
+export const createInventoryProductResponseOneSkuMax = 40;
+
+export const createInventoryProductResponseOneNameMax = 120;
+
+export const createInventoryProductResponseOneCategoryMax = 120;
+
+export const createInventoryProductResponseOneSupplierMax = 120;
+
+export const createInventoryProductResponseOneImageUrlMax = 500;
+
+export const createInventoryProductResponseOnePurchaseCostCentsMin = 0;
+export const createInventoryProductResponseOnePurchaseCostCentsMax = 10000000;
+
+export const createInventoryProductResponseOneUnitCentsMax = 10000000;
+
+export const createInventoryProductResponseOneReorderAtMin = 0;
+export const createInventoryProductResponseOneReorderAtMax = 1000000;
+
+export const createInventoryProductResponseTwoStockMin = 0;
+
+
+
+export const CreateInventoryProductResponse = zod.object({
+  "sku": zod.string().min(1).max(createInventoryProductResponseOneSkuMax),
+  "name": zod.string().min(1).max(createInventoryProductResponseOneNameMax),
+  "category": zod.string().max(createInventoryProductResponseOneCategoryMax),
+  "supplier": zod.string().max(createInventoryProductResponseOneSupplierMax),
+  "imageUrl": zod.string().max(createInventoryProductResponseOneImageUrlMax),
+  "purchaseCostCents": zod.int().min(createInventoryProductResponseOnePurchaseCostCentsMin).max(createInventoryProductResponseOnePurchaseCostCentsMax).nullish(),
+  "unitCents": zod.int().min(1).max(createInventoryProductResponseOneUnitCentsMax),
+  "reorderAt": zod.int().min(createInventoryProductResponseOneReorderAtMin).max(createInventoryProductResponseOneReorderAtMax),
+  "archived": zod.boolean()
+}).and(zod.object({
+  "id": zod.uuid(),
+  "locationId": zod.uuid(),
+  "stock": zod.int().min(createInventoryProductResponseTwoStockMin),
+  "archived": zod.boolean()
+}))
+
+
+export const UpdateInventoryProductParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid(),
+  "productId": zod.uuid()
+})
+
+export const updateInventoryProductBodySkuMax = 40;
+
+export const updateInventoryProductBodyNameMax = 120;
+
+export const updateInventoryProductBodyCategoryMax = 120;
+
+export const updateInventoryProductBodySupplierMax = 120;
+
+export const updateInventoryProductBodyImageUrlMax = 500;
+
+export const updateInventoryProductBodyPurchaseCostCentsMin = 0;
+export const updateInventoryProductBodyPurchaseCostCentsMax = 10000000;
+
+export const updateInventoryProductBodyUnitCentsMax = 10000000;
+
+export const updateInventoryProductBodyReorderAtMin = 0;
+export const updateInventoryProductBodyReorderAtMax = 1000000;
+
+
+
+export const UpdateInventoryProductBody = zod.object({
+  "sku": zod.string().min(1).max(updateInventoryProductBodySkuMax),
+  "name": zod.string().min(1).max(updateInventoryProductBodyNameMax),
+  "category": zod.string().max(updateInventoryProductBodyCategoryMax),
+  "supplier": zod.string().max(updateInventoryProductBodySupplierMax),
+  "imageUrl": zod.string().max(updateInventoryProductBodyImageUrlMax),
+  "purchaseCostCents": zod.int().min(updateInventoryProductBodyPurchaseCostCentsMin).max(updateInventoryProductBodyPurchaseCostCentsMax).nullish(),
+  "unitCents": zod.int().min(1).max(updateInventoryProductBodyUnitCentsMax),
+  "reorderAt": zod.int().min(updateInventoryProductBodyReorderAtMin).max(updateInventoryProductBodyReorderAtMax),
+  "archived": zod.boolean().optional()
+})
+
+export const updateInventoryProductResponseOneSkuMax = 40;
+
+export const updateInventoryProductResponseOneNameMax = 120;
+
+export const updateInventoryProductResponseOneCategoryMax = 120;
+
+export const updateInventoryProductResponseOneSupplierMax = 120;
+
+export const updateInventoryProductResponseOneImageUrlMax = 500;
+
+export const updateInventoryProductResponseOnePurchaseCostCentsMin = 0;
+export const updateInventoryProductResponseOnePurchaseCostCentsMax = 10000000;
+
+export const updateInventoryProductResponseOneUnitCentsMax = 10000000;
+
+export const updateInventoryProductResponseOneReorderAtMin = 0;
+export const updateInventoryProductResponseOneReorderAtMax = 1000000;
+
+export const updateInventoryProductResponseTwoStockMin = 0;
+
+
+
+export const UpdateInventoryProductResponse = zod.object({
+  "sku": zod.string().min(1).max(updateInventoryProductResponseOneSkuMax),
+  "name": zod.string().min(1).max(updateInventoryProductResponseOneNameMax),
+  "category": zod.string().max(updateInventoryProductResponseOneCategoryMax),
+  "supplier": zod.string().max(updateInventoryProductResponseOneSupplierMax),
+  "imageUrl": zod.string().max(updateInventoryProductResponseOneImageUrlMax),
+  "purchaseCostCents": zod.int().min(updateInventoryProductResponseOnePurchaseCostCentsMin).max(updateInventoryProductResponseOnePurchaseCostCentsMax).nullish(),
+  "unitCents": zod.int().min(1).max(updateInventoryProductResponseOneUnitCentsMax),
+  "reorderAt": zod.int().min(updateInventoryProductResponseOneReorderAtMin).max(updateInventoryProductResponseOneReorderAtMax),
+  "archived": zod.boolean()
+}).and(zod.object({
+  "id": zod.uuid(),
+  "locationId": zod.uuid(),
+  "stock": zod.int().min(updateInventoryProductResponseTwoStockMin),
+  "archived": zod.boolean()
+}))
+
+
+export const ListInventoryMovementsParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid(),
+  "productId": zod.uuid()
+})
+
+export const ListInventoryMovementsResponseItem = zod.object({
+  "id": zod.uuid(),
+  "productId": zod.uuid(),
+  "actorId": zod.uuid(),
+  "idempotencyKey": zod.uuid(),
+  "kind": zod.enum(['receipt', 'adjustment', 'sale']),
+  "quantity": zod.int(),
+  "balance": zod.int(),
+  "reason": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+export const ListInventoryMovementsResponse = zod.array(ListInventoryMovementsResponseItem)
+
+
+export const RecordInventoryMovementParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid(),
+  "productId": zod.uuid()
+})
+
+export const recordInventoryMovementBodyQuantityMin = -1000000;
+export const recordInventoryMovementBodyQuantityMax = 1000000;
+
+export const recordInventoryMovementBodyReasonMax = 240;
+
+
+
+export const RecordInventoryMovementBody = zod.object({
+  "idempotencyKey": zod.uuid(),
+  "kind": zod.enum(['receipt', 'adjustment']),
+  "quantity": zod.int().min(recordInventoryMovementBodyQuantityMin).max(recordInventoryMovementBodyQuantityMax),
+  "reason": zod.string().min(1).max(recordInventoryMovementBodyReasonMax)
+})
+
+export const RecordInventoryMovementResponse = zod.object({
+  "id": zod.uuid(),
+  "productId": zod.uuid(),
+  "actorId": zod.uuid(),
+  "idempotencyKey": zod.uuid(),
+  "kind": zod.enum(['receipt', 'adjustment', 'sale']),
+  "quantity": zod.int(),
+  "balance": zod.int(),
+  "reason": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+
+
+export const ListInventorySuppliersParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid()
+})
+
+export const ListInventorySuppliersResponseItem = zod.object({
+  "id": zod.uuid(),
+  "locationId": zod.uuid(),
+  "name": zod.string(),
+  "email": zod.string(),
+  "phone": zod.string()
+})
+export const ListInventorySuppliersResponse = zod.array(ListInventorySuppliersResponseItem)
+
+
+export const CreateInventorySupplierParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid()
+})
+
+export const createInventorySupplierBodyNameMax = 120;
+
+export const createInventorySupplierBodyPhoneMax = 30;
+
+
+
+export const CreateInventorySupplierBody = zod.object({
+  "name": zod.string().min(1).max(createInventorySupplierBodyNameMax),
+  "email": zod.string().optional(),
+  "phone": zod.string().max(createInventorySupplierBodyPhoneMax).optional()
+})
+
+export const CreateInventorySupplierResponse = zod.object({
+  "id": zod.uuid(),
+  "locationId": zod.uuid(),
+  "name": zod.string(),
+  "email": zod.string(),
+  "phone": zod.string()
+})
+
+
+export const UpdateInventorySupplierParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid(),
+  "supplierId": zod.uuid()
+})
+
+export const updateInventorySupplierBodyNameMax = 120;
+
+export const updateInventorySupplierBodyPhoneMax = 30;
+
+
+
+export const UpdateInventorySupplierBody = zod.object({
+  "name": zod.string().min(1).max(updateInventorySupplierBodyNameMax),
+  "email": zod.string().optional(),
+  "phone": zod.string().max(updateInventorySupplierBodyPhoneMax).optional()
+})
+
+export const UpdateInventorySupplierResponse = zod.object({
+  "id": zod.uuid(),
+  "locationId": zod.uuid(),
+  "name": zod.string(),
+  "email": zod.string(),
+  "phone": zod.string()
+})
+
+
+export const ListInventoryOrdersParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid()
+})
+
+export const listInventoryOrdersResponseItemsItemReceivedQuantityMin = 0;
+
+
+
+export const ListInventoryOrdersResponseItem = zod.object({
+  "id": zod.uuid(),
+  "locationId": zod.uuid(),
+  "supplierId": zod.uuid(),
+  "supplierName": zod.string(),
+  "actorId": zod.uuid(),
+  "idempotencyKey": zod.uuid(),
+  "status": zod.enum(['open', 'received', 'cancelled']),
+  "createdAt": zod.coerce.date(),
+  "closedAt": zod.coerce.date().nullable(),
+  "items": zod.array(zod.object({
+  "productId": zod.uuid(),
+  "sku": zod.string(),
+  "name": zod.string(),
+  "quantity": zod.int(),
+  "purchaseCostCents": zod.int().nullish(),
+  "receivedQuantity": zod.int().min(listInventoryOrdersResponseItemsItemReceivedQuantityMin).optional()
+}))
+})
+export const ListInventoryOrdersResponse = zod.array(ListInventoryOrdersResponseItem)
+
+
+export const CreateInventoryOrderParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid()
+})
+
+export const createInventoryOrderBodyItemsItemQuantityMax = 1000000;
+
+export const createInventoryOrderBodyItemsMax = 30;
+
+
+
+export const CreateInventoryOrderBody = zod.object({
+  "idempotencyKey": zod.uuid(),
+  "supplierId": zod.uuid(),
+  "items": zod.array(zod.object({
+  "productId": zod.uuid(),
+  "quantity": zod.int().min(1).max(createInventoryOrderBodyItemsItemQuantityMax)
+})).min(1).max(createInventoryOrderBodyItemsMax)
+})
+
+export const createInventoryOrderResponseItemsItemReceivedQuantityMin = 0;
+
+
+
+export const CreateInventoryOrderResponse = zod.object({
+  "id": zod.uuid(),
+  "locationId": zod.uuid(),
+  "supplierId": zod.uuid(),
+  "supplierName": zod.string(),
+  "actorId": zod.uuid(),
+  "idempotencyKey": zod.uuid(),
+  "status": zod.enum(['open', 'received', 'cancelled']),
+  "createdAt": zod.coerce.date(),
+  "closedAt": zod.coerce.date().nullable(),
+  "items": zod.array(zod.object({
+  "productId": zod.uuid(),
+  "sku": zod.string(),
+  "name": zod.string(),
+  "quantity": zod.int(),
+  "purchaseCostCents": zod.int().nullish(),
+  "receivedQuantity": zod.int().min(createInventoryOrderResponseItemsItemReceivedQuantityMin).optional()
+}))
+})
+
+
+export const ReceiveInventoryOrderPartParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid(),
+  "orderId": zod.uuid()
+})
+
+export const receiveInventoryOrderPartBodyItemsItemQuantityMax = 1000000;
+
+export const receiveInventoryOrderPartBodyItemsMax = 30;
+
+
+
+export const ReceiveInventoryOrderPartBody = zod.object({
+  "idempotencyKey": zod.uuid(),
+  "items": zod.array(zod.object({
+  "productId": zod.uuid(),
+  "quantity": zod.int().min(1).max(receiveInventoryOrderPartBodyItemsItemQuantityMax)
+})).min(1).max(receiveInventoryOrderPartBodyItemsMax)
+})
+
+export const receiveInventoryOrderPartResponseItemsItemReceivedQuantityMin = 0;
+
+
+
+export const ReceiveInventoryOrderPartResponse = zod.object({
+  "id": zod.uuid(),
+  "locationId": zod.uuid(),
+  "supplierId": zod.uuid(),
+  "supplierName": zod.string(),
+  "actorId": zod.uuid(),
+  "idempotencyKey": zod.uuid(),
+  "status": zod.enum(['open', 'received', 'cancelled']),
+  "createdAt": zod.coerce.date(),
+  "closedAt": zod.coerce.date().nullable(),
+  "items": zod.array(zod.object({
+  "productId": zod.uuid(),
+  "sku": zod.string(),
+  "name": zod.string(),
+  "quantity": zod.int(),
+  "purchaseCostCents": zod.int().nullish(),
+  "receivedQuantity": zod.int().min(receiveInventoryOrderPartResponseItemsItemReceivedQuantityMin).optional()
+}))
+})
+
+
+export const CloseInventoryOrderParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid(),
+  "orderId": zod.uuid()
+})
+
+export const CloseInventoryOrderBody = zod.object({
+  "status": zod.enum(['received', 'cancelled'])
+})
+
+export const closeInventoryOrderResponseItemsItemReceivedQuantityMin = 0;
+
+
+
+export const CloseInventoryOrderResponse = zod.object({
+  "id": zod.uuid(),
+  "locationId": zod.uuid(),
+  "supplierId": zod.uuid(),
+  "supplierName": zod.string(),
+  "actorId": zod.uuid(),
+  "idempotencyKey": zod.uuid(),
+  "status": zod.enum(['open', 'received', 'cancelled']),
+  "createdAt": zod.coerce.date(),
+  "closedAt": zod.coerce.date().nullable(),
+  "items": zod.array(zod.object({
+  "productId": zod.uuid(),
+  "sku": zod.string(),
+  "name": zod.string(),
+  "quantity": zod.int(),
+  "purchaseCostCents": zod.int().nullish(),
+  "receivedQuantity": zod.int().min(closeInventoryOrderResponseItemsItemReceivedQuantityMin).optional()
+}))
+})
+
+
+export const ListMyBusinessMarketingPreferencesResponseItem = zod.object({
+  "organizationId": zod.uuid(),
+  "name": zod.string(),
+  "consent": zod.boolean()
+})
+export const ListMyBusinessMarketingPreferencesResponse = zod.array(ListMyBusinessMarketingPreferencesResponseItem)
+
+
+export const UpdateMyBusinessMarketingPreferenceParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const UpdateMyBusinessMarketingPreferenceBody = zod.object({
+  "consent": zod.boolean()
+})
+
+export const UpdateMyBusinessMarketingPreferenceResponse = zod.void()
+
+
+export const ListOrganizationReviewsParams = zod.object({
+  "organizationId": zod.uuid()
+})
+
+export const listOrganizationReviewsQueryOffsetMin = 0;
+export const listOrganizationReviewsQueryOffsetMax = 1000000;
+
+
+
+export const ListOrganizationReviewsQueryParams = zod.object({
+  "offset": zod.coerce.number().int().min(listOrganizationReviewsQueryOffsetMin).max(listOrganizationReviewsQueryOffsetMax).optional()
+})
+
+export const listOrganizationReviewsResponseReviewsItemOneRatingMax = 5;
+
+
+
+export const ListOrganizationReviewsResponse = zod.object({
+  "reviews": zod.array(zod.object({
+  "id": zod.uuid(),
+  "rating": zod.int().min(1).max(listOrganizationReviewsResponseReviewsItemOneRatingMax),
+  "comment": zod.string(),
+  "reply": zod.string(),
+  "date": zod.coerce.date()
+}).and(zod.object({
+  "location": zod.string()
+}))),
+  "hasMore": zod.boolean()
+})
+
+
+export const SaveOrganizationReviewReplyParams = zod.object({
+  "organizationId": zod.uuid(),
+  "id": zod.uuid()
+})
+
+export const saveOrganizationReviewReplyBodyReplyMax = 2000;
+
+
+
+export const SaveOrganizationReviewReplyBody = zod.object({
+  "reply": zod.string().max(saveOrganizationReviewReplyBodyReplyMax)
+})
+
+export const saveOrganizationReviewReplyResponseRatingMax = 5;
+
+
+
+export const SaveOrganizationReviewReplyResponse = zod.object({
+  "id": zod.uuid(),
+  "rating": zod.int().min(1).max(saveOrganizationReviewReplyResponseRatingMax),
+  "comment": zod.string(),
+  "reply": zod.string(),
+  "date": zod.coerce.date()
+})
+
+
+export const ListMarketingTemplatesParams = zod.object({
+  "organizationId": zod.uuid()
+})
+
+export const listMarketingTemplatesResponseOneTitleMax = 120;
+
+export const listMarketingTemplatesResponseOneSubjectMax = 160;
+
+export const listMarketingTemplatesResponseOneBodyMax = 4000;
+
+
+
+export const ListMarketingTemplatesResponseItem = zod.object({
+  "title": zod.string().min(1).max(listMarketingTemplatesResponseOneTitleMax),
+  "subject": zod.string().min(1).max(listMarketingTemplatesResponseOneSubjectMax),
+  "body": zod.string().min(1).max(listMarketingTemplatesResponseOneBodyMax),
+  "segment": zod.enum(['completed', 'repeat'])
+}).and(zod.object({
+  "id": zod.uuid(),
+  "organizationId": zod.uuid(),
+  "updatedAt": zod.coerce.date()
+}))
+export const ListMarketingTemplatesResponse = zod.array(ListMarketingTemplatesResponseItem)
+
+
+export const CreateMarketingTemplateParams = zod.object({
+  "organizationId": zod.uuid()
+})
+
+export const createMarketingTemplateBodyTitleMax = 120;
+
+export const createMarketingTemplateBodySubjectMax = 160;
+
+export const createMarketingTemplateBodyBodyMax = 4000;
+
+
+
+export const CreateMarketingTemplateBody = zod.object({
+  "title": zod.string().min(1).max(createMarketingTemplateBodyTitleMax),
+  "subject": zod.string().min(1).max(createMarketingTemplateBodySubjectMax),
+  "body": zod.string().min(1).max(createMarketingTemplateBodyBodyMax),
+  "segment": zod.enum(['completed', 'repeat'])
+})
+
+export const createMarketingTemplateResponseOneTitleMax = 120;
+
+export const createMarketingTemplateResponseOneSubjectMax = 160;
+
+export const createMarketingTemplateResponseOneBodyMax = 4000;
+
+
+
+export const CreateMarketingTemplateResponse = zod.object({
+  "title": zod.string().min(1).max(createMarketingTemplateResponseOneTitleMax),
+  "subject": zod.string().min(1).max(createMarketingTemplateResponseOneSubjectMax),
+  "body": zod.string().min(1).max(createMarketingTemplateResponseOneBodyMax),
+  "segment": zod.enum(['completed', 'repeat'])
+}).and(zod.object({
+  "id": zod.uuid(),
+  "organizationId": zod.uuid(),
+  "updatedAt": zod.coerce.date()
+}))
+
+
+export const UpdateMarketingTemplateParams = zod.object({
+  "organizationId": zod.uuid(),
+  "id": zod.uuid()
+})
+
+export const updateMarketingTemplateBodyTitleMax = 120;
+
+export const updateMarketingTemplateBodySubjectMax = 160;
+
+export const updateMarketingTemplateBodyBodyMax = 4000;
+
+
+
+export const UpdateMarketingTemplateBody = zod.object({
+  "title": zod.string().min(1).max(updateMarketingTemplateBodyTitleMax),
+  "subject": zod.string().min(1).max(updateMarketingTemplateBodySubjectMax),
+  "body": zod.string().min(1).max(updateMarketingTemplateBodyBodyMax),
+  "segment": zod.enum(['completed', 'repeat'])
+})
+
+export const updateMarketingTemplateResponseOneTitleMax = 120;
+
+export const updateMarketingTemplateResponseOneSubjectMax = 160;
+
+export const updateMarketingTemplateResponseOneBodyMax = 4000;
+
+
+
+export const UpdateMarketingTemplateResponse = zod.object({
+  "title": zod.string().min(1).max(updateMarketingTemplateResponseOneTitleMax),
+  "subject": zod.string().min(1).max(updateMarketingTemplateResponseOneSubjectMax),
+  "body": zod.string().min(1).max(updateMarketingTemplateResponseOneBodyMax),
+  "segment": zod.enum(['completed', 'repeat'])
+}).and(zod.object({
+  "id": zod.uuid(),
+  "organizationId": zod.uuid(),
+  "updatedAt": zod.coerce.date()
+}))
+
+
+export const ListMarketingCampaignsParams = zod.object({
+  "organizationId": zod.uuid()
+})
+
+export const listMarketingCampaignsResponseOneTitleMax = 120;
+
+export const listMarketingCampaignsResponseOneSubjectMax = 160;
+
+export const listMarketingCampaignsResponseOneBodyMax = 4000;
+
+
+
+export const ListMarketingCampaignsResponseItem = zod.object({
+  "title": zod.string().min(1).max(listMarketingCampaignsResponseOneTitleMax),
+  "subject": zod.string().min(1).max(listMarketingCampaignsResponseOneSubjectMax),
+  "body": zod.string().min(1).max(listMarketingCampaignsResponseOneBodyMax),
+  "segment": zod.enum(['completed', 'repeat'])
+}).and(zod.object({
+  "id": zod.uuid(),
+  "organizationId": zod.uuid(),
+  "updatedAt": zod.coerce.date()
+}))
+export const ListMarketingCampaignsResponse = zod.array(ListMarketingCampaignsResponseItem)
+
+
+export const CreateMarketingCampaignParams = zod.object({
+  "organizationId": zod.uuid()
+})
+
+export const createMarketingCampaignBodyTitleMax = 120;
+
+export const createMarketingCampaignBodySubjectMax = 160;
+
+export const createMarketingCampaignBodyBodyMax = 4000;
+
+
+
+export const CreateMarketingCampaignBody = zod.object({
+  "title": zod.string().min(1).max(createMarketingCampaignBodyTitleMax),
+  "subject": zod.string().min(1).max(createMarketingCampaignBodySubjectMax),
+  "body": zod.string().min(1).max(createMarketingCampaignBodyBodyMax),
+  "segment": zod.enum(['completed', 'repeat'])
+})
+
+export const createMarketingCampaignResponseOneTitleMax = 120;
+
+export const createMarketingCampaignResponseOneSubjectMax = 160;
+
+export const createMarketingCampaignResponseOneBodyMax = 4000;
+
+
+
+export const CreateMarketingCampaignResponse = zod.object({
+  "title": zod.string().min(1).max(createMarketingCampaignResponseOneTitleMax),
+  "subject": zod.string().min(1).max(createMarketingCampaignResponseOneSubjectMax),
+  "body": zod.string().min(1).max(createMarketingCampaignResponseOneBodyMax),
+  "segment": zod.enum(['completed', 'repeat'])
+}).and(zod.object({
+  "id": zod.uuid(),
+  "organizationId": zod.uuid(),
+  "updatedAt": zod.coerce.date()
+}))
+
+
+export const UpdateMarketingCampaignParams = zod.object({
+  "organizationId": zod.uuid(),
+  "id": zod.uuid()
+})
+
+export const updateMarketingCampaignBodyTitleMax = 120;
+
+export const updateMarketingCampaignBodySubjectMax = 160;
+
+export const updateMarketingCampaignBodyBodyMax = 4000;
+
+
+
+export const UpdateMarketingCampaignBody = zod.object({
+  "title": zod.string().min(1).max(updateMarketingCampaignBodyTitleMax),
+  "subject": zod.string().min(1).max(updateMarketingCampaignBodySubjectMax),
+  "body": zod.string().min(1).max(updateMarketingCampaignBodyBodyMax),
+  "segment": zod.enum(['completed', 'repeat'])
+})
+
+export const updateMarketingCampaignResponseOneTitleMax = 120;
+
+export const updateMarketingCampaignResponseOneSubjectMax = 160;
+
+export const updateMarketingCampaignResponseOneBodyMax = 4000;
+
+
+
+export const UpdateMarketingCampaignResponse = zod.object({
+  "title": zod.string().min(1).max(updateMarketingCampaignResponseOneTitleMax),
+  "subject": zod.string().min(1).max(updateMarketingCampaignResponseOneSubjectMax),
+  "body": zod.string().min(1).max(updateMarketingCampaignResponseOneBodyMax),
+  "segment": zod.enum(['completed', 'repeat'])
+}).and(zod.object({
+  "id": zod.uuid(),
+  "organizationId": zod.uuid(),
+  "updatedAt": zod.coerce.date()
+}))
+
+
+export const ListMarketingCapturesParams = zod.object({
+  "organizationId": zod.uuid(),
+  "id": zod.uuid()
+})
+
+export const listMarketingCapturesResponseCountMin = 0;
+
+
+
+export const ListMarketingCapturesResponseItem = zod.object({
+  "id": zod.uuid(),
+  "count": zod.int().min(listMarketingCapturesResponseCountMin),
+  "createdAt": zod.coerce.date()
+})
+export const ListMarketingCapturesResponse = zod.array(ListMarketingCapturesResponseItem)
+
+
+export const CreateMarketingCaptureParams = zod.object({
+  "organizationId": zod.uuid(),
+  "id": zod.uuid()
+})
+
+export const CreateMarketingCaptureBody = zod.object({
+  "idempotencyKey": zod.uuid()
+})
+
+export const createMarketingCaptureResponseCountMin = 0;
+
+
+
+export const CreateMarketingCaptureResponse = zod.object({
+  "id": zod.uuid(),
+  "count": zod.int().min(createMarketingCaptureResponseCountMin),
+  "createdAt": zod.coerce.date()
+})
+
+
+export const GetMarketingAudienceCountParams = zod.object({
+  "organizationId": zod.uuid()
+})
+
+export const GetMarketingAudienceCountQueryParams = zod.object({
+  "segment": zod.enum(['completed', 'repeat'])
+})
+
+export const GetMarketingAudienceCountResponse = zod.object({
+  "count": zod.int()
+})
 
 

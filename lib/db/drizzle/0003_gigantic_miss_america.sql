@@ -1,0 +1,1 @@
+ALTER TABLE "employees" ADD COLUMN "public_name" text DEFAULT '' NOT NULL;

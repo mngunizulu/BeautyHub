@@ -132,7 +132,11 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   const { isLoaded, isSignedIn } = useAuth();
   if (!isLoaded) return <AuthSkeleton />;
   if (!isSignedIn) {
-    const back = `${window.location.pathname}`;
+    const pathname = window.location.pathname;
+    const marketing = new URLSearchParams(window.location.search).get('business-marketing');
+    const preference = pathname.endsWith('/konto') && marketing && /^[0-9a-f-]{36}$/i.test(marketing)
+      ? '?' + new URLSearchParams({ 'business-marketing': marketing }) : '';
+    const back = pathname + preference;
     return <Redirect to={`/sign-in?redirect_url=${encodeURIComponent(back)}`} />;
   }
   return <>{children}</>;

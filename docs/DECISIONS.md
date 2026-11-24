@@ -37,3 +37,9 @@
 **Decision:** Hash expiring invitation tokens, verify intended email and current issuer permissions, consume atomically once; manually share fragment links because no email provider was approved. Soft archive services/variants, version policies immutably and model only opaque payment references.
 **Why:** Safe membership creation and future price/policy snapshots are needed now; real booking, card authorization, fee collection and enforceability are not authorized or ready.
 **Consequences:** No raw token persistence/logging, card-entry form, payment credential or real-money action. Future SetupIntent/off-session/BookingItem contracts are documented in architecture; actual functionality stays in later stages.
+
+## 2026-11-21 — Local containers and marketplace filter semantics
+
+Use separate web/API containers with one browser origin and a one-shot development migration job. Keep the Replit entry points while validating a local Docker path. Keep Clerk as the identity provider.
+
+Apply service-name and price constraints to the same published, non-archived base service. Preserve the existing listing response and its overall starting price. Variant search remains open in BH-S3.01.

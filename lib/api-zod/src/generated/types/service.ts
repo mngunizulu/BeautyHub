@@ -5,11 +5,16 @@
  * BeautyHub Stage 1 API. Public development catalog; bookings and account activation are deferred.
  * OpenAPI spec version: 0.1.0
  */
+import type { PublicServiceVariant } from './publicServiceVariant';
 
 export interface Service {
+  /** @nullable */
+  groupName?: string | null;
+  onlineBooking?: boolean;
   id: string;
   name: string;
   description: string;
   durationMinutes: number;
   priceCents: number;
+  variants?: PublicServiceVariant[];
 }

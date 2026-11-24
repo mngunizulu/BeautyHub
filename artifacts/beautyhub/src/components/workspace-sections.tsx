@@ -20,7 +20,7 @@ type Props = { ws: BusinessWorkspace; perms: Perms };
 
 /* ---------- DTO builders (explicit, never pass output objects back) ---------- */
 export const profileDto = (p: OrganizationProfileInput, step?: number): OrganizationProfileInput => ({
-  name: p.name, description: p.description, contactEmail: p.contactEmail, phone: p.phone, website: p.website, categoryId: p.categoryId,
+  name: p.name, description: p.description, contactEmail: p.contactEmail, phone: p.phone, website: p.website, socialUrl: p.socialUrl ?? "", logoUrl: p.logoUrl ?? "", categoryId: p.categoryId,
   onboardingStep: Math.min(6, Math.max(1, step ?? p.onboardingStep)),
 });
 const locationDto = (l: LocationInput): LocationInput => ({
@@ -36,6 +36,7 @@ const blankLocation = (name: string): LocationInput => ({
 });
 const employeeDto = (e: EmployeeInput): EmployeeInput => ({
   displayName: e.displayName.trim(), email: e.email.trim(), phone: e.phone.trim(), locationId: e.locationId, active: e.active,
+  publicName: e.publicName?.trim() ?? '',
   workingHours: e.workingHours.map((h) => ({ weekday: h.weekday, opens: h.opens, closes: h.closes })),
 });
 
@@ -85,6 +86,12 @@ export function ProfileSection({ ws, perms, nextStep, onSaved, submitLabel = 'Sp
           <Field id="profile-email" label="Kontakt-E-Mail" error={t('contactEmail')}><input id="profile-email" type="email" maxLength={200} value={f.contactEmail} onChange={(e) => setF({ ...f, contactEmail: e.target.value })} className={inputCls} data-testid="input-profile-email" /></Field>
           <Field id="profile-phone" label="Telefon" error={t('phone')}><input id="profile-phone" type="tel" maxLength={30} value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} className={inputCls} data-testid="input-profile-phone" /></Field>
           <Field id="profile-website" label="Website (optional)" error={t('website')} className="sm:col-span-2"><input id="profile-website" type="url" maxLength={300} value={f.website} onChange={(e) => setF({ ...f, website: e.target.value })} placeholder="https://" className={inputCls} data-testid="input-profile-website" /></Field>
+          <Field id="profile-social" label="Social-Media-Profil (optional)">
+            <input id="profile-social" type="url" maxLength={500} value={f.socialUrl} onChange={(e) => setF({ ...f, socialUrl: e.target.value })} className={inputCls} />
+          </Field>
+          <Field id="profile-logo" label="Logo-URL (optional)">
+            <input id="profile-logo" type="url" maxLength={500} value={f.logoUrl} onChange={(e) => setF({ ...f, logoUrl: e.target.value })} className={inputCls} />
+          </Field>
         </fieldset>
         <div className="mt-5 space-y-3"><FormStatus error={err} success={ok} />
           {perms.canEdit && <PrimaryButton pending={save.isPending} testId="button-save-profile">{submitLabel}</PrimaryButton>}</div>
@@ -279,6 +286,14 @@ function EmployeeForm({ ws, perms, employee, onDone }: Props & { employee?: Mana
         <Field id={`emp-${id}-email`} label="E-Mail (optional)" error={t('email')}><input id={`emp-${id}-email`} type="email" maxLength={200} value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} className={inputCls} data-testid="input-employee-email" /></Field>
         <Field id={`emp-${id}-phone`} label="Telefon (optional)"><input id={`emp-${id}-phone`} type="tel" maxLength={30} value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} className={inputCls} data-testid="input-employee-phone" /></Field>
       </div>
+      <Field id={`emp-${id}-public-name`} label="Öffentlicher Anzeigename (optional)">
+        <input id={`emp-${id}-public-name`} value={f.publicName ?? ''} maxLength={100}
+          onChange={(e) => setF({ ...f, publicName: e.target.value })} className={inputCls}
+          aria-describedby={`emp-${id}-public-note`} />
+        <p id={`emp-${id}-public-note`} className="mt-1 text-sm text-muted-foreground">
+          Nur aktive Mitarbeitende mit Anzeigenamen erscheinen im veröffentlichten Salonprofil.
+        </p>
+      </Field>
       <Check id={`emp-${id}-active`} label="Aktiv" hint="Inaktive Mitarbeitende werden später nicht für Termine eingeplant." checked={f.active} onChange={(v) => setF({ ...f, active: v })} />
       <div>
         <p className="mb-2 text-sm font-medium">Arbeitszeiten (Vorlage)</p>
@@ -517,6 +532,7 @@ export function PolicySection({ ws, perms }: Props) {
   const versions = useMemo(() => [...ws.policies].sort((a, b) => b.version - a.version), [ws.policies]);
   const cur = versions[0];
   const fromPolicy = (p?: PolicyInput) => ({
+    rescheduleNoticeHours: p?.rescheduleNoticeHours ?? 0,
     noticeHours: p?.noticeHours ?? 24, lateFeeType: p?.lateFeeType ?? 'percentage', lateFee: p ? (p.lateFeeType === 'fixed' ? centsToEuro(p.lateFeeValue) : String(p.lateFeeValue)) : '100',
     noShowFeeType: p?.noShowFeeType ?? 'percentage', noShowFee: p ? (p.noShowFeeType === 'fixed' ? centsToEuro(p.noShowFeeValue) : String(p.noShowFeeValue)) : '100',
     waiverAllowed: p?.waiverAllowed ?? true, exceptions: p?.exceptions ?? '',
@@ -527,6 +543,7 @@ export function PolicySection({ ws, perms }: Props) {
   const val = (type: string, v: string) => (type === 'fixed' ? euroToCents(v) : Number(v.replace(',', '.')));
   const late = val(f.lateFeeType, f.lateFee), noShow = val(f.noShowFeeType, f.noShowFee);
   const errors = {
+    reschedule: !Number.isInteger(f.rescheduleNoticeHours) || f.rescheduleNoticeHours < 0 || f.rescheduleNoticeHours > 720 ? "0 bis 720 Stunden." : null,
     notice: !Number.isInteger(f.noticeHours) || f.noticeHours < 0 || f.noticeHours > 720 ? '0 bis 720 Stunden.' : null,
     late: !Number.isFinite(late) || late < 0 || (f.lateFeeType === 'percentage' && late > 100) ? (f.lateFeeType === 'percentage' ? '0 bis 100 %.' : 'Betrag in Euro.') : null,
     noShow: !Number.isFinite(noShow) || noShow < 0 || (f.noShowFeeType === 'percentage' && noShow > 100) ? (f.noShowFeeType === 'percentage' ? '0 bis 100 %.' : 'Betrag in Euro.') : null,
@@ -534,7 +551,7 @@ export function PolicySection({ ws, perms }: Props) {
   const submit = (e: FormEvent) => {
     e.preventDefault(); setErr(null); setOk(null);
     if (Object.values(errors).some(Boolean)) { setErr('Bitte prüfe die markierten Felder.'); return; }
-    const data: PolicyInput = { noticeHours: f.noticeHours, lateFeeType: f.lateFeeType, lateFeeValue: Math.round(late), noShowFeeType: f.noShowFeeType, noShowFeeValue: Math.round(noShow), waiverAllowed: f.waiverAllowed, exceptions: f.exceptions };
+    const data: PolicyInput = { rescheduleNoticeHours: f.rescheduleNoticeHours, noticeHours: f.noticeHours, lateFeeType: f.lateFeeType, lateFeeValue: Math.round(late), noShowFeeType: f.noShowFeeType, noShowFeeValue: Math.round(noShow), waiverAllowed: f.waiverAllowed, exceptions: f.exceptions };
     save.mutate({ organizationId: ws.id, data }, { onSuccess: (w) => { sync(w); setOk('Neue Richtlinienversion gespeichert.'); }, onError: (e2) => setErr(errOf(e2)) });
   };
   return (
@@ -546,6 +563,10 @@ export function PolicySection({ ws, perms }: Props) {
       {!perms.canEdit && <ReadOnlyNote>Nur Inhaber:innen und Leitungen können die Regeln ändern.</ReadOnlyNote>}
       <form onSubmit={submit} noValidate>
         <fieldset disabled={!perms.canEdit} className="grid gap-4 sm:grid-cols-2">
+          <Field id="reschedule-notice" label="Online umbuchen bis (Stunden vorher)" error={errors.reschedule}>
+            <input id="reschedule-notice" type="number" min={0} max={720} value={f.rescheduleNoticeHours}
+              onChange={(event) => setF({ ...f, rescheduleNoticeHours: Number(event.target.value) })} className={inputCls} />
+          </Field>
           <Field id="policy-notice" label="Kostenlos stornierbar bis (Stunden vorher)" error={errors.notice} className="sm:col-span-2"><input id="policy-notice" type="number" min={0} max={720} value={f.noticeHours} onChange={(e) => setF({ ...f, noticeHours: Number(e.target.value) })} className={inputCls} data-testid="input-policy-notice" /></Field>
           <Field id="policy-late-type" label="Späte Stornierung: Art"><select id="policy-late-type" value={f.lateFeeType} onChange={(e) => setF({ ...f, lateFeeType: e.target.value as PolicyInput['lateFeeType'] })} className={inputCls} data-testid="select-policy-late-type"><option value="percentage">Prozent der Leistung</option><option value="fixed">Fester Betrag</option></select></Field>
           <Field id="policy-late-value" label={f.lateFeeType === 'percentage' ? 'Späte Stornierung: Prozent' : 'Späte Stornierung: Euro'} error={errors.late}><input id="policy-late-value" inputMode="decimal" value={f.lateFee} onChange={(e) => setF({ ...f, lateFee: e.target.value })} className={inputCls} data-testid="input-policy-late-value" /></Field>

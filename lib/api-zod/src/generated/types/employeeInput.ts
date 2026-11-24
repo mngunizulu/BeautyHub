@@ -13,6 +13,8 @@ export interface EmployeeInput {
      * @maxLength 100
      */
   displayName: string;
+  /** @maxLength 100 */
+  publicName?: string;
   /** @maxLength 200 */
   email: string;
   /** @maxLength 30 */

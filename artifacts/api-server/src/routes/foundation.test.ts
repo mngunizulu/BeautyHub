@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import request from "supertest";
 import { eq } from "drizzle-orm";
-import { db, pool, categories, organizations, locations, services, memberships, users } from "@workspace/db";
+import { db, pool, categories, organizations, locations, services, serviceVariants, memberships, users } from "@workspace/db";
 import app from "../app";
 import { literalPattern } from "../repositories/catalog";
 
@@ -12,6 +12,7 @@ const categoryId = randomUUID();
 const locationId = randomUUID();
 const hiddenId = randomUUID();
 const identityId = randomUUID();
+const publicServiceId = randomUUID();
 const token = `qa-${randomUUID()}`;
 beforeAll(async () => {
   if (process.env.NODE_ENV !== "test") throw new Error("Integration suite requires NODE_ENV=test.");
@@ -27,14 +28,19 @@ beforeAll(async () => {
     address: "Testweg 2", postalCode: "00000", imageKey: "hair", published: false,
   }]);
   await db.insert(services).values([
-    { locationId, name: "Fixture service", description: "Public fixture", durationMinutes: 30, priceCents: 3200, published: true },
+    { id: publicServiceId, locationId, name: "Fixture service", description: "Public fixture", durationMinutes: 30, priceCents: 3200, published: true },
     { locationId, name: "Private secret service", description: "Hidden fixture", durationMinutes: 60, priceCents: 100, published: false },
+  ]);
+  await db.insert(serviceVariants).values([
+    { serviceId: publicServiceId, name: "Langhaar", durationMinutes: 45, priceCents: 4200 },
+    { serviceId: publicServiceId, name: "Archived variant", durationMinutes: 60, priceCents: 5000, archived: true },
   ]);
   await db.insert(users).values({ id: identityId, externalIdentityId: token });
 });
 afterAll(async () => {
   await db.delete(memberships).where(eq(memberships.userId, identityId));
   await db.delete(users).where(eq(users.id, identityId));
+  await db.delete(serviceVariants).where(eq(serviceVariants.serviceId, publicServiceId));
   await db.delete(locations).where(eq(locations.organizationId, organizationId));
   await db.delete(organizations).where(eq(organizations.id, organizationId));
   await db.delete(categories).where(eq(categories.id, categoryId));
@@ -73,6 +79,9 @@ describe("foundation API and real database persistence", () => {
     expect(res.status).toBe(200);
     expect(res.body.services).toHaveLength(1);
     expect(res.body.services[0].priceCents).toBe(3200);
+    expect(res.body.services[0].variants).toEqual([
+      { id: expect.any(String), name: "Langhaar", durationMinutes: 45, priceCents: 4200 },
+    ]);
     expect(res.body.openingHours).toEqual([]);
   });
   it("does not expose unpublished businesses", async () => {
@@ -82,6 +91,31 @@ describe("foundation API and real database persistence", () => {
   it("filters by published service name", async () => {
     const res = await request(app).get("/api/businesses").query({ q: "Fixture service", category: token });
     expect(res.body).toHaveLength(1);
+  });
+  it("matches service name and maximum price on the same public service", async () => {
+    const search = (service: string, maxPriceCents: number) => request(app)
+      .get("/api/businesses").query({ category: token, city: "Teststadt", service, maxPriceCents });
+    const match = await search("fixture service", 3200);
+    expect(match.status).toBe(200);
+    expect(match.body).toHaveLength(1);
+    expect(match.body[0].id).toBe(locationId);
+    expect((await search("fixture service", 3199)).body).toEqual([]);
+    expect((await search("private secret service", 3200)).body).toEqual([]);
+    expect((await search("%", 3200)).body).toEqual([]);
+  });
+  it("matches active variants using the variant price when its name matches", async () => {
+    const search = (filters: Record<string, string | number>) => request(app)
+      .get("/api/businesses").query({ category: token, ...filters });
+    expect((await search({ q: "langhaar" })).body).toHaveLength(1);
+    expect((await search({ service: "langhaar", maxPriceCents: 4200 })).body).toHaveLength(1);
+    expect((await search({ service: "langhaar", maxPriceCents: 4199 })).body).toEqual([]);
+    expect((await search({ q: "Archived variant" })).body).toEqual([]);
+    expect((await search({ service: "Archived variant", maxPriceCents: 5000 })).body).toEqual([]);
+  });
+  it("rejects malformed maximum prices", async () => {
+    for (const query of ["maxPriceCents=", "maxPriceCents=-1", "maxPriceCents=1.5", "maxPriceCents=10000001", "maxPriceCents=1&maxPriceCents=2"]) {
+      expect((await request(app).get(`/api/businesses?${query}`)).status).toBe(400);
+    }
   });
   it("does not match private service names", async () => {
     const res = await request(app).get("/api/businesses").query({ q: "Private secret service" });
@@ -139,12 +173,15 @@ describe("foundation API and real database persistence", () => {
   });
   it("returns all ten planned stages and disabled future features", async () => {
     const res = await request(app).get("/api/system");
-    expect(res.body).toMatchObject({ stage: 2, bookingEnabled: false, authenticationEnabled: true, locale: "de-DE" });
+    expect(res.body).toMatchObject({ stage: 5, bookingEnabled: true, authenticationEnabled: true, locale: "de-DE" });
     expect(res.body.stages).toHaveLength(10);
   });
   it("does not advertise cross-origin access and sends security headers", async () => {
     const res = await request(app).get("/api/system").set("Origin", "https://untrusted.example");
     expect(res.headers["access-control-allow-origin"]).toBeUndefined();
+    const malformedOrigin = await request(app).post("/api/me/deletion-requests").set("Origin", "null");
+    expect(malformedOrigin.status).toBe(403);
+
     expect(res.headers["x-powered-by"]).toBeUndefined();
     expect(res.headers["x-content-type-options"]).toBe("nosniff");
     expect(res.headers["ratelimit"]).toBeDefined();

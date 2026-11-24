@@ -6,10 +6,12 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { OrganizationSummary } from './organizationSummary';
+import type { PersonalExportRecords } from './personalExportRecords';
 import type { UserProfile } from './userProfile';
 
 export interface PersonalExport {
   profile: UserProfile;
   organizations: OrganizationSummary[];
-  exportedAt: string;
+  exportedAt: Date;
+  records: PersonalExportRecords;
 }

@@ -46,7 +46,9 @@ app.use(
 app.use((req, res, next) => {
   if (!["GET", "HEAD", "OPTIONS"].includes(req.method)) {
     const origin = req.get("origin");
-    if (req.get("sec-fetch-site") === "cross-site" || (origin && new URL(origin).host !== getClerkProxyHost(req))) {
+    const parsedOrigin = origin && URL.canParse(origin) ? new URL(origin) : null;
+    if (req.get("sec-fetch-site") === "cross-site" || (origin && (!parsedOrigin ||
+        !["http:", "https:"].includes(parsedOrigin.protocol) || parsedOrigin.host !== getClerkProxyHost(req)))) {
       res.status(403).json({ error: "Anfrage von fremder Herkunft abgelehnt.", code: "FORBIDDEN" });
       return;
     }

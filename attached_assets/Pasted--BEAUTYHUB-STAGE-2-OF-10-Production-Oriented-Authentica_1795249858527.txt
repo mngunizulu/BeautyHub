@@ -1,0 +1,656 @@
+# BEAUTYHUB — STAGE 2 OF 10
+## Production-Oriented Authentication, Business Onboarding, Staff Management and Booking Foundations
+
+You are continuing development of the existing BeautyHub application in Replit.
+
+Stage 1 has been reported complete and the application is running in Preview.
+
+This is Stage 2 of the established ten-stage development roadmap.
+
+Your objective is to implement working authentication, secure multi-tenant business onboarding, employee management foundations, business service administration, and the data structures needed for future multi-service bookings, card-on-file payments and configurable cancellation policies.
+
+**Do not create a new application. Extend the existing project.**
+
+---
+
+## 1. Inspect and preserve Stage 1
+
+Before implementation, inspect:
+
+- `replit.md`
+- `docs/PROJECT_STATE.md`
+- `docs/ROADMAP.md`
+- `docs/ARCHITECTURE.md`
+- `docs/PROJECT_SPEC.md`
+
+Inspect the existing application modules, particularly:
+
+- `artifacts/beautyhub/`
+- `artifacts/api-server/`
+- `lib/db/`
+- `lib/api-spec/`
+
+Stage 1 reportedly delivered:
+
+- A responsive German-language frontend.
+- A PostgreSQL-backed API.
+- Three fictional salon records.
+- Nine services.
+- Nine categories.
+- Public salon profiles and service prices.
+- API health checks.
+- 27 passing unit/API tests.
+- Basic protected-route foundations.
+- Persistent development documentation.
+
+Verify these facts against the actual implementation.
+
+Do not assume functionality exists solely because a UI element is displayed.
+
+Preserve existing business, service and category records.
+
+Extend the current architecture rather than creating duplicate database models or parallel implementations.
+
+Stage 1 Playwright browser interactions were not executed. Establish functioning browser-level test coverage during this stage.
+
+---
+
+## 2. Consumer authentication and account management
+
+Implement complete customer authentication using Replit's supported managed authentication solution where appropriate.
+
+Verify the current supported authentication integration before implementation.
+
+Do not build a custom password system if a suitable managed authentication provider is available.
+
+Required functionality:
+
+- Customer registration.
+- Customer login.
+- Customer logout.
+- Secure persistent sessions.
+- Session expiration handling.
+- Customer account recovery through supported provider workflows.
+- Customer profile creation.
+- Profile editing.
+- Email address.
+- Display name.
+- Contact telephone number.
+- Notification preferences.
+- Account settings.
+- Protected customer dashboard.
+- Personal-data export and account deletion workflow foundations.
+
+After successful registration, each user must have a persistent database identity.
+
+User records must not be duplicated on every login.
+
+The application must correctly recognize returning users.
+
+Authentication must survive ordinary browser refreshes and navigation.
+
+Unauthenticated users attempting to access protected routes must receive appropriate authentication handling.
+
+Customer-facing forms must have real validation and error messages.
+
+---
+
+## 3. Multiple roles and business memberships
+
+Implement an extensible authorization system supporting:
+
+1. Guest.
+2. Registered consumer.
+3. Business owner.
+4. Business manager.
+5. Employee.
+6. Platform administrator.
+
+A single user may be:
+
+- A normal consumer.
+- An owner of one or more businesses.
+- An employee of another business.
+- A manager at another location.
+
+Do not model these roles as mutually exclusive global account types.
+
+Use database-backed organization memberships and role assignments.
+
+Required concepts:
+
+- Global user identity.
+- Organization.
+- Business membership.
+- Membership role.
+- Membership status.
+- Business location.
+- Employee profile.
+- Invitations.
+
+All protected business operations must verify organizational membership and applicable permissions on the backend.
+
+Never trust a frontend-supplied role or tenant identifier without server-side authorization.
+
+Platform administrator privileges must require a separately controlled trusted assignment mechanism.
+
+Users must not be able to grant themselves administrator access.
+
+---
+
+## 4. Business registration and onboarding
+
+Allow authenticated users to register a new business.
+
+Create a genuine multi-step onboarding workflow.
+
+The onboarding process should cover:
+
+**Step 1 — Business identity**
+
+- Business name.
+- Business category.
+- Business description.
+- Contact email.
+- Telephone number.
+- Website, if applicable.
+
+**Step 2 — Address and location**
+
+- Country.
+- Postal code.
+- City.
+- Street.
+- House number.
+- Optional additional address details.
+- Coordinates when available.
+
+**Step 3 — Business operations**
+
+- Opening hours.
+- Time zone.
+- Contact preferences.
+- Appointment availability settings.
+- Basic business policies.
+
+**Step 4 — Employees**
+
+- Business owner.
+- Employee records.
+- Optional staff invitations.
+- Staff roles.
+
+**Step 5 — Services**
+
+- Service categories.
+- Services.
+- Prices.
+- Durations.
+- Employee assignments.
+
+**Step 6 — Review**
+
+- Display the configured business profile.
+- Identify incomplete required information.
+- Allow the owner to save an unpublished draft.
+- Provide a controlled publication action.
+
+Business data must be stored in PostgreSQL.
+
+The onboarding process must support saving progress and resuming later.
+
+Business owners must be able to edit their information after onboarding.
+
+Never publish incomplete or unauthorized business records automatically.
+
+---
+
+## 5. Dynamic German cities and addresses
+
+The existing prototype must not be permanently limited to Berlin and "All Cities".
+
+Implement city support based on structured business address data.
+
+Businesses should be registerable in any valid German town or city.
+
+Do not hardcode a fixed list of supported cities into the application architecture.
+
+The address model must support:
+
+- Country.
+- Postal code.
+- City.
+- Street address.
+- Geographic coordinates where available.
+- Appropriate location validation.
+
+Use the existing salon records and migrate them into this structure if needed.
+
+Public location filters should be based on actual registered business locations.
+
+A new business registered in Essen, for example, must be represented as a business in Essen without requiring a source-code change.
+
+Future Stage 3 marketplace search must be able to use these location records.
+
+Do not fabricate real business listings.
+
+Synthetic development businesses must be clearly identified.
+
+---
+
+## 6. Extensible business and service categories
+
+Extend the existing category database structure rather than recreating it.
+
+Support platform-managed business categories such as:
+
+- Hairdresser.
+- Barbershop.
+- Nail studio.
+- Beauty studio.
+- Spa.
+- Massage studio.
+- Wellness center.
+- Skincare studio.
+- Eyebrow and eyelash specialist.
+
+The architecture must support adding new categories without modifying source code.
+
+Distinguish:
+
+- Business category.
+- Service category.
+- Individual service.
+- Service variant.
+- Employee-service assignment.
+
+Authorized platform administrators must eventually be able to manage category definitions.
+
+Business owners must be able to manage the services they offer.
+
+Do not restrict business functionality to hair salons.
+
+Do not impose a hardcoded list of specific services.
+
+---
+
+## 7. Business service catalog administration
+
+Implement functional service management in the business dashboard.
+
+Business owners and authorized managers must be able to:
+
+- Add services.
+- Edit services.
+- Delete or archive services safely.
+- Set descriptions.
+- Set prices.
+- Set durations.
+- Assign categories.
+- Assign eligible employees.
+- Enable or disable online booking for individual services.
+- Define optional preparation and cleanup buffers.
+- Manage service variants.
+
+Use appropriate decimal or integer-minor-unit representation for money.
+
+Service updates must persist in PostgreSQL.
+
+Published changes must appear in the public business profile.
+
+Avoid deleting service records in ways that would invalidate existing references or historical data.
+
+Validate ownership and permissions on every modification.
+
+### Multi-service booking readiness
+
+The future booking system must support a customer selecting multiple services in one appointment, such as:
+
+- Haircut.
+- Beard trim.
+- Wash.
+- Coloring.
+
+Prepare the service and pricing architecture for this combination.
+
+Services must have stable identifiers, prices, durations and scheduling metadata.
+
+Document and establish the appropriate domain boundary for future Booking and BookingItem records.
+
+Do not implement the complete booking engine in this stage.
+
+Stage 4 will implement multi-service scheduling, conflict detection and persisted appointments.
+
+---
+
+## 8. Employee administration
+
+Business owners and authorized managers must be able to:
+
+- Create employee profiles.
+- Invite registered or new users.
+- Assign business roles.
+- Edit employee information.
+- Assign eligible services.
+- Define working-hour templates.
+- Set a basic location assignment.
+- Activate or deactivate employee memberships.
+- Remove employee access.
+- View the employee list.
+
+Invitations must use secure, expiring, single-use tokens or a suitable managed invitation mechanism.
+
+Never allow arbitrary invitation acceptance without validating the intended recipient and authorization.
+
+Employee-service relationships must be stored in the database.
+
+The scheduling engine will use these relationships later.
+
+Employee records must be isolated between businesses.
+
+---
+
+## 9. Cancellation-policy foundations
+
+Prepare an extensible, database-driven cancellation-policy model.
+
+Initial default business policy:
+
+- Free cancellation until 24 hours before the appointment.
+- Cancellation inside that period: configured fee of 100% of the booked service total.
+- No-show: configured fee of 100% of the booked service total.
+
+These values must be configurable policy data, not hardcoded application logic.
+
+The future policy engine must support:
+
+- Different notice periods.
+- Percentage-based fees.
+- Fixed fees.
+- No-show rules.
+- Waivers.
+- Exceptions.
+- Policy versions.
+- Customer acceptance records.
+- Historical policy snapshots.
+
+Allow business owners to view and configure basic cancellation-policy settings, subject to platform controls.
+
+Document that real-money enforcement requires legal review and valid customer payment authorization.
+
+Do not implement actual fee collection in Stage 2.
+
+Do not claim that a 100% cancellation fee is automatically legally enforceable in Germany.
+
+---
+
+## 10. Payment-method foundations
+
+BeautyHub will eventually require registered customers to save a payment card before confirming appointments.
+
+The intended future booking behavior is:
+
+1. Customer selects one or more services.
+2. Customer chooses an available time.
+3. Customer signs in.
+4. Customer securely provides a payment card through a payment provider.
+5. Customer accepts the applicable cancellation policy.
+6. Customer confirms the booking.
+7. No service fee is charged at booking time.
+8. The service is charged after completion or a valid cancellation/no-show charge is processed according to the accepted terms and payment rules.
+
+For Stage 2:
+
+- Design the payment-provider abstraction.
+- Prepare the customer payment-method association model.
+- Establish secure authorization boundaries.
+- Document the required future setup-intent and off-session payment workflows.
+- Ensure the data model never requires raw card data.
+- Do not store card numbers or CVV.
+- Do not create fake production payment credentials.
+- Do not build misleading card-entry fields that appear to save real payment cards.
+
+Stripe SetupIntents or an equivalent provider may be considered in the later payment integration stage.
+
+Until the provider is configured, display only clearly labeled development placeholders where necessary.
+
+Actual card-on-file setup, booking payment authorization, and fee collection belong to later stages.
+
+---
+
+## 11. Business dashboard
+
+Create a functional authenticated business-owner dashboard.
+
+Required sections:
+
+- Overview.
+- Business profile.
+- Locations.
+- Employees.
+- Services.
+- Opening hours.
+- Booking settings.
+- Cancellation policy.
+- Account and organization settings.
+
+Show appointment/calendar navigation as a future module if necessary, but do not falsely represent it as functional before Stage 4.
+
+All implemented settings must persist to the backend.
+
+Business owners must be able to return to the dashboard and see their saved changes.
+
+Use responsive layouts suitable for desktop and mobile devices.
+
+German is the primary interface language.
+
+---
+
+## 12. Authorization and data security
+
+Mandatory protections:
+
+- Secure managed authentication integration.
+- Server-side role and membership checks.
+- Tenant isolation.
+- Input validation.
+- Appropriate rate limiting.
+- Secure invitation workflows.
+- Safe error responses.
+- Protected administrator routes.
+- No sensitive data in logs.
+- Environment-based secret management.
+- File upload validation where applicable.
+- Audit records for sensitive membership and role changes.
+
+Never rely solely on hidden frontend buttons for authorization.
+
+Test direct API access as well as normal UI navigation.
+
+---
+
+## 13. Database migrations
+
+Inspect the existing schema.
+
+Extend it carefully.
+
+Use version-controlled migrations.
+
+Preserve existing Stage 1 businesses, categories and services.
+
+Do not create duplicate records on repeated setup or seed runs.
+
+Do not silently reset the database to resolve migration failures.
+
+Recommended domain entities include:
+
+- User.
+- Organization.
+- OrganizationMembership.
+- BusinessProfile.
+- BusinessLocation.
+- EmployeeProfile.
+- EmployeeService.
+- WorkingScheduleTemplate.
+- BusinessCategory.
+- ServiceCategory.
+- Service.
+- ServiceVariant.
+- CancellationPolicy.
+- PaymentProviderCustomerReference, when appropriate.
+
+Names may differ depending on the existing schema.
+
+Do not create redundant models where existing entities already satisfy the requirements.
+
+---
+
+## 14. Mandatory automated tests
+
+Implement unit, API integration and browser-level tests.
+
+### Authentication
+
+Verify:
+
+- Successful registration.
+- Successful login.
+- Logout.
+- Persistent sessions.
+- Account recovery flow.
+- Invalid authentication.
+- Protected routes.
+- Duplicate user prevention.
+
+### Business onboarding
+
+Verify:
+
+- Business creation.
+- Owner membership creation.
+- Address validation.
+- Business category assignment.
+- Draft and published states.
+- Incomplete onboarding.
+- Returning to edit a business.
+- Multiple organizations belonging to the same user.
+
+### Employees and permissions
+
+Verify:
+
+- Employee invitation.
+- Secure invitation acceptance.
+- Role assignment.
+- Unauthorized role modification rejection.
+- Membership deactivation.
+- Service assignment.
+- Business isolation.
+
+### Service catalog
+
+Verify:
+
+- Creating services.
+- Updating prices and durations.
+- Assigning categories.
+- Service availability settings.
+- Service ownership.
+- Unpublished service behavior.
+- Tenant isolation.
+- Preservation of Stage 1 data.
+
+### Policies and payment foundations
+
+Verify:
+
+- Default policy configuration.
+- Policy modifications.
+- Policy version tracking.
+- No raw card data persistence.
+- Unauthorized payment-reference access.
+
+### Browser end-to-end test
+
+Execute a real browser-based workflow:
+
+1. Open the existing BeautyHub application.
+2. Register a consumer.
+3. Log in.
+4. Open the customer dashboard.
+5. Create a business as an authorized user.
+6. Complete the onboarding flow.
+7. Create a service.
+8. Add an employee.
+9. Assign the employee to the service.
+10. Set opening hours and cancellation rules.
+11. Publish the business.
+12. Log out.
+13. Open the public marketplace.
+14. Locate the newly published business.
+15. Verify its real services and prices are displayed.
+
+Do not merely configure Playwright. Execute the browser tests where the environment supports them.
+
+Use actual test outcomes and record any environment limitations.
+
+### Regression
+
+Rerun the Stage 1 tests.
+
+All previously passing tests should remain passing.
+
+---
+
+## 15. Completion criteria
+
+Stage 2 is complete only when:
+
+1. Real user registration and sign-in work.
+2. Customer sessions persist properly.
+3. Business owners can create and manage their organizations.
+4. Multi-tenant authorization is enforced.
+5. Business onboarding persists data.
+6. Employees and roles are manageable.
+7. Business owners can create and edit services.
+8. Business addresses are not restricted to Berlin.
+9. Business and service categories are extensible.
+10. Cancellation-policy settings are stored as configurable data.
+11. Payment architecture is prepared without processing card data.
+12. Public business profiles reflect real published changes.
+13. Automated tests pass.
+14. An actual browser onboarding flow has been tested.
+15. Stage 1 functionality still works.
+
+Do not mark Stage 2 complete based only on screenshots or successful component rendering.
+
+---
+
+## 16. Execution rules
+
+Work incrementally.
+
+For each task:
+
+1. Inspect relevant files.
+2. Implement the smallest coherent change.
+3. Run relevant tests.
+4. Fix failures.
+5. Update `docs/PROJECT_STATE.md`.
+6. Record test results in `docs/TEST_REPORT.md`.
+7. Continue with the next task.
+
+Avoid unnecessary planning and documentation expansion.
+
+Do not rebuild the entire application.
+
+Do not deploy or publish.
+
+Do not activate paid services.
+
+Do not implement Stage 3 or Stage 4 prematurely.
+
+When complete, provide a factual summary of implemented functionality, test results, outstanding limitations, and the next development stage.
+
+**Begin Stage 2 implementation now, starting with real authentication and organization membership.**

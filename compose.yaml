@@ -1,0 +1,68 @@
+# Local development and deployment smoke testing.
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: beautyhub
+      POSTGRES_DB: beautyhub
+      POSTGRES_PASSWORD: beautyhub-local-only
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U beautyhub -d beautyhub"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    image: beautyhub-local-migrate:${BEAUTYHUB_IMAGE_TAG:-dev}
+    build:
+      context: .
+      target: database-tools
+      args:
+        VITE_CLERK_PUBLISHABLE_KEY: ${CLERK_PUBLISHABLE_KEY:-}
+    environment:
+      DATABASE_URL: postgresql://beautyhub:beautyhub-local-only@db:5432/beautyhub
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    image: beautyhub-local-api:${BEAUTYHUB_IMAGE_TAG:-dev}
+    build:
+      context: .
+      target: api
+      args:
+        VITE_CLERK_PUBLISHABLE_KEY: ${CLERK_PUBLISHABLE_KEY:-}
+    environment:
+      DATABASE_URL: postgresql://beautyhub:beautyhub-local-only@db:5432/beautyhub
+      CLERK_PUBLISHABLE_KEY: ${CLERK_PUBLISHABLE_KEY:-}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:-}
+      BEAUTYHUB_TEST_ERASURE: ${BEAUTYHUB_TEST_ERASURE:-0}
+      BEAUTYHUB_BOOKING_EMAIL_MODE: capture
+      BEAUTYHUB_BOOKING_EMAIL_REMINDERS: "1"
+      BEAUTYHUB_BOOKING_EMAIL_FOLLOW_UPS: "1"
+      BEAUTYHUB_BOOKING_EMAIL_APP_URL: http://localhost:${BEAUTYHUB_HTTP_PORT:-8080}/
+      BEAUTYHUB_MARKETING_CAPTURE_APP_URL: http://localhost:${BEAUTYHUB_HTTP_PORT:-8080}/
+      BEAUTYHUB_BOOKING_EMAIL_CAPTURE_DIR: /app/booking-email
+    volumes:
+      - booking-email:/app/booking-email
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  web:
+    image: beautyhub-local-web:${BEAUTYHUB_IMAGE_TAG:-dev}
+    build:
+      context: .
+      target: web
+      args:
+        VITE_CLERK_PUBLISHABLE_KEY: ${CLERK_PUBLISHABLE_KEY:-}
+    ports:
+      - "127.0.0.1:${BEAUTYHUB_HTTP_PORT:-8080}:80"
+    depends_on:
+      - api
+
+volumes:
+  postgres-data:
+  booking-email:

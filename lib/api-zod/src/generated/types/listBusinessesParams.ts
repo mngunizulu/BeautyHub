@@ -19,4 +19,20 @@ city?: string;
  * @maxLength 60
  */
 category?: string;
+/**
+ * @minLength 1
+ * @maxLength 100
+ */
+service?: string;
+/**
+ * Maximum price of the matching public service or variant in EUR cents
+ * @minimum 0
+ * @maximum 10000000
+ */
+maxPriceCents?: number;
+/**
+ * Local date with at least one bookable slot for a matching offering
+ * @pattern ^\d{4}-\d{2}-\d{2}$
+ */
+date?: string;
 };

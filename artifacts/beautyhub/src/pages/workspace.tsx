@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useParams, useSearch } from 'wouter';
-import { ArrowLeft, CalendarClock, Check, Circle, Clock, FileText, LayoutGrid, MapPin, Scissors, Settings2, ShieldCheck, Sparkles, Users } from 'lucide-react';
+import { ArrowLeft, BarChart3, CalendarClock, Check, Circle, Clock, FileText, LayoutGrid, MapPin, Package, Scissors, Settings2, ShieldCheck, Sparkles, Users } from 'lucide-react';
 import { useGetOrganizationWorkspace, getGetOrganizationWorkspaceQueryKey, useSaveOrganizationProfile, type BusinessWorkspace } from '@workspace/api-client-react';
 import { FormStatus, Panel, PrimaryButton } from '@/components/forms';
 import { ErrorState, DemoBadge } from '@/components/site';
@@ -8,6 +8,18 @@ import {
   LocationEditor, LocationPartSection, LocationsSection, OrganizationSettingsSection, PolicySection, ProfileSection, PublicationPanel,
   ServicesSection, StaffSection, InvitePanel, profileDto, type Perms,
 } from '@/components/workspace-sections';
+import { ProfessionalPricingSettings } from '@/components/professional-pricing';
+import { PrivateCrm } from '@/components/private-crm';
+import { StaffOperations } from '@/components/staff-operations';
+import { BusinessSaasPlan } from '@/components/saas-plans';
+import { BusinessAnalytics } from '@/components/business-analytics';
+import { BusinessPackages } from '@/components/service-packages';
+import { LoyaltySettings } from '@/components/loyalty';
+import { BusinessReviews } from '@/components/business-reviews';
+import { MarketingCampaigns } from '@/components/marketing';
+import { LocationInventory } from '@/components/location-inventory';
+import { BookingSettings, BusinessCalendar } from '@/components/booking-calendar';
+import { GalleryPanel } from '@/components/gallery';
 import { AuthSkeleton } from '@/lib/auth';
 import { errorText, roleLabel, statusOf, useWorkspaceSync } from '@/lib/api';
 import { formatCents } from '@/lib/format';
@@ -17,9 +29,14 @@ const SECTIONS = [
   { key: 'uebersicht', label: 'Übersicht', icon: LayoutGrid },
   { key: 'profil', label: 'Profil', icon: FileText },
   { key: 'standorte', label: 'Standorte', icon: MapPin },
+  { key: 'berichte', label: 'Berichte', icon: BarChart3, edit: true },
+  { key: 'marketing', label: 'Marketing', icon: Sparkles, edit: true },
+  { key: 'kunden', label: 'Kunden', icon: Users, edit: true },
   { key: 'team', label: 'Mitarbeitende', icon: Users },
   { key: 'leistungen', label: 'Leistungen', icon: Scissors },
   { key: 'zeiten', label: 'Öffnungszeiten', icon: Clock },
+  { key: 'lager', label: 'Lager', icon: Package, edit: true },
+  { key: 'kalender', label: 'Kalender', icon: CalendarClock, edit: true },
   { key: 'buchung', label: 'Buchungseinstellungen', icon: CalendarClock },
   { key: 'storno', label: 'Stornierung', icon: ShieldCheck },
   { key: 'organisation', label: 'Organisation', icon: Settings2 },
@@ -68,8 +85,8 @@ export default function WorkspacePage() {
         </div>
         {ws.isDemo && <DemoBadge />}
       </header>
-      <div className="mt-6 grid gap-8 lg:grid-cols-[230px_1fr]">
-        <nav aria-label="Betriebsbereiche" className="lg:sticky lg:top-24 lg:h-fit">
+      <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[230px_minmax(0,1fr)]">
+        <nav aria-label="Betriebsbereiche" className="min-w-0 lg:sticky lg:top-24 lg:h-fit">
           <ul className="flex gap-1 overflow-x-auto pb-2 lg:flex-col lg:overflow-visible lg:pb-0">
             {SECTIONS.filter((s) => valid.includes(s.key)).map((s) => {
               const Icon = s.icon; const on = section === s.key;
@@ -83,22 +100,28 @@ export default function WorkspacePage() {
                 </li>
               );
             })}
-            <li className="shrink-0 lg:mt-3">
-              <span className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-muted-foreground" title="Kalender und Termine folgen in Stufe 4" data-testid="nav-calendar-disabled"><CalendarClock className="h-4 w-4" />Kalender<span className="ml-auto font-mono text-[10px]">Stufe 4</span></span>
-            </li>
           </ul>
         </nav>
         <div key={section} className="min-w-0 rise">
           {section === 'einrichtung' && <Onboarding ws={ws} perms={perms} onFinish={() => go('uebersicht')} />}
           {section === 'uebersicht' && <Overview ws={ws} perms={perms} go={go} />}
           {section === 'profil' && <ProfileSection ws={ws} perms={perms} />}
-          {section === 'standorte' && <div className="space-y-6"><LocationsSection ws={ws} perms={perms} /><PublicationPanel ws={ws} perms={perms} /></div>}
-          {section === 'team' && <StaffSection ws={ws} perms={perms} />}
+          {section === 'standorte' && <div className="space-y-6"><LocationsSection ws={ws} perms={perms} /><PublicationPanel ws={ws} perms={perms} />{perms.canEdit && <GalleryPanel ws={ws} />}</div>}
+          {section === 'berichte' && <BusinessAnalytics key={ws.id} workspace={ws} />}
+          {section === 'marketing' && <div className="space-y-6"><MarketingCampaigns organizationId={ws.id} /><LoyaltySettings key={'loyalty-' + ws.id} organizationId={ws.id} /><BusinessPackages key={'packages-' + ws.id} organizationId={ws.id} services={ws.services} /><BusinessReviews key={ws.id} organizationId={ws.id} /></div>}
+          {section === 'kunden' && <PrivateCrm organizationId={ws.id} />}
+          {section === 'team' && <div className="space-y-6"><StaffSection ws={ws} perms={perms} />{perms.canEdit && <StaffOperations workspace={ws} />}</div>}
           {section === 'leistungen' && <ServicesSection ws={ws} perms={perms} />}
           {section === 'zeiten' && <LocationPartSection ws={ws} perms={perms} part="hours" title="Öffnungszeiten" kicker="Pro Standort" />}
-          {section === 'buchung' && <LocationPartSection ws={ws} perms={perms} part="booking" title="Buchungseinstellungen" kicker="Vorbereitung für Stufe 4" />}
+          {section === 'lager' && <LocationInventory workspace={ws} />}
+          {section === 'kalender' && <BusinessCalendar workspace={ws} />}
+          {section === 'buchung' && <div className="space-y-6">
+            <LocationPartSection ws={ws} perms={perms} part="booking" title="Buchungseinstellungen" kicker="Pro Standort" />
+            <BookingSettings workspace={ws} />
+            {perms.canEdit && <ProfessionalPricingSettings workspace={ws} />}
+          </div>}
           {section === 'storno' && <PolicySection ws={ws} perms={perms} />}
-          {section === 'organisation' && <OrganizationSettingsSection ws={ws} perms={perms} />}
+          {section === 'organisation' && <div className="space-y-6"><OrganizationSettingsSection ws={ws} perms={perms} />{perms.isOwner && <BusinessSaasPlan key={ws.id} organizationId={ws.id} />}</div>}
         </div>
       </div>
     </div>

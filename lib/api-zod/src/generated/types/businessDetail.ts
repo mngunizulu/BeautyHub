@@ -7,9 +7,22 @@
  */
 import type { Business } from './business';
 import type { OpeningHour } from './openingHour';
+import type { PublicStaffProfile } from './publicStaffProfile';
 import type { Service } from './service';
 
-export type BusinessDetail = Business & {
+export type BusinessDetail = Business & ({
+  verified?: boolean;
+  addressExtra?: string;
+  country?: string;
+  /** @nullable */
+  latitude?: number | null;
+  /** @nullable */
+  longitude?: number | null;
+  phone?: string;
+  website?: string;
+  socialUrl?: string;
+  logoUrl?: string;
+  staff?: PublicStaffProfile[];
   services: Service[];
   openingHours: OpeningHour[];
-};
+});

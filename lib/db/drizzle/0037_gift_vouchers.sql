@@ -1,0 +1,1 @@
+ALTER TABLE "pos_vouchers" ADD COLUMN "is_gift" boolean DEFAULT false NOT NULL;

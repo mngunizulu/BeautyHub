@@ -15,6 +15,7 @@ async function saveEmployee(req: Request, create: boolean) {
   const data = input(CreateEmployeeBody.strict(), req.body);
   data.displayName = data.displayName.trim();
   data.email = data.email.trim().toLowerCase();
+  if (data.publicName !== undefined) data.publicName = data.publicName.trim();
   if (!data.displayName) throw new HttpError(400, "Name der Fachkraft fehlt.");
   emailOrEmpty(data.email); validHours(data.workingHours);
   const [location] = await db.select().from(locations).where(and(eq(locations.id, data.locationId), eq(locations.organizationId, orgId)));

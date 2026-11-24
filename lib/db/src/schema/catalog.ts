@@ -34,7 +34,11 @@ export const locations = pgTable("locations", {
   timezone: text("timezone").notNull().default("Europe/Berlin"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   published: boolean("published").notNull().default(false),
+  differentialPricing: boolean("differential_pricing").notNull().default(false),
+  allowProfessionalChoice: boolean("allow_professional_choice").notNull().default(true),
+  allowAnyProfessional: boolean("allow_any_professional").notNull().default(true),
 }, (table) => [
+  check("location_professional_choice", sql`${table.allowProfessionalChoice} or ${table.allowAnyProfessional}`),
   index("locations_organization_idx").on(table.organizationId),
   index("locations_public_city_category_idx").on(table.published, table.city, table.categoryId),
 ]);

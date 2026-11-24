@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import { lazy, Suspense, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ClerkProvider, Show } from '@clerk/react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
@@ -8,17 +8,24 @@ import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
 import Home from '@/pages/home';
-import Salons from '@/pages/salons';
-import SalonDetail from '@/pages/salon-detail';
 import { ForBusiness, SystemPage } from '@/pages/info';
 import { AnmeldenRedirect, SignInPage, SignUpPage } from '@/pages/auth';
-import AccountPage from '@/pages/account';
-import OrganizationsPage from '@/pages/organizations';
-import WorkspacePage from '@/pages/workspace';
-import InvitationPage from '@/pages/invitation';
 import { Layout } from '@/components/site';
 import { PageMetadata } from '@/components/page-metadata';
 import { ClerkQueryClientCacheInvalidator, RequireAuth, SessionExpiryWatcher, basePath, clerkAppearance, clerkLocalization, stripBase } from '@/lib/auth';
+
+const PlatformOverview = lazy(() => import('@/pages/platform-overview'));
+const SupportPage = lazy(() => import('@/pages/support'));
+const PlatformCustomers = lazy(() => import('@/pages/platform-customers'));
+const PlatformBusinesses = lazy(() => import('@/pages/platform-businesses'));
+const ReviewModerationPage = lazy(() => import('@/pages/review-moderation'));
+const Salons = lazy(() => import('@/pages/salons'));
+const SalonDetail = lazy(() => import('@/pages/salon-detail'));
+const AccountPage = lazy(() => import('@/pages/account'));
+const OrganizationsPage = lazy(() => import('@/pages/organizations'));
+const WorkspacePage = lazy(() => import('@/pages/workspace'));
+const InvitationPage = lazy(() => import('@/pages/invitation'));
+const PlatformPlanSettings = lazy(() => import('@/components/saas-plans').then((module) => ({ default: module.PlatformPlanSettings })));
 
 // REQUIRED — copy verbatim.
 const clerkPubKey = publishableKeyFromHost(
@@ -56,6 +63,13 @@ function HomeRedirect() {
   );
 }
 
+const CustomerSupport = () => <RequireAuth><SupportPage /></RequireAuth>;
+const AdminOverview = () => <RequireAuth><PlatformOverview /></RequireAuth>;
+const AdminSupport = () => <RequireAuth><SupportPage admin /></RequireAuth>;
+const AdminCustomers = () => <RequireAuth><PlatformCustomers /></RequireAuth>;
+const AdminBusinesses = () => <RequireAuth><PlatformBusinesses /></RequireAuth>;
+const AdminPlans = () => <RequireAuth><PlatformPlanSettings /></RequireAuth>;
+const ReviewModeration = () => <RequireAuth><ReviewModerationPage /></RequireAuth>;
 const Account = () => <RequireAuth><AccountPage /></RequireAuth>;
 const Organizations = () => <RequireAuth><OrganizationsPage /></RequireAuth>;
 const Workspace = () => <RequireAuth><WorkspacePage /></RequireAuth>;
@@ -64,22 +78,31 @@ function Router() {
   return (
     <Layout>
       <RoutedErrorBoundary>
-        <Switch>
-          <Route path="/" component={HomeRedirect} />
-          <Route path="/salons" component={Salons} />
-          <Route path="/salons/:slug" component={SalonDetail} />
-          <Route path="/fuer-unternehmen" component={ForBusiness} />
-          <Route path="/sign-in/*?" component={SignInPage} />
-          <Route path="/sign-up/*?" component={SignUpPage} />
-          <Route path="/anmelden" component={AnmeldenRedirect} />
-          <Route path="/signin" component={AnmeldenRedirect} />
-          <Route path="/konto" component={Account} />
-          <Route path="/unternehmen" component={Organizations} />
-          <Route path="/unternehmen/:organizationId" component={Workspace} />
-          <Route path="/einladung" component={InvitationPage} />
-          <Route path="/system" component={SystemPage} />
-          <Route component={NotFound} />
-        </Switch>
+        <Suspense fallback={<p role="status" className="mx-auto max-w-7xl px-5 py-10">Seite wird geladen …</p>}>
+          <Switch>
+            <Route path="/" component={HomeRedirect} />
+            <Route path="/salons" component={Salons} />
+            <Route path="/salons/:slug" component={SalonDetail} />
+            <Route path="/fuer-unternehmen" component={ForBusiness} />
+            <Route path="/sign-in/*?" component={SignInPage} />
+            <Route path="/sign-up/*?" component={SignUpPage} />
+            <Route path="/anmelden" component={AnmeldenRedirect} />
+            <Route path="/signin" component={AnmeldenRedirect} />
+            <Route path="/konto/support" component={CustomerSupport} />
+            <Route path="/admin/plattform" component={AdminOverview} />
+            <Route path="/admin/support" component={AdminSupport} />
+            <Route path="/admin/kunden" component={AdminCustomers} />
+            <Route path="/admin/betriebe" component={AdminBusinesses} />
+            <Route path="/admin/tarife" component={AdminPlans} />
+            <Route path="/admin/bewertungen" component={ReviewModeration} />
+            <Route path="/konto" component={Account} />
+            <Route path="/unternehmen" component={Organizations} />
+            <Route path="/unternehmen/:organizationId" component={Workspace} />
+            <Route path="/einladung" component={InvitationPage} />
+            <Route path="/system" component={SystemPage} />
+            <Route component={NotFound} />
+          </Switch>
+        </Suspense>
       </RoutedErrorBoundary>
     </Layout>
   );

@@ -51,9 +51,12 @@ paths:
         - { name: q, in: query, schema: { type: string, maxLength: 100 } }
         - { name: city, in: query, schema: { type: string, maxLength: 100 } }
         - { name: category, in: query, schema: { type: string, maxLength: 60 } }
+        - { name: service, in: query, schema: { type: string, minLength: 1, maxLength: 100 } }
+        - { name: maxPriceCents, in: query, description: Maximum price of the matching public service or variant in EUR cents, schema: { type: integer, minimum: 0, maximum: 10000000 } }
+        - { name: date, in: query, description: Local date with at least one bookable slot for a matching offering, schema: { type: string, pattern: '^\d{4}-\d{2}-\d{2}$' } }
       responses:
         "200":
-          description: Published synthetic development businesses matching all filters
+          description: Published businesses matching all filters
           content:
             application/json:
               schema:
@@ -153,6 +156,19 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/PersonalExport" }
+  /me/deletion-requests/withdraw:
+    post:
+      operationId: withdrawMyDeletionRequest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CustomerDeletionReviewInput" }
+      responses:
+        "204":
+          description: Active request withdrawn
+        "409":
+          description: Request timestamp changed
   /me/deletion-requests:
     post:
       operationId: requestAccountDeletion
@@ -463,6 +479,1830 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiErrorResponse"
+  /businesses/{slug}/gallery:
+    parameters:
+      - { name: slug, in: path, required: true, schema: { type: string } }
+    get:
+      operationId: listPublicGallery
+      responses:
+        "200":
+          description: Published gallery
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/GalleryPhoto" } }
+  /gallery/{photoId}:
+    parameters:
+      - { name: photoId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: getPublicGalleryImage
+      responses:
+        "200":
+          description: Image bytes
+          content:
+            image/jpeg:
+              schema: { type: string, format: binary }
+            image/png:
+              schema: { type: string, format: binary }
+            image/webp:
+              schema: { type: string, format: binary }
+  /organizations/{organizationId}/locations/{locationId}/gallery:
+    parameters:
+      - { name: organizationId, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: locationId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: listManagedGallery
+      responses:
+        "200":
+          description: Tenant gallery
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/GalleryPhoto" } }
+    post:
+      operationId: uploadGalleryPhoto
+      parameters:
+        - { name: alt, in: query, required: true, schema: { type: string, minLength: 1, maxLength: 160 } }
+      requestBody:
+        required: true
+        content:
+          image/jpeg:
+            schema: { type: string, format: binary }
+          image/png:
+            schema: { type: string, format: binary }
+          image/webp:
+            schema: { type: string, format: binary }
+      responses:
+        "201":
+          description: Photo stored
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GalleryPhoto" }
+        "413":
+          description: Photo exceeds 768 KiB
+        "409":
+          description: Gallery already has 12 photos
+  /organizations/{organizationId}/locations/{locationId}/gallery/{photoId}:
+    parameters:
+      - { name: organizationId, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: locationId, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: photoId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: getManagedGalleryImage
+      responses:
+        "200":
+          description: Image bytes
+          content:
+            image/jpeg:
+              schema: { type: string, format: binary }
+            image/png:
+              schema: { type: string, format: binary }
+            image/webp:
+              schema: { type: string, format: binary }
+    delete:
+      operationId: deleteGalleryPhoto
+      responses:
+        "204":
+          description: Photo removed
+  /me/favorites:
+    get:
+      operationId: listMyFavorites
+      responses:
+        "200":
+          description: Published locations saved by the account
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/FavoriteSalon" } }
+  /me/favorites/{locationId}:
+    parameters:
+      - { name: locationId, in: path, required: true, schema: { type: string, format: uuid } }
+    put:
+      operationId: saveFavorite
+      responses:
+        "204":
+          description: Location saved
+    delete:
+      operationId: removeFavorite
+      responses:
+        "204":
+          description: Favorite removed
+
+  /businesses/{slug}/booking-quote:
+    post:
+      operationId: quoteBooking
+      description: Calculate a non-reserving quote for online-enabled services and active variants.
+      parameters:
+        - { name: slug, in: path, required: true, schema: { type: string, minLength: 1, maxLength: 100, pattern: '^[a-z0-9-]+$' } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BookingQuoteInput" }
+      responses:
+        "200":
+          description: Current server-calculated quote
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BookingQuote" }
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          description: The salon or any requested offering is unavailable
+
+  /businesses/{slug}/reviews:
+    get:
+      operationId: listPublicBusinessReviews
+      tags: [catalog]
+      parameters:
+        - { in: path, name: slug, required: true, schema: { type: string } }
+        - { in: query, name: sort, schema: { type: string, enum: [newest, highest, lowest] } }
+        - { in: query, name: offset, schema: { type: integer, minimum: 0, maximum: 99999 } }
+      responses:
+        "200":
+          description: Public reviews and rating summary
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PublicReviewPage" }
+  /businesses/{slug}/available-dates:
+    post:
+      operationId: getBusinessAvailableDates
+      tags: [booking]
+      parameters:
+        - { in: path, name: slug, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AvailableDatesInput" }
+      responses:
+        "200":
+          description: Availability for seven consecutive days
+          content:
+            application/json:
+              schema: { type: array, items: { type: object, required: [date, available], properties: { date: { type: string, format: date }, available: { type: boolean } } } }
+  /businesses/{slug}/availability:
+    parameters:
+      - { name: slug, in: path, required: true, schema: { type: string } }
+    post:
+      operationId: checkBookingAvailability
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [date, items], properties: { date: { type: string, format: date }, professionalId: { type: string, format: uuid }, items: { type: array, items: { type: object, required: [serviceId], properties: { serviceId: { type: string, format: uuid }, variantId: { type: string, format: uuid } } } } } }
+      responses:
+        "200":
+          description: Quote, current policy and available slots
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BookingAvailability" }
+  /businesses/{slug}/bookings:
+    parameters:
+      - { name: slug, in: path, required: true, schema: { type: string } }
+    post:
+      operationId: createAppointment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [items, employeeId, startsAt, idempotencyKey, policyVersion, expectedPriceCents, paymentMethodId, acceptPolicy], properties: { items: { type: array, items: { type: object, required: [serviceId], properties: { serviceId: { type: string, format: uuid }, variantId: { type: string, format: uuid } } } }, employeeId: { type: string, format: uuid }, startsAt: { type: string, format: date-time }, idempotencyKey: { type: string, format: uuid }, policyVersion: { type: integer }, expectedPriceCents: { type: integer }, paymentMethodId: { type: string, format: uuid }, acceptPolicy: { type: boolean, enum: [true] }, appointmentNote: { type: string, maxLength: 500 }, expectedEndsAt: { type: string, format: date-time }, expectedProfessionals: { type: array, minItems: 1, maxItems: 12, items: { type: string, format: uuid } } } }
+      responses:
+        "201":
+          description: Booking confirmed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Appointment" }
+        "200":
+          description: Idempotent replay
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Appointment" }
+        "409":
+          description: No longer available or quote changed
+  /businesses/{slug}/waitlist:
+    parameters:
+      - { name: slug, in: path, required: true, schema: { type: string } }
+    post:
+      operationId: joinBookingWaitlist
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [date], properties: { date: { type: string, format: date } } }
+      responses:
+        "204":
+          description: Waitlist entry saved
+  /me/bookings:
+    get:
+      operationId: listMyAppointments
+      responses:
+        "200":
+          description: Customer appointments
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/Appointment" } }
+  /admin/review-moderation:
+    get:
+      operationId: listReviewModerationQueue
+      parameters:
+        - { name: offset, in: query, schema: { type: integer, minimum: 0, maximum: 1000000 } }
+      responses:
+        "200":
+          description: Reviews with open reports and hidden reviews
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ReviewModerationPage" }
+        "403":
+          description: Platform administrator access required
+  /admin/review-moderation/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    put:
+      operationId: moderateReportedReview
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ReviewModerationInput" }
+      responses:
+        "204":
+          description: Moderation decision applied
+        "403":
+          description: Platform administrator access required
+        "409":
+          description: No open report
+  /organizations/{organizationId}/service-packages:
+    parameters:
+      - { $ref: "#/components/parameters/OrganizationId" }
+    get:
+      operationId: listOrganizationPackages
+      responses:
+        "200":
+          description: Business package offers
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/ManagedServicePackage" } }
+    post:
+      operationId: createOrganizationPackage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ServicePackageTerms" }
+      responses:
+        "201":
+          description: Package created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ManagedServicePackage" }
+  /organizations/{organizationId}/service-packages/{id}:
+    parameters:
+      - { $ref: "#/components/parameters/OrganizationId" }
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    put:
+      operationId: updateOrganizationPackage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ServicePackageAvailability" }
+      responses:
+        "200":
+          description: Package availability updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ManagedServicePackage" }
+  /me/service-packages:
+    get:
+      operationId: listMyServicePackages
+      responses:
+        "200":
+          description: Signed-in customer's simulated package purchases
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/CustomerServicePackage" } }
+  /me/service-packages/offers:
+    get:
+      operationId: listServicePackageOffers
+      responses:
+        "200":
+          description: Packages for public bookable services
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/ServicePackageOffer" } }
+  /me/service-packages/offers/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: simulateCustomerPackagePurchase
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ServicePackagePurchaseInput" }
+      responses:
+        "200":
+          description: Simulated purchase recorded
+          content:
+            application/json:
+              schema: { type: object, required: [id], properties: { id: { type: string, format: uuid } } }
+  /organizations/{organizationId}/booking-calendar/{id}/payments/package:
+    parameters:
+      - { $ref: "#/components/parameters/OrganizationId" }
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: applyPackageAtCheckout
+      responses:
+        "204":
+          description: Package visit applied
+        "409":
+          description: Booking or package ineligible
+  /organizations/{organizationId}/pos-vouchers/gifts:
+    parameters:
+      - { $ref: "#/components/parameters/OrganizationId" }
+    post:
+      operationId: issueOrganizationGiftVoucher
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/GiftVoucherInput" }
+      responses:
+        "200":
+          description: Previously issued gift code
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PosVoucher" }
+        "201":
+          description: Transferable single-use gift code issued
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PosVoucher" }
+  /me/loyalty/rewards:
+    get:
+      operationId: listMyLoyaltyRewards
+      responses:
+        "200":
+          description: Account-bound loyalty vouchers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - $ref: "#/components/schemas/LoyaltyReward"
+                    - type: object
+                      required: [name]
+                      properties:
+                        name: { type: string }
+  /me/loyalty/rewards/{organizationId}:
+    parameters:
+      - { $ref: "#/components/parameters/OrganizationId" }
+    post:
+      operationId: exchangeMyLoyaltyPoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LoyaltyExchangeInput" }
+      responses:
+        "200":
+          description: Voucher issued
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LoyaltyReward" }
+        "409":
+          description: Insufficient points
+  /me/loyalty:
+    get:
+      operationId: listMyLoyaltyBalances
+      responses:
+        "200":
+          description: Loyalty balances for the signed-in customer
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/LoyaltyBalance" } }
+  /organizations/{organizationId}/saas:
+    parameters:
+      - { $ref: "#/components/parameters/OrganizationId" }
+    get:
+      operationId: getBusinessSaasSubscription
+      responses:
+        "200":
+          description: Business subscription, available plans and simulated billing history
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BusinessSaasSubscription" }
+  /organizations/{organizationId}/saas/changes:
+    parameters:
+      - { $ref: "#/components/parameters/OrganizationId" }
+    post:
+      operationId: changeBusinessSaasSubscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SaasSubscriptionChange" }
+      responses:
+        "204":
+          description: Simulated plan change recorded
+        "409":
+          description: Plan, price or request conflict
+  /me/support-cases:
+    get:
+      operationId: listCustomerSupportCases
+      parameters:
+        - { name: state, in: query, schema: { $ref: "#/components/schemas/SupportCaseState" } }
+        - { name: offset, in: query, schema: { type: integer, minimum: 0, maximum: 1000000 } }
+      responses:
+        "200":
+          description: Support cases
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SupportCasePage" }
+    post:
+      operationId: createCustomerSupportCase
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SupportCaseInput" }
+      responses:
+        "200":
+          description: Existing case for this request
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SupportCaseSummary" }
+        "201":
+          description: Case created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SupportCaseSummary" }
+  /me/support-cases/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: getCustomerSupportCase
+      parameters:
+        - { name: offset, in: query, schema: { type: integer, minimum: 0, maximum: 1000000 } }
+      responses:
+        "200":
+          description: Case conversation
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SupportCaseThread" }
+  /me/support-cases/{id}/messages:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: replyToCustomerSupportCase
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SupportMessageInput" }
+      responses:
+        "204":
+          description: Reply recorded
+  /admin/support-cases:
+    get:
+      operationId: listPlatformSupportCases
+      parameters:
+        - { name: state, in: query, schema: { $ref: "#/components/schemas/SupportCaseState" } }
+        - { name: offset, in: query, schema: { type: integer, minimum: 0, maximum: 1000000 } }
+      responses:
+        "200":
+          description: Support cases
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SupportCasePage" }
+  /admin/support-cases/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: getPlatformSupportCase
+      parameters:
+        - { name: offset, in: query, schema: { type: integer, minimum: 0, maximum: 1000000 } }
+      responses:
+        "200":
+          description: Case conversation
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SupportCaseThread" }
+  /admin/support-cases/{id}/messages:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: replyToPlatformSupportCase
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SupportMessageInput" }
+      responses:
+        "204":
+          description: Reply recorded
+  /admin/support-cases/{id}/state:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    put:
+      operationId: changePlatformSupportCaseState
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SupportCaseStateInput" }
+      responses:
+        "204":
+          description: State recorded
+  /admin/platform-settings:
+    get:
+      operationId: getPlatformSettings
+      responses:
+        "200":
+          description: Current platform settings and recent changes
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PlatformSettingsView" }
+    put:
+      operationId: updatePlatformSettings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PlatformSettingsChangeInput" }
+      responses:
+        "204":
+          description: Settings updated
+        "409":
+          description: Settings have changed since the admin loaded them
+  /admin/platform-analytics:
+    get:
+      operationId: getPlatformAnalytics
+      parameters:
+        - { name: from, in: query, required: true, schema: { type: string, format: date } }
+        - { name: to, in: query, required: true, schema: { type: string, format: date } }
+      responses:
+        "200":
+          description: Platform totals and period metrics in Europe/Berlin
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PlatformAnalytics" }
+  /admin/customers:
+    get:
+      operationId: listPlatformCustomers
+      parameters:
+        - { name: search, in: query, schema: { type: string, maxLength: 160 } }
+        - { name: scope, in: query, schema: { type: string, enum: [all, pending, reviewed] } }
+        - { name: offset, in: query, schema: { type: integer, minimum: 0, maximum: 1000000 } }
+      responses:
+        "200":
+          description: Customer directory and deletion request queue
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PlatformCustomerDirectory" }
+  /admin/customers/{id}/test-erasure:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: eraseReviewedDevelopmentCustomer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CustomerDeletionReviewInput" }
+      responses:
+        "204":
+          description: Local test account erased and reprovisioning blocked
+        "404":
+          description: Test mode or eligible account unavailable
+        "409":
+          description: Review, request or retained records block erasure
+  /admin/customers/{id}/deletion-assessment:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: assessCustomerDeletionRequest
+      responses:
+        "200":
+          description: Account record counts for an active deletion request
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CustomerDeletionAssessment" }
+        "404":
+          description: No active deletion request
+  /admin/customers/{id}/deletion-review:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    put:
+      operationId: reviewCustomerDeletionRequest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CustomerDeletionReviewInput" }
+      responses:
+        "200":
+          description: Request acknowledged and retained
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CustomerDeletionReviewResult" }
+        "409":
+          description: Request changed or unavailable
+  /admin/businesses:
+    get:
+      operationId: listPlatformBusinesses
+      parameters:
+        - { name: search, in: query, schema: { type: string, maxLength: 120 } }
+        - { name: offset, in: query, schema: { type: integer, minimum: 0, maximum: 1000000 } }
+      responses:
+        "200":
+          description: Platform business directory
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PlatformBusinessDirectory" }
+  /admin/businesses/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    put:
+      operationId: moderatePlatformBusiness
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PlatformBusinessAction" }
+      responses:
+        "200":
+          description: Business status updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PlatformBusinessStatus" }
+  /admin/saas-plans:
+    get:
+      operationId: listPlatformSaasPlans
+      responses:
+        "200":
+          description: Platform SaaS plans
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/SaasPlan" } }
+  /admin/saas-plans/{code}:
+    parameters:
+      - { name: code, in: path, required: true, schema: { $ref: "#/components/schemas/SaasPlanCode" } }
+    put:
+      operationId: updatePlatformSaasPlan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SaasPlanTerms" }
+      responses:
+        "200":
+          description: SaaS plan settings saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SaasPlan" }
+  /organizations/{organizationId}/analytics:
+    parameters:
+      - { $ref: "#/components/parameters/OrganizationId" }
+    get:
+      operationId: getOrganizationAnalytics
+      parameters:
+        - { name: from, in: query, required: true, schema: { type: string, format: date } }
+        - { name: to, in: query, required: true, schema: { type: string, format: date } }
+        - { name: locationId, in: query, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Business report derived from booked appointments, checkout movements, current inventory and captured campaigns
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OrganizationAnalytics" }
+  /organizations/{organizationId}/loyalty:
+    parameters:
+      - { $ref: "#/components/parameters/OrganizationId" }
+    get:
+      operationId: getOrganizationLoyaltyProgram
+      responses:
+        "200":
+          description: Current loyalty earning settings
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LoyaltyProgram" }
+    put:
+      operationId: updateOrganizationLoyaltyProgram
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LoyaltyProgram" }
+      responses:
+        "200":
+          description: Loyalty earning settings updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LoyaltyProgram" }
+  /me/reviews/{id}/report:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: reportPublicReview
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ReviewReportInput" }
+      responses:
+        "204":
+          description: Report recorded or already submitted by this account
+        "404":
+          description: Published review unavailable
+  /me/bookings/{id}/review:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: publishMyAppointmentReview
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AppointmentReviewInput" }
+      responses:
+        "201":
+          description: Review published
+          content:
+            application/json:
+              schema: { type: object, required: [rating], properties: { rating: { type: integer, minimum: 1, maximum: 5 } } }
+        "404":
+          description: Appointment unavailable to the customer
+        "409":
+          description: Appointment is incomplete or already reviewed
+  /me/bookings/{id}/events:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: listMyAppointmentEvents
+      responses:
+        "200":
+          description: Captured appointment events
+          content:
+            application/json:
+              schema: { type: array, items: { type: object, required: [kind, createdAt, estimatedFeeCents], properties: { kind: { type: string }, createdAt: { type: string, format: date-time }, estimatedFeeCents: { type: [integer, "null"] } } } }
+  /me/bookings/{id}/cancel:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: cancelMyAppointment
+      responses:
+        "204":
+          description: Appointment cancelled
+  /me/bookings/{id}/payment-history:
+    get:
+      operationId: getMyAppointmentPaymentHistory
+      tags: [booking]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Payment and refund history visible to the appointment owner
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MyAppointmentPaymentHistory" }
+  /me/bookings/{id}/calendar.ics:
+    get:
+      tags: [booking]
+      operationId: downloadMyAppointmentCalendar
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Private appointment calendar file
+          content:
+            text/calendar:
+              schema: { type: string, format: binary }
+        "404":
+          description: Appointment unavailable
+  /me/bookings/{id}/availability:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: checkRescheduleAvailability
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [date], properties: { date: { type: string, format: date } } }
+      responses:
+        "200":
+          description: Availability for the original selection
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BookingAvailability" }
+  /me/bookings/{id}/reschedule:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: rescheduleMyAppointment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [startsAt, employeeId], properties: { startsAt: { type: string, format: date-time }, employeeId: { type: string, format: uuid } } }
+      responses:
+        "200":
+          description: Appointment rescheduled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Appointment" }
+  /organizations/{organizationId}/booking-calendar:
+    parameters:
+      - { name: organizationId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: listBusinessAppointments
+      parameters:
+        - { name: from, in: query, required: true, schema: { type: string, format: date-time } }
+        - { name: to, in: query, required: true, schema: { type: string, format: date-time } }
+      responses:
+        "200":
+          description: Tenant calendar appointments
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/Appointment" } }
+    post:
+      operationId: createCalendarAppointment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CalendarAppointmentInput" }
+      responses:
+        "201":
+          description: Appointment confirmed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Appointment" }
+        "200":
+          description: Idempotent replay
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Appointment" }
+        "409":
+          description: Slot unavailable or a conflicting idempotency key
+  /organizations/{organizationId}/booking-calendar/availability:
+    parameters:
+      - { name: organizationId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: checkCalendarAppointmentAvailability
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CalendarAppointmentSelection" }
+      responses:
+        "200":
+          description: Internal quote and available slots
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BookingAvailability" }
+  /organizations/{organizationId}/booking-calendar/{id}/status:
+    parameters:
+      - { name: organizationId, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: changeBusinessAppointmentStatus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [status], properties: { status: { type: string, enum: [cancelled, completed, no_show] } } }
+      responses:
+        "204":
+          description: Appointment status updated
+  /organizations/{organizationId}/booking-calendar/waitlist:
+    parameters:
+      - { name: organizationId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: listBusinessBookingWaitlist
+      responses:
+        "200":
+          description: Tenant waitlist
+          content:
+            application/json:
+              schema: { type: array, items: { type: object, required: [locationId, date, salon, createdAt], properties: { locationId: { type: string, format: uuid }, date: { type: string, format: date }, salon: { type: string }, createdAt: { type: string, format: date-time } } } }
+  /organizations/{organizationId}/locations/{locationId}/booking-settings:
+    parameters:
+      - { name: organizationId, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: locationId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: getLocationBookingSettings
+      responses:
+        "200":
+          description: Tenant location blocks and resources
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+  /organizations/{organizationId}/locations/{locationId}/booking-settings/blocks:
+    parameters:
+      - { name: organizationId, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: locationId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: createBookingBlock
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [startsAt, endsAt, reason], properties: { employeeId: { type: string, format: uuid }, startsAt: { type: string, format: date-time }, endsAt: { type: string, format: date-time }, reason: { type: string } } }
+      responses:
+        "201":
+          description: Block created
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+  /organizations/{organizationId}/locations/{locationId}/booking-settings/blocks/{id}:
+    parameters:
+      - { name: organizationId, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: locationId, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    delete:
+      operationId: deleteBookingBlock
+      responses:
+        "204":
+          description: Block deleted
+  /organizations/{organizationId}/locations/{locationId}/booking-settings/resources:
+    parameters:
+      - { name: organizationId, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: locationId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: createBookingResource
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [name, serviceIds], properties: { name: { type: string }, serviceIds: { type: array, items: { type: string, format: uuid } } } }
+      responses:
+        "201":
+          description: Resource created
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+  /organizations/{organizationId}/locations/{locationId}/booking-settings/resources/{id}:
+    parameters:
+      - { name: organizationId, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: locationId, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    delete:
+      operationId: deleteBookingResource
+      responses:
+        "204":
+          description: Resource deleted
+
+  /me/payment-methods/simulated:
+    post:
+      operationId: setupSimulatedPaymentMethod
+      responses:
+        "200":
+          description: Active simulated payment reference
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaymentReference" }
+
+  /me/booking-waitlist:
+    get:
+      operationId: listMyBookingWaitlist
+      responses:
+        "200":
+          description: Own waitlist entries and release notices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [locationId, salon, slug, date, openedAt]
+                  properties:
+                    locationId: { type: string, format: uuid }
+                    salon: { type: string }
+                    slug: { type: string }
+                    date: { type: string, format: date }
+                    openedAt: { type: [string, "null"], format: date-time }
+  /me/booking-waitlist/{locationId}/{date}:
+    parameters:
+      - { name: locationId, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: date, in: path, required: true, schema: { type: string, format: date } }
+    delete:
+      operationId: leaveMyBookingWaitlist
+      responses:
+        "204":
+          description: Waitlist entry removed
+
+  /organizations/{organizationId}/pos-vouchers:
+    parameters:
+      - { in: path, name: organizationId, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: listPosVouchers
+      tags: [booking]
+      responses:
+        "200":
+          description: Recently available and redeemed checkout vouchers
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/PosVoucher" } }
+    post:
+      operationId: createPosVoucher
+      tags: [booking]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PosVoucherInput" }
+      responses:
+        "201":
+          description: Checkout voucher issued
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PosVoucher" }
+  /organizations/{organizationId}/pos-vouchers/{code}:
+    get:
+      operationId: quotePosVoucher
+      tags: [booking]
+      parameters:
+        - { in: path, name: organizationId, required: true, schema: { type: string, format: uuid } }
+        - { in: path, name: code, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Available voucher discount
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PosVoucherQuote" }
+  /organizations/{organizationId}/locations/{locationId}/retail-sales:
+    post:
+      operationId: recordRetailSale
+      tags: [booking]
+      parameters:
+        - { in: path, name: organizationId, required: true, schema: { type: string, format: uuid } }
+        - { in: path, name: locationId, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RetailSaleInput" }
+      responses:
+        "201":
+          description: Retail sale recorded
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RetailSale" }
+        "200":
+          description: Previously recorded sale replayed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RetailSale" }
+  /organizations/{organizationId}/locations/{locationId}/retail-sales/{saleId}:
+    get:
+      operationId: getRetailSaleBalance
+      tags: [booking]
+      parameters:
+        - { in: path, name: organizationId, required: true, schema: { type: string, format: uuid } }
+        - { in: path, name: locationId, required: true, schema: { type: string, format: uuid } }
+        - { in: path, name: saleId, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Retail sale and remaining refundable balance
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RetailSaleBalance" }
+  /organizations/{organizationId}/locations/{locationId}/retail-sales/{saleId}/refunds:
+    post:
+      operationId: recordRetailRefund
+      tags: [booking]
+      parameters:
+        - { in: path, name: organizationId, required: true, schema: { type: string, format: uuid } }
+        - { in: path, name: locationId, required: true, schema: { type: string, format: uuid } }
+        - { in: path, name: saleId, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AppointmentRefundInput" }
+      responses:
+        "200":
+          description: Previously recorded refund replayed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RetailRefund" }
+        "201":
+          description: Retail refund recorded
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RetailRefund" }
+  /organizations/{organizationId}/locations/{locationId}/retail-sales/{saleId}/receipt:
+    get:
+      operationId: downloadRetailReceipt
+      tags: [booking]
+      parameters:
+        - { in: path, name: organizationId, required: true, schema: { type: string, format: uuid } }
+        - { in: path, name: locationId, required: true, schema: { type: string, format: uuid } }
+        - { in: path, name: saleId, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Internal retail transaction receipt
+          content:
+            text/plain:
+              schema: { type: string }
+  /organizations/{organizationId}/locations/{locationId}/appointment-transactions:
+    get:
+      operationId: getAppointmentTransactions
+      tags: [booking]
+      parameters:
+        - { in: path, name: organizationId, required: true, schema: { type: string, format: uuid } }
+        - { in: path, name: locationId, required: true, schema: { type: string, format: uuid } }
+        - { in: query, name: date, required: true, schema: { type: string, format: date } }
+        - { in: query, name: page, schema: { type: integer, minimum: 0, maximum: 99999, default: 0 } }
+      responses:
+        "200":
+          description: One location's local-day totals and paginated movements
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AppointmentTransactionReport" }
+  /organizations/{organizationId}/booking-calendar/{id}/payments:
+    parameters:
+      - { in: path, name: organizationId, required: true, schema: { type: string, format: uuid } }
+      - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: getAppointmentPaymentBalance
+      tags: [booking]
+      responses:
+        "200":
+          description: Appointment payment balance and ledger
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AppointmentPaymentBalance" }
+    post:
+      operationId: recordAppointmentPayment
+      tags: [booking]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AppointmentPaymentInput" }
+      responses:
+        "201":
+          description: Payment recorded
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AppointmentPayment" }
+        "200":
+          description: Existing record replayed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AppointmentPayment" }
+        "409":
+          description: Payment conflicts with existing records or booking status
+  /organizations/{organizationId}/booking-calendar/{id}/payments/{paymentId}/refunds:
+    post:
+      operationId: recordAppointmentRefund
+      tags: [booking]
+      parameters:
+        - { in: path, name: organizationId, required: true, schema: { type: string, format: uuid } }
+        - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+        - { in: path, name: paymentId, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AppointmentRefundInput" }
+      responses:
+        "200":
+          description: Existing refund replayed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AppointmentRefund" }
+        "201":
+          description: Refund recorded
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AppointmentRefund" }
+        "409":
+          description: Refund conflicts with booking state or the available amount
+  /organizations/{organizationId}/booking-calendar/{id}/payments/{paymentId}/receipt:
+    get:
+      operationId: downloadAppointmentPaymentReceipt
+      tags: [booking]
+      parameters:
+        - { in: path, name: organizationId, required: true, schema: { type: string, format: uuid } }
+        - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+        - { in: path, name: paymentId, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Internal payment record showing any related refunds
+          content:
+            text/plain:
+              schema: { type: string }
+  /organizations/{organizationId}/booking-calendar/{id}/availability:
+    parameters:
+      - { name: organizationId, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: getCalendarMoveSlots
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CalendarMoveDate" }
+      responses:
+        "200":
+          description: Available times for this appointment
+          content:
+            application/json:
+              schema: { type: object, required: [slots], properties: { slots: { type: array, items: { $ref: "#/components/schemas/BookingSlot" } } } }
+  /organizations/{organizationId}/booking-calendar/{id}/reschedule:
+    parameters:
+      - { name: organizationId, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: rescheduleCalendarAppointment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CalendarMoveInput" }
+      responses:
+        "200":
+          description: Updated appointment
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Appointment" }
+  /organizations/{organizationId}/staff-breaks/{employeeId}:
+    parameters:
+      - { name: organizationId, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: employeeId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: listStaffBreaks
+      responses:
+        "200":
+          description: Recurring staff breaks
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/StaffBreak" } }
+    put:
+      operationId: replaceStaffBreaks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/StaffBreakList" }
+      responses:
+        "200":
+          description: Updated recurring breaks
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/StaffBreak" } }
+  /organizations/{organizationId}/crm-customers:
+    parameters:
+      - { name: organizationId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: findCrmCustomers
+      parameters:
+        - { name: q, in: query, schema: { type: string, maxLength: 100 } }
+        - { name: tag, in: query, schema: { type: string, maxLength: 40 } }
+        - { name: minVisits, in: query, schema: { type: string, pattern: '^\d{1,4}$' } }
+      responses:
+        "200":
+          description: Private customer records
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/CrmCustomer" } }
+    post:
+      operationId: createCrmCustomer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CrmCustomerInput" }
+      responses:
+        "201":
+          description: Customer record created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CrmCustomer" }
+  /organizations/{organizationId}/crm-customers/{id}:
+    parameters:
+      - { name: organizationId, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    put:
+      operationId: updateCrmCustomer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CrmCustomerUpdate" }
+      responses:
+        "200":
+          description: Updated customer record
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CrmCustomer" }
+  /organizations/{organizationId}/crm-customers/{id}/appointments:
+    parameters:
+      - { name: organizationId, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: listCrmAppointments
+      responses:
+        "200":
+          description: Linked and unassigned tenant appointments
+          content:
+            application/json:
+              schema: { type: object, required: [history, candidates], properties: { history: { type: array, items: { $ref: "#/components/schemas/CrmVisit" } }, candidates: { type: array, items: { $ref: "#/components/schemas/CrmVisit" } } } }
+  /organizations/{organizationId}/crm-customers/{id}/appointments/{bookingId}:
+    parameters:
+      - { name: organizationId, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: bookingId, in: path, required: true, schema: { type: string, format: uuid } }
+    put:
+      operationId: linkCrmAppointment
+      responses:
+        "204":
+          description: Appointment linked
+    delete:
+      operationId: unlinkCrmAppointment
+      responses:
+        "204":
+          description: Link removed
+  /organizations/{organizationId}/crm-customers/{id}/attachments:
+    parameters:
+      - { name: organizationId, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: listCrmAttachments
+      responses:
+        "200":
+          description: Private document metadata
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/CrmAttachment" } }
+    post:
+      operationId: uploadCrmAttachment
+      parameters:
+        - { name: X-Attachment-Name, in: header, required: true, description: Percent-encoded PDF filename, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/pdf:
+            schema: { type: string, format: binary }
+      responses:
+        "201":
+          description: Private PDF stored
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CrmAttachment" }
+  /organizations/{organizationId}/crm-customers/{id}/attachments/{attachmentId}:
+    parameters:
+      - { name: organizationId, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: attachmentId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: downloadCrmAttachment
+      responses:
+        "200":
+          description: Private PDF download
+          content:
+            application/pdf:
+              schema: { type: string, format: binary }
+    delete:
+      operationId: deleteCrmAttachment
+      responses:
+        "204":
+          description: Private PDF removed
+
+  /organizations/{organizationId}/locations/{locationId}/professional-pricing:
+    parameters:
+      - { name: organizationId, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: locationId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: getProfessionalPricing
+      responses:
+        "200":
+          description: Tenant pricing settings, profiles and overrides
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+    put:
+      operationId: updateProfessionalPricing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ProfessionalPricingSettings" }
+      responses:
+        "204":
+          description: Settings saved
+  /organizations/{organizationId}/locations/{locationId}/professional-pricing/employees/{employeeId}:
+    parameters:
+      - { name: organizationId, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: locationId, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: employeeId, in: path, required: true, schema: { type: string, format: uuid } }
+    put:
+      operationId: updateProfessionalProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ProfessionalProfileInput" }
+      responses:
+        "204":
+          description: Professional profile saved
+  /organizations/{organizationId}/locations/{locationId}/professional-pricing/overrides:
+    parameters:
+      - { name: organizationId, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: locationId, in: path, required: true, schema: { type: string, format: uuid } }
+    put:
+      operationId: updateProfessionalOverride
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ProfessionalOverrideInput" }
+      responses:
+        "204":
+          description: Override saved or removed when both values are null
+
+  /organizations/{organizationId}/locations/{locationId}/inventory:
+    parameters:
+      - { in: path, name: organizationId, required: true, schema: { type: string, format: uuid } }
+      - { in: path, name: locationId, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: listInventoryProducts
+      tags: [inventory]
+      responses:
+        "200":
+          description: Inventory result
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/InventoryProduct" } }
+    post:
+      operationId: createInventoryProduct
+      tags: [inventory]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/InventoryProductInput" }
+      responses:
+        "201":
+          description: Inventory result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InventoryProduct" }
+  /organizations/{organizationId}/locations/{locationId}/inventory/{productId}:
+    parameters:
+      - { in: path, name: organizationId, required: true, schema: { type: string, format: uuid } }
+      - { in: path, name: locationId, required: true, schema: { type: string, format: uuid } }
+      - { in: path, name: productId, required: true, schema: { type: string, format: uuid } }
+    put:
+      operationId: updateInventoryProduct
+      tags: [inventory]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/InventoryProductInput" }
+      responses:
+        "200":
+          description: Inventory result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InventoryProduct" }
+  /organizations/{organizationId}/locations/{locationId}/inventory/{productId}/movements:
+    parameters:
+      - { in: path, name: organizationId, required: true, schema: { type: string, format: uuid } }
+      - { in: path, name: locationId, required: true, schema: { type: string, format: uuid } }
+      - { in: path, name: productId, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: listInventoryMovements
+      tags: [inventory]
+      responses:
+        "200":
+          description: Inventory result
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/InventoryMovement" } }
+    post:
+      operationId: recordInventoryMovement
+      tags: [inventory]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/InventoryMovementInput" }
+      responses:
+        "201":
+          description: Inventory result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InventoryMovement" }
+  /organizations/{organizationId}/locations/{locationId}/inventory/suppliers:
+    parameters:
+      - { in: path, name: organizationId, required: true, schema: { type: string, format: uuid } }
+      - { in: path, name: locationId, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: listInventorySuppliers
+      tags: [inventory]
+      responses:
+        "200":
+          description: Purchasing result
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/InventorySupplier" } }
+    post:
+      operationId: createInventorySupplier
+      tags: [inventory]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/InventorySupplierInput" }
+      responses:
+        "201":
+          description: Purchasing result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InventorySupplier" }
+  /organizations/{organizationId}/locations/{locationId}/inventory/suppliers/{supplierId}:
+    parameters:
+      - { in: path, name: organizationId, required: true, schema: { type: string, format: uuid } }
+      - { in: path, name: locationId, required: true, schema: { type: string, format: uuid } }
+      - { in: path, name: supplierId, required: true, schema: { type: string, format: uuid } }
+    put:
+      operationId: updateInventorySupplier
+      tags: [inventory]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/InventorySupplierInput" }
+      responses:
+        "200":
+          description: Purchasing result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InventorySupplier" }
+  /organizations/{organizationId}/locations/{locationId}/inventory/purchase-orders:
+    parameters:
+      - { in: path, name: organizationId, required: true, schema: { type: string, format: uuid } }
+      - { in: path, name: locationId, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: listInventoryOrders
+      tags: [inventory]
+      responses:
+        "200":
+          description: Purchasing result
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/InventoryPurchaseOrder" } }
+    post:
+      operationId: createInventoryOrder
+      tags: [inventory]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/InventoryPurchaseOrderInput" }
+      responses:
+        "201":
+          description: Purchasing result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InventoryPurchaseOrder" }
+  /organizations/{organizationId}/locations/{locationId}/inventory/purchase-orders/{orderId}/receipts:
+    post:
+      operationId: receiveInventoryOrderPart
+      tags: [inventory]
+      parameters:
+        - { in: path, name: organizationId, required: true, schema: { type: string, format: uuid } }
+        - { in: path, name: locationId, required: true, schema: { type: string, format: uuid } }
+        - { in: path, name: orderId, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/InventoryOrderReceiptInput" }
+      responses:
+        "201":
+          description: Delivery received
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InventoryPurchaseOrder" }
+        "200":
+          description: Delivery request replayed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InventoryPurchaseOrder" }
+  /organizations/{organizationId}/locations/{locationId}/inventory/purchase-orders/{orderId}/status:
+    parameters:
+      - { in: path, name: organizationId, required: true, schema: { type: string, format: uuid } }
+      - { in: path, name: locationId, required: true, schema: { type: string, format: uuid } }
+      - { in: path, name: orderId, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: closeInventoryOrder
+      tags: [inventory]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/InventoryOrderStatusInput" }
+      responses:
+        "200":
+          description: Purchasing result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InventoryPurchaseOrder" }
+  /me/business-marketing:
+    get:
+      operationId: listMyBusinessMarketingPreferences
+      tags: [marketing]
+      responses:
+        "200":
+          description: Marketing preferences per business
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/BusinessMarketingPreference" } }
+  /me/business-marketing/{id}:
+    put:
+      operationId: updateMyBusinessMarketingPreference
+      tags: [marketing]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BusinessMarketingPreferenceInput" }
+      responses:
+        "204":
+          description: Preference saved
+  /organizations/{organizationId}/reviews:
+    parameters:
+      - { $ref: "#/components/parameters/OrganizationId" }
+    get:
+      operationId: listOrganizationReviews
+      parameters:
+        - { name: offset, in: query, schema: { type: integer, minimum: 0, maximum: 1000000 } }
+      responses:
+        "200":
+          description: Published reviews at the business
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OrganizationReviewPage" }
+  /organizations/{organizationId}/reviews/{id}/reply:
+    parameters:
+      - { $ref: "#/components/parameters/OrganizationId" }
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    put:
+      operationId: saveOrganizationReviewReply
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/OrganizationReviewReplyInput" }
+      responses:
+        "200":
+          description: Reply saved or cleared
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PublicReview" }
+        "404":
+          description: Review unavailable to the business
+  /organizations/{organizationId}/marketing-templates:
+    parameters:
+      - { $ref: "#/components/parameters/OrganizationId" }
+    get:
+      operationId: listMarketingTemplates
+      tags: [marketing]
+      responses:
+        "200":
+          description: Saved templates
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/MarketingTemplate" } }
+    post:
+      operationId: createMarketingTemplate
+      tags: [marketing]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MarketingCampaignInput" }
+      responses:
+        "201":
+          description: Template saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MarketingTemplate" }
+  /organizations/{organizationId}/marketing-templates/{id}:
+    parameters:
+      - { $ref: "#/components/parameters/OrganizationId" }
+      - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+    put:
+      operationId: updateMarketingTemplate
+      tags: [marketing]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MarketingCampaignInput" }
+      responses:
+        "200":
+          description: Template updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MarketingTemplate" }
+  /organizations/{organizationId}/marketing-campaigns:
+    parameters:
+      - { in: path, name: organizationId, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: listMarketingCampaigns
+      tags: [marketing]
+      responses:
+        "200":
+          description: Campaign drafts
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/MarketingCampaign" } }
+    post:
+      operationId: createMarketingCampaign
+      tags: [marketing]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MarketingCampaignInput" }
+      responses:
+        "201":
+          description: Draft saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MarketingCampaign" }
+  /organizations/{organizationId}/marketing-campaigns/{id}:
+    put:
+      operationId: updateMarketingCampaign
+      tags: [marketing]
+      parameters:
+        - { in: path, name: organizationId, required: true, schema: { type: string, format: uuid } }
+        - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MarketingCampaignInput" }
+      responses:
+        "200":
+          description: Draft saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MarketingCampaign" }
+  /organizations/{organizationId}/marketing-campaigns/{id}/captures:
+    parameters:
+      - { $ref: "#/components/parameters/OrganizationId" }
+      - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: listMarketingCaptures
+      tags: [marketing]
+      responses:
+        "200":
+          description: Recent local captures
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/MarketingCapture" } }
+    post:
+      operationId: createMarketingCapture
+      tags: [marketing]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MarketingCaptureInput" }
+      responses:
+        "200":
+          description: Existing capture for this idempotency key
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MarketingCapture" }
+        "201":
+          description: Local capture recorded
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MarketingCapture" }
+  /organizations/{organizationId}/marketing-campaigns/audience:
+    get:
+      operationId: getMarketingAudienceCount
+      tags: [marketing]
+      parameters:
+        - { in: path, name: organizationId, required: true, schema: { type: string, format: uuid } }
+        - { in: query, name: segment, required: true, schema: { type: string, enum: [completed, repeat] } }
+      responses:
+        "200":
+          description: Number of eligible opted-in customers in the audience
+          content:
+            application/json:
+              schema: { type: object, required: [count], properties: { count: { type: integer } } }
 components:
   parameters:
     OrganizationId:
@@ -478,6 +2318,973 @@ components:
           schema:
             $ref: "#/components/schemas/ApiErrorResponse"
   schemas:
+    BusinessMarketingPreferenceInput:
+      type: object
+      required: [consent]
+      properties:
+        consent: { type: boolean }
+    BusinessMarketingPreference:
+      type: object
+      required: [organizationId, name, consent]
+      properties:
+        organizationId: { type: string, format: uuid }
+        name: { type: string }
+        consent: { type: boolean }
+    MarketingCaptureInput:
+      type: object
+      required: [idempotencyKey]
+      properties:
+        idempotencyKey: { type: string, format: uuid }
+    MarketingCapture:
+      type: object
+      required: [id, count, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        count: { type: integer, minimum: 0 }
+        createdAt: { type: string, format: date-time }
+    MarketingTemplate:
+      allOf:
+        - $ref: "#/components/schemas/MarketingCampaignInput"
+        - type: object
+          required: [id, organizationId, updatedAt]
+          properties:
+            id: { type: string, format: uuid }
+            organizationId: { type: string, format: uuid }
+            updatedAt: { type: string, format: date-time }
+    MarketingCampaignInput:
+      type: object
+      required: [title, subject, body, segment]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 120 }
+        subject: { type: string, minLength: 1, maxLength: 160 }
+        body: { type: string, minLength: 1, maxLength: 4000 }
+        segment: { type: string, enum: [completed, repeat] }
+    MarketingCampaign:
+      allOf:
+        - $ref: "#/components/schemas/MarketingCampaignInput"
+        - type: object
+          required: [id, organizationId, updatedAt]
+          properties:
+            id: { type: string, format: uuid }
+            organizationId: { type: string, format: uuid }
+            updatedAt: { type: string, format: date-time }
+    InventorySupplierInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 120 }
+        email: { type: string }
+        phone: { type: string, maxLength: 30 }
+    InventorySupplier:
+      type: object
+      required: [id, locationId, name, email, phone]
+      properties:
+        id: { type: string, format: uuid }
+        locationId: { type: string, format: uuid }
+        name: { type: string }
+        email: { type: string }
+        phone: { type: string }
+    InventoryPurchaseOrderInput:
+      type: object
+      required: [idempotencyKey, supplierId, items]
+      properties:
+        idempotencyKey: { type: string, format: uuid }
+        supplierId: { type: string, format: uuid }
+        items:
+          type: array
+          minItems: 1
+          maxItems: 30
+          items:
+            type: object
+            required: [productId, quantity]
+            properties:
+              productId: { type: string, format: uuid }
+              quantity: { type: integer, minimum: 1, maximum: 1000000 }
+    InventoryOrderReceiptInput:
+      type: object
+      required: [idempotencyKey, items]
+      properties:
+        idempotencyKey: { type: string, format: uuid }
+        items:
+          type: array
+          minItems: 1
+          maxItems: 30
+          items:
+            type: object
+            required: [productId, quantity]
+            properties:
+              productId: { type: string, format: uuid }
+              quantity: { type: integer, minimum: 1, maximum: 1000000 }
+    InventoryOrderStatusInput:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [received, cancelled] }
+    InventoryPurchaseOrder:
+      type: object
+      required: [id, locationId, supplierId, supplierName, actorId, idempotencyKey, items, status, createdAt, closedAt]
+      properties:
+        id: { type: string, format: uuid }
+        locationId: { type: string, format: uuid }
+        supplierId: { type: string, format: uuid }
+        supplierName: { type: string }
+        actorId: { type: string, format: uuid }
+        idempotencyKey: { type: string, format: uuid }
+        status: { type: string, enum: [open, received, cancelled] }
+        createdAt: { type: string, format: date-time }
+        closedAt: { type: string, format: date-time, nullable: true }
+        items:
+          type: array
+          items:
+            type: object
+            required: [productId, sku, name, quantity]
+            properties:
+              productId: { type: string, format: uuid }
+              sku: { type: string }
+              name: { type: string }
+              quantity: { type: integer }
+              purchaseCostCents: { type: integer, nullable: true }
+              receivedQuantity: { type: integer, minimum: 0 }
+    InventoryProductInput:
+      type: object
+      required: [sku, name, category, supplier, imageUrl, unitCents, reorderAt]
+      properties:
+        sku: { type: string, minLength: 1, maxLength: 40 }
+        name: { type: string, minLength: 1, maxLength: 120 }
+        category: { type: string, maxLength: 120 }
+        supplier: { type: string, maxLength: 120 }
+        imageUrl: { type: string, maxLength: 500 }
+        purchaseCostCents: { type: integer, minimum: 0, maximum: 10000000, nullable: true }
+        unitCents: { type: integer, minimum: 1, maximum: 10000000 }
+        reorderAt: { type: integer, minimum: 0, maximum: 1000000 }
+        archived: { type: boolean }
+    InventoryProduct:
+      allOf:
+        - $ref: "#/components/schemas/InventoryProductInput"
+        - type: object
+          required: [id, locationId, stock, archived]
+          properties:
+            id: { type: string, format: uuid }
+            locationId: { type: string, format: uuid }
+            stock: { type: integer, minimum: 0 }
+            archived: { type: boolean }
+    InventoryMovementInput:
+      type: object
+      required: [idempotencyKey, kind, quantity, reason]
+      properties:
+        idempotencyKey: { type: string, format: uuid }
+        kind: { type: string, enum: [receipt, adjustment] }
+        quantity: { type: integer, minimum: -1000000, maximum: 1000000 }
+        reason: { type: string, minLength: 1, maxLength: 240 }
+    InventoryMovement:
+      type: object
+      required: [id, productId, actorId, idempotencyKey, kind, quantity, reason, balance, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        productId: { type: string, format: uuid }
+        actorId: { type: string, format: uuid }
+        idempotencyKey: { type: string, format: uuid }
+        kind: { type: string, enum: [receipt, adjustment, sale] }
+        quantity: { type: integer }
+        balance: { type: integer }
+        reason: { type: string }
+        createdAt: { type: string, format: date-time }
+    ProfessionalPricingSettings:
+      type: object
+      required: [differentialPricing, allowProfessionalChoice, allowAnyProfessional]
+      properties:
+        differentialPricing: { type: boolean }
+        allowProfessionalChoice: { type: boolean }
+        allowAnyProfessional: { type: boolean }
+    ProfessionalProfileInput:
+      type: object
+      required: [professionalTitle, professionalPhotoUrl]
+      properties:
+        professionalTitle: { type: string, maxLength: 100 }
+        professionalPhotoUrl: { type: string, maxLength: 1000 }
+    ProfessionalOverrideInput:
+      type: object
+      required: [employeeId, serviceId, variantId, priceCents, durationMinutes]
+      properties:
+        employeeId: { type: string, format: uuid }
+        serviceId: { type: string, format: uuid }
+        variantId: { type: [string, "null"], format: uuid }
+        priceCents: { type: [integer, "null"], minimum: 0, maximum: 10000000 }
+        durationMinutes: { type: [integer, "null"], minimum: 1, maximum: 720 }
+    CalendarMoveDate: { type: object, required: [date], properties: { date: { type: string, format: date } } }
+    CalendarMoveInput: { type: object, required: [startsAt, employeeId, expectedStartsAt, expectedEmployeeId], properties: { startsAt: { type: string, format: date-time }, employeeId: { type: string, format: uuid }, expectedStartsAt: { type: string, format: date-time }, expectedEmployeeId: { type: string, format: uuid } } }
+    StaffBreak: { type: object, required: [weekday, begins, ends], properties: { weekday: { type: integer, minimum: 1, maximum: 7 }, begins: { type: string }, ends: { type: string } } }
+    StaffBreakList: { type: array, items: { $ref: "#/components/schemas/StaffBreak" } }
+    CrmCustomerInput: { type: object, required: [name, email, phone, contactPreference, notes, tags], properties: { name: { type: string }, email: { type: string }, phone: { type: string }, contactPreference: { type: string, enum: [none, email, phone] }, notes: { type: string }, tags: { type: array, items: { type: string } } } }
+    CrmCustomerUpdate: { type: object, required: [name, email, phone, contactPreference, notes, tags, revision], properties: { name: { type: string }, email: { type: string }, phone: { type: string }, contactPreference: { type: string, enum: [none, email, phone] }, notes: { type: string }, tags: { type: array, items: { type: string } }, revision: { type: integer } } }
+    CrmCustomer: { type: object, required: [id, name, email, phone, contactPreference, notes, tags, revision, updatedAt], properties: { id: { type: string, format: uuid }, name: { type: string }, email: { type: string }, phone: { type: string }, contactPreference: { type: string, enum: [none, email, phone] }, notes: { type: string }, tags: { type: array, items: { type: string } }, revision: { type: integer }, updatedAt: { type: string, format: date-time }, completedVisits: { type: integer } } }
+    CrmVisit: { type: object, required: [bookingId, startsAt, status, salon, timezone, items], properties: { bookingId: { type: string, format: uuid }, startsAt: { type: string, format: date-time }, status: { type: string }, salon: { type: string }, timezone: { type: string }, items: { type: array, items: { type: object, additionalProperties: true } }, name: { type: string } } }
+    CrmAttachment: { type: object, required: [id, name, createdAt], properties: { id: { type: string, format: uuid }, name: { type: string }, createdAt: { type: string, format: date-time } } }
+    CalendarAppointmentSelection:
+      type: object
+      required: [locationId, date, items, source]
+      properties:
+        locationId: { type: string, format: uuid }
+        date: { type: string, format: date }
+        items:
+          type: array
+          minItems: 1
+          maxItems: 12
+          items: { $ref: "#/components/schemas/CalendarAppointmentItem" }
+        source: { type: string, enum: [manual, walk_in] }
+    CalendarAppointmentItem:
+      type: object
+      required: [serviceId]
+      properties:
+        serviceId: { type: string, format: uuid }
+        variantId: { type: string, format: uuid }
+    CalendarAppointmentInput:
+      type: object
+      required: [locationId, items, source, employeeId, startsAt, idempotencyKey, guestName]
+      properties:
+        locationId: { type: string, format: uuid }
+        items:
+          type: array
+          minItems: 1
+          maxItems: 12
+          items: { $ref: "#/components/schemas/CalendarAppointmentItem" }
+        source: { type: string, enum: [manual, walk_in] }
+        employeeId: { type: string, format: uuid }
+        startsAt: { type: string, format: date-time }
+        idempotencyKey: { type: string, format: uuid }
+        guestName: { type: string, minLength: 1, maxLength: 100 }
+    BookingSlot:
+      type: object
+      required: [employeeId, employeeName, startsAt, endsAt]
+      properties:
+        employeeId: { type: string, format: uuid }
+        employeeName: { type: string }
+        professionalTitle: { type: string }
+        professionalPhotoUrl: { type: string }
+        mixed: { type: boolean }
+        quote: { $ref: "#/components/schemas/BookingQuote" }
+        startsAt: { type: string, format: date-time }
+        endsAt: { type: string, format: date-time }
+    BookingAvailability:
+      type: object
+      required: [quote, slots, policy]
+      properties:
+        quote: { $ref: "#/components/schemas/BookingQuote" }
+        slots: { type: array, items: { $ref: "#/components/schemas/BookingSlot" } }
+        professionalChoice:
+          type: object
+          required: [individual, any]
+          properties:
+            individual: { type: boolean }
+            any: { type: boolean }
+        policy: { type: [object, "null"], additionalProperties: true }
+    AvailableDatesInput: { type: object, required: [from, items], properties: { from: { type: string, format: date }, items: { type: array, minItems: 1, maxItems: 12, items: { type: object, required: [serviceId], properties: { serviceId: { type: string, format: uuid }, variantId: { type: string, format: uuid } } } } } }
+    PosVoucherQuote:
+      type: object
+      required: [code, discountCents]
+      properties:
+        code: { type: string, pattern: '^[A-Z0-9-]{4,32}$' }
+        discountCents: { type: integer, minimum: 1, maximum: 2147483647 }
+    GiftVoucherInput:
+      type: object
+      required: [discountCents, requestId]
+      properties:
+        discountCents: { type: integer, minimum: 1, maximum: 100000 }
+        requestId: { type: string, format: uuid }
+    PosVoucherInput:
+      allOf:
+        - $ref: "#/components/schemas/PosVoucherQuote"
+        - type: object
+          properties:
+            expiresAt: { type: string, format: date-time }
+    PosVoucher:
+      allOf:
+        - $ref: "#/components/schemas/PosVoucherQuote"
+        - type: object
+          required: [id, organizationId, expiresAt, redeemedAt]
+          properties:
+            isGift: { type: boolean }
+            id: { type: string, format: uuid }
+            organizationId: { type: string, format: uuid }
+            expiresAt: { type: string, format: date-time, nullable: true }
+            redeemedAt: { type: string, format: date-time, nullable: true }
+    RetailSaleInput:
+      type: object
+      required: [idempotencyKey, method, items]
+      properties:
+        idempotencyKey: { type: string, format: uuid }
+        voucherCode: { type: string, minLength: 4, maxLength: 32, nullable: true }
+        method: { type: string, enum: [cash, simulated_card] }
+        items:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items:
+            type: object
+            required: [description, unitCents, quantity]
+            properties:
+              productId: { type: string, format: uuid }
+              description: { type: string, minLength: 1, maxLength: 120 }
+              unitCents: { type: integer, minimum: 1, maximum: 10000000 }
+              quantity: { type: integer, minimum: 1, maximum: 100 }
+    RetailSale:
+      allOf:
+        - $ref: "#/components/schemas/RetailSaleInput"
+        - type: object
+          required: [id, locationId, actorId, amountCents, createdAt]
+          properties:
+            id: { type: string, format: uuid }
+            locationId: { type: string, format: uuid }
+            actorId: { type: string, format: uuid }
+            amountCents: { type: integer }
+            discountCents: { type: integer }
+            createdAt: { type: string, format: date-time }
+    RetailRefund:
+      allOf:
+        - $ref: "#/components/schemas/AppointmentRefundInput"
+        - type: object
+          required: [id, saleId, actorId, createdAt]
+          properties:
+            id: { type: string, format: uuid }
+            saleId: { type: string, format: uuid }
+            actorId: { type: string, format: uuid }
+            createdAt: { type: string, format: date-time }
+    RetailSaleBalance:
+      type: object
+      required: [sale, refunds, refundableCents]
+      properties:
+        sale: { $ref: "#/components/schemas/RetailSale" }
+        refunds: { type: array, items: { $ref: "#/components/schemas/RetailRefund" } }
+        refundableCents: { type: integer }
+    AppointmentTransactionReport:
+      type: object
+      required: [count, date, timezone, currency, totals, entries]
+      properties:
+        count: { type: integer }
+        date: { type: string, format: date }
+        timezone: { type: string }
+        currency: { type: string, enum: [EUR] }
+        totals:
+          type: array
+          items:
+            type: object
+            required: [method, receivedCents, refundedCents, discountCents]
+            properties:
+              method: { type: string, enum: [cash, simulated_card] }
+              receivedCents: { type: integer }
+              discountCents: { type: integer }
+              refundedCents: { type: integer }
+        entries:
+          type: array
+          items:
+            type: object
+            required: [id, bookingId, paymentId, recordedAt, method, kind, amountCents, discountCents]
+            properties:
+              id: { type: string, format: uuid }
+              bookingId: { type: string, format: uuid, nullable: true }
+              paymentId: { type: string, format: uuid }
+              recordedAt: { type: string, format: date-time }
+              discountCents: { type: integer }
+              method: { type: string, enum: [cash, simulated_card] }
+              kind: { type: string, enum: [deposit, settlement, refund, retail, retail_refund] }
+              amountCents: { type: integer }
+    AppointmentPaymentInput:
+      type: object
+      required: [idempotencyKey, amountCents, kind, method]
+      properties:
+        idempotencyKey: { type: string, format: uuid }
+        voucherCode: { type: string, minLength: 4, maxLength: 32 }
+        amountCents: { type: integer, minimum: 1, maximum: 2147483647 }
+        discountCents: { type: integer, minimum: 0, maximum: 2147483647 }
+        discountReason: { type: string, minLength: 1, maxLength: 240 }
+        kind: { type: string, enum: [deposit, settlement] }
+        method: { type: string, enum: [cash, simulated_card] }
+    AppointmentPayment:
+      type: object
+      required: [id, bookingId, actorId, providerReference, createdAt, idempotencyKey, amountCents, kind, method, discountCents, discountReason]
+      properties:
+        idempotencyKey: { type: string, format: uuid }
+        amountCents: { type: integer }
+        kind: { type: string, enum: [deposit, settlement] }
+        method: { type: string, enum: [cash, simulated_card] }
+        discountCents: { type: integer }
+        voucherCode: { type: string, nullable: true }
+        discountReason: { type: string, nullable: true }
+        id: { type: string, format: uuid }
+        bookingId: { type: string, format: uuid }
+        actorId: { type: string, format: uuid }
+        providerReference: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+    AppointmentRefundInput:
+      type: object
+      required: [idempotencyKey, amountCents, reason]
+      properties:
+        idempotencyKey: { type: string, format: uuid }
+        amountCents: { type: integer, minimum: 1, maximum: 2147483647 }
+        reason: { type: string, minLength: 1, maxLength: 240 }
+    AppointmentRefund:
+      allOf:
+        - $ref: "#/components/schemas/AppointmentRefundInput"
+        - type: object
+          required: [id, paymentId, actorId, createdAt]
+          properties:
+            id: { type: string, format: uuid }
+            paymentId: { type: string, format: uuid }
+            actorId: { type: string, format: uuid }
+            createdAt: { type: string, format: date-time }
+    MyAppointmentPaymentHistory:
+      type: object
+      required: [currency, payments, refunds]
+      properties:
+        packageCoveredCents: { type: integer, minimum: 0 }
+        currency: { type: string, enum: [EUR] }
+        payments:
+          type: array
+          items:
+            type: object
+            required: [id, kind, method, amountCents, discountCents, createdAt]
+            properties:
+              id: { type: string, format: uuid }
+              kind: { type: string, enum: [deposit, settlement] }
+              method: { type: string, enum: [cash, simulated_card] }
+              amountCents: { type: integer }
+              discountCents: { type: integer }
+              createdAt: { type: string, format: date-time }
+        refunds:
+          type: array
+          items:
+            type: object
+            required: [id, paymentId, amountCents, createdAt]
+            properties:
+              id: { type: string, format: uuid }
+              paymentId: { type: string, format: uuid }
+              amountCents: { type: integer }
+              createdAt: { type: string, format: date-time }
+    AppointmentPaymentBalance:
+      type: object
+      required: [currency, paidCents, outstandingCents, entries, refunds, refundedCents, discountCents]
+      properties:
+        packageCoveredCents: { type: integer, minimum: 0 }
+        currency: { type: string, enum: [EUR] }
+        paidCents: { type: integer }
+        discountCents: { type: integer }
+        outstandingCents: { type: integer }
+        refundedCents: { type: integer }
+        entries: { type: array, items: { $ref: "#/components/schemas/AppointmentPayment" } }
+        refunds: { type: array, items: { $ref: "#/components/schemas/AppointmentRefund" } }
+    ReviewModerationInput:
+      type: object
+      required: [action]
+      properties:
+        action: { type: string, enum: [dismiss, hide, restore] }
+    ReviewModerationPage:
+      type: object
+      required: [reviews, hasMore]
+      properties:
+        hasMore: { type: boolean }
+        reviews:
+          type: array
+          items:
+            type: object
+            required: [id, comment, reply, rating, hidden, location, report]
+            properties:
+              id: { type: string, format: uuid }
+              comment: { type: string }
+              reply: { type: string }
+              rating: { type: integer, minimum: 1, maximum: 5 }
+              hidden: { type: boolean }
+              location: { type: string }
+              report:
+                type: [object, "null"]
+                required: [reason, details, pendingCount, reportedAt]
+                properties:
+                  reason: { type: string, enum: [spam, abuse, personal_information, other] }
+                  details: { type: string }
+                  pendingCount: { type: integer }
+                  reportedAt: { type: string, format: date-time }
+    PlatformAnalytics:
+      type: object
+      required: [business, customers, visits, subscriptions, billing, support, timezone, currency, from, to]
+      properties:
+        timezone: { type: string, const: Europe/Berlin }
+        currency: { type: string, const: EUR }
+        from: { type: string, format: date }
+        to: { type: string, format: date }
+        business:
+          type: object
+          required: [total, verified, suspended]
+          properties:
+            total: { type: integer, minimum: 0 }
+            verified: { type: integer, minimum: 0 }
+            suspended: { type: integer, minimum: 0 }
+        customers:
+          type: object
+          required: [total, deletionRequested]
+          properties:
+            total: { type: integer, minimum: 0 }
+            deletionRequested: { type: integer, minimum: 0 }
+        visits:
+          type: object
+          required: [total, completed, cancelled, noShows]
+          properties:
+            total: { type: integer, minimum: 0 }
+            completed: { type: integer, minimum: 0 }
+            cancelled: { type: integer, minimum: 0 }
+            noShows: { type: integer, minimum: 0 }
+        subscriptions:
+          type: object
+          required: [trial, active, expired, cancelled]
+          properties:
+            trial: { type: integer, minimum: 0 }
+            active: { type: integer, minimum: 0 }
+            expired: { type: integer, minimum: 0 }
+            cancelled: { type: integer, minimum: 0 }
+        billing:
+          type: object
+          required: [activations, simulatedCents]
+          properties:
+            activations: { type: integer, minimum: 0 }
+            simulatedCents: { type: integer, minimum: 0 }
+        support:
+          type: object
+          required: [open, resolved]
+          properties:
+            open: { type: integer, minimum: 0 }
+            resolved: { type: integer, minimum: 0 }
+    PlatformIntakeSettings:
+      type: object
+      required: [businessRegistrationOpen, supportIntakeOpen]
+      properties:
+        businessRegistrationOpen: { type: boolean }
+        supportIntakeOpen: { type: boolean }
+    PlatformSettingsChangeInput:
+      type: object
+      required: [expected, next]
+      properties:
+        expected: { $ref: "#/components/schemas/PlatformIntakeSettings" }
+        next: { $ref: "#/components/schemas/PlatformIntakeSettings" }
+    PlatformSettingsView:
+      type: object
+      required: [current, history]
+      properties:
+        current: { $ref: "#/components/schemas/PlatformIntakeSettings" }
+        history:
+          type: array
+          items:
+            type: object
+            required: [id, previous, current, createdAt]
+            properties:
+              id: { type: string, format: uuid }
+              previous: { $ref: "#/components/schemas/PlatformIntakeSettings" }
+              current: { $ref: "#/components/schemas/PlatformIntakeSettings" }
+              createdAt: { type: string, format: date-time }
+    SupportCaseState:
+      type: string
+      enum: [open, resolved]
+    SupportCaseStateInput:
+      type: object
+      required: [state]
+      properties:
+        state: { $ref: "#/components/schemas/SupportCaseState" }
+    SupportMessageInput:
+      type: object
+      required: [body, requestId]
+      properties:
+        body: { type: string, minLength: 1, maxLength: 4000 }
+        requestId: { type: string, format: uuid }
+    SupportCaseInput:
+      allOf:
+        - $ref: "#/components/schemas/SupportMessageInput"
+        - type: object
+          required: [subject]
+          properties:
+            subject: { type: string, minLength: 1, maxLength: 120 }
+    SupportCaseSummary:
+      type: object
+      required: [id, subject, state, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        subject: { type: string }
+        state: { $ref: "#/components/schemas/SupportCaseState" }
+        updatedAt: { type: string, format: date-time }
+    SupportCasePage:
+      type: object
+      required: [cases, hasMore]
+      properties:
+        cases: { type: array, items: { $ref: "#/components/schemas/SupportCaseSummary" } }
+        hasMore: { type: boolean }
+    SupportCaseThread:
+      allOf:
+        - $ref: "#/components/schemas/SupportCaseSummary"
+        - type: object
+          required: [messages, hasOlder]
+          properties:
+            hasOlder: { type: boolean }
+            messages:
+              type: array
+              items:
+                type: object
+                required: [id, kind, body, createdAt]
+                properties:
+                  id: { type: string, format: uuid }
+                  kind: { type: string, enum: [customer, staff, resolved, reopened] }
+                  body: { type: string }
+                  createdAt: { type: string, format: date-time }
+    CustomerDeletionAssessment:
+      type: object
+      required: [activeOwnerships, staffProfiles, bookings, confirmedBookings, paymentReferences, bookingPayments, packages, supportCases, businessActions, policyAcceptances]
+      properties:
+        activeOwnerships: { type: integer, minimum: 0 }
+        staffProfiles: { type: integer, minimum: 0 }
+        bookings: { type: integer, minimum: 0 }
+        confirmedBookings: { type: integer, minimum: 0 }
+        paymentReferences: { type: integer, minimum: 0 }
+        bookingPayments: { type: integer, minimum: 0 }
+        packages: { type: integer, minimum: 0 }
+        supportCases: { type: integer, minimum: 0 }
+        businessActions: { type: integer, minimum: 0 }
+        policyAcceptances: { type: integer, minimum: 0 }
+    CustomerDeletionReviewInput:
+      type: object
+      required: [requestedAt]
+      properties:
+        requestedAt: { type: string, format: date-time }
+    CustomerDeletionReviewResult:
+      type: object
+      required: [reviewedAt]
+      properties:
+        reviewedAt: { type: string, format: date-time }
+    PlatformCustomerDirectory:
+      type: object
+      required: [customers, hasMore]
+      properties:
+        hasMore: { type: boolean }
+        customers:
+          type: array
+          items:
+            type: object
+            required: [id, name, email, emailVerified, deletionRequestedAt, reviewedAt, activeOwnerships, canRehearseErasure]
+            properties:
+              id: { type: string, format: uuid }
+              name: { type: string }
+              email: { type: string }
+              emailVerified: { type: boolean }
+              deletionRequestedAt: { type: [string, "null"], format: date-time }
+              reviewedAt: { type: [string, "null"], format: date-time }
+              activeOwnerships: { type: integer, minimum: 0 }
+              canRehearseErasure: { type: boolean }
+    PlatformBusinessAction:
+      type: object
+      required: [action]
+      properties:
+        action: { type: string, enum: [verify, unverify, suspend, reactivate] }
+    PlatformBusinessStatus:
+      type: object
+      required: [id, name, verifiedAt, suspendedAt]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        verifiedAt: { type: [string, "null"], format: date-time }
+        suspendedAt: { type: [string, "null"], format: date-time }
+    PlatformBusinessDirectory:
+      type: object
+      required: [businesses, hasMore]
+      properties:
+        hasMore: { type: boolean }
+        businesses:
+          type: array
+          items:
+            allOf:
+              - $ref: "#/components/schemas/PlatformBusinessStatus"
+              - type: object
+                required: [locationCount]
+                properties:
+                  locationCount: { type: integer }
+    SaasPlanCode:
+      type: string
+      enum: [starter, professional, enterprise]
+    SaasPlanTerms:
+      type: object
+      required: [name, monthlyCents, locationLimit, trialDays]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 80 }
+        monthlyCents: { type: integer, minimum: 0, maximum: 10000000 }
+        locationLimit: { type: integer, minimum: 1, maximum: 1000 }
+        trialDays: { type: integer, minimum: 0, maximum: 90 }
+    SaasPlan:
+      allOf:
+        - $ref: "#/components/schemas/SaasPlanTerms"
+        - type: object
+          required: [code]
+          properties:
+            code: { $ref: "#/components/schemas/SaasPlanCode" }
+    SaasSubscriptionChange:
+      oneOf:
+        - type: object
+          required: [action, planCode, expectedCents, requestId]
+          properties:
+            action: { type: string, const: activate }
+            planCode: { $ref: "#/components/schemas/SaasPlanCode" }
+            expectedCents: { type: integer, minimum: 0 }
+            requestId: { type: string, format: uuid }
+        - type: object
+          required: [action, requestId]
+          properties:
+            action: { type: string, const: cancel }
+            requestId: { type: string, format: uuid }
+    BusinessSaasSubscription:
+      type: object
+      required: [plans, current, currency, locationCount, history]
+      properties:
+        currency: { type: string, const: EUR }
+        plans: { type: array, items: { $ref: "#/components/schemas/SaasPlan" } }
+        locationCount: { type: integer }
+        current:
+          type: [object, "null"]
+          required: [organizationId, planCode, state, periodEndsAt]
+          properties:
+            organizationId: { type: string, format: uuid }
+            planCode: { $ref: "#/components/schemas/SaasPlanCode" }
+            state: { type: string, enum: [trial, active, cancelled, expired] }
+            periodEndsAt: { type: string, format: date-time }
+        history:
+          type: array
+          items:
+            type: object
+            required: [organizationId, requestId, planCode, action, amountCents, createdAt, periodEndsAt]
+            properties:
+              organizationId: { type: string, format: uuid }
+              requestId: { type: string, format: uuid }
+              planCode: { $ref: "#/components/schemas/SaasPlanCode" }
+              action: { type: string, enum: [trial, activate, cancel] }
+              amountCents: { type: integer }
+              createdAt: { type: string, format: date-time }
+              periodEndsAt: { type: string, format: date-time }
+    OrganizationAnalytics:
+      type: object
+      required: [from, to, currency, locations, staff, services, customers, marketing]
+      properties:
+        from: { type: string, format: date }
+        to: { type: string, format: date }
+        currency: { type: string, enum: [EUR] }
+        locations:
+          type: array
+          items:
+            type: object
+            required: [id, name, bookings, completed, cancelled, noShows, receivedCents, refundedCents, lowStock, units, inventoryValueCents, unpricedUnits, capacityMinutes, occupiedMinutes]
+            properties:
+              id: { type: string, format: uuid }
+              name: { type: string }
+              bookings: { type: integer }
+              completed: { type: integer }
+              cancelled: { type: integer }
+              noShows: { type: integer }
+              receivedCents: { type: integer }
+              refundedCents: { type: integer }
+              lowStock: { type: integer }
+              units: { type: integer }
+              inventoryValueCents: { type: integer }
+              unpricedUnits: { type: integer }
+              capacityMinutes: { type: integer, minimum: 0 }
+              occupiedMinutes: { type: integer, minimum: 0 }
+        staff:
+          type: array
+          items:
+            type: object
+            required: [id, name, completed, minutes, receivedCents, refundedCents]
+            properties:
+              id: { type: string, format: uuid }
+              name: { type: string }
+              completed: { type: integer }
+              minutes: { type: integer }
+              receivedCents: { type: integer }
+              refundedCents: { type: integer }
+        services:
+          type: array
+          items:
+            type: object
+            required: [id, name, completed, receivedCents, refundedCents]
+            properties:
+              id: { type: string }
+              name: { type: string }
+              completed: { type: integer }
+              receivedCents: { type: integer }
+              refundedCents: { type: integer }
+        customers:
+          type: object
+          required: [new, repeat]
+          properties:
+            new: { type: integer, minimum: 0 }
+            repeat: { type: integer, minimum: 0 }
+        marketing:
+          type: object
+          required: [captures, recipients]
+          properties:
+            captures: { type: integer }
+            recipients: { type: integer }
+    LoyaltyProgram:
+      type: object
+      required: [pointsPerVisit]
+      properties:
+        pointsPerVisit: { type: integer, minimum: 0, maximum: 1000 }
+    ServicePackageTerms:
+      type: object
+      required: [name, serviceId, visits, priceCents, validDays]
+      properties:
+        kind: { type: string, enum: [package, membership] }
+        name: { type: string, minLength: 1, maxLength: 120 }
+        serviceId: { type: string, format: uuid }
+        visits: { type: integer, minimum: 2, maximum: 50 }
+        priceCents: { type: integer, minimum: 1, maximum: 10000000 }
+        validDays: { type: integer, minimum: 1, maximum: 730 }
+    ServicePackageAvailability:
+      type: object
+      required: [active]
+      properties:
+        active: { type: boolean }
+    ManagedServicePackage:
+      allOf:
+        - $ref: "#/components/schemas/ServicePackageTerms"
+        - $ref: "#/components/schemas/ServicePackageAvailability"
+        - type: object
+          required: [id, organizationId]
+          properties:
+            id: { type: string, format: uuid }
+            organizationId: { type: string, format: uuid }
+    ServicePackageOffer:
+      type: object
+      required: [id, name, visits, priceCents, validDays, service, business]
+      properties:
+        kind: { type: string, enum: [package, membership] }
+        id: { type: string, format: uuid }
+        name: { type: string }
+        service: { type: string }
+        business: { type: string }
+        visits: { type: integer }
+        priceCents: { type: integer }
+        validDays: { type: integer }
+    CustomerServicePackage:
+      type: object
+      required: [id, name, service, business, remaining, expiresAt, priceCents]
+      properties:
+        kind: { type: string, enum: [package, membership] }
+        id: { type: string, format: uuid }
+        name: { type: string }
+        service: { type: string }
+        business: { type: string }
+        remaining: { type: integer, minimum: 0 }
+        expiresAt: { type: string, format: date-time }
+        priceCents: { type: integer }
+    ServicePackagePurchaseInput:
+      type: object
+      required: [requestId, expectedPriceCents]
+      properties:
+        requestId: { type: string, format: uuid }
+        expectedPriceCents: { type: integer, minimum: 1 }
+    LoyaltyExchangeInput:
+      type: object
+      required: [requestId]
+      properties:
+        requestId: { type: string, format: uuid }
+    LoyaltyReward:
+      type: object
+      required: [code, discountCents, redeemedAt]
+      properties:
+        code: { type: string }
+        discountCents: { type: integer, minimum: 1 }
+        redeemedAt: { type: [string, "null"], format: date-time }
+    LoyaltyBalance:
+      type: object
+      required: [organizationId, name, points]
+      properties:
+        organizationId: { type: string, format: uuid }
+        name: { type: string }
+        points: { type: integer, minimum: 0 }
+    ReviewReportInput:
+      type: object
+      required: [reason]
+      properties:
+        reason: { type: string, enum: [spam, abuse, personal_information, other] }
+        details: { type: string, maxLength: 1000 }
+    AppointmentReviewInput:
+      type: object
+      required: [rating, comment]
+      properties:
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        comment: { type: string, maxLength: 2000 }
+    Appointment:
+      type: object
+      required: [id, locationId, employeeId, startsAt, endsAt, status, items, priceCents, durationMinutes]
+      properties:
+        id: { type: string, format: uuid }
+        locationId: { type: string, format: uuid }
+        employeeId: { type: string, format: uuid }
+        startsAt: { type: string, format: date-time }
+        endsAt: { type: string, format: date-time }
+        appointmentNote: { type: string, nullable: true }
+        rescheduleNoticeHours: { type: integer }
+        reviewRating: { type: integer, nullable: true, minimum: 1, maximum: 5 }
+        status: { type: string, enum: [confirmed, cancelled, completed, no_show] }
+        items: { type: array, items: { type: object, additionalProperties: true } }
+        priceCents: { type: integer }
+        durationMinutes: { type: integer }
+        salon: { type: string }
+        slug: { type: string }
+        timezone: { type: string }
+        employeeName: { type: string }
+        customerName: { type: string }
+        source: { type: string, enum: [online, manual, walk_in] }
+    BookingQuoteInput:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          minItems: 1
+          maxItems: 12
+          items:
+            type: object
+            required: [serviceId]
+            properties:
+              serviceId: { type: string, format: uuid }
+              variantId: { type: string, format: uuid }
+    BookingQuote:
+      type: object
+      required: [items, priceCents, durationMinutes, occupiedMinutes]
+      properties:
+        priceCents: { type: integer }
+        durationMinutes: { type: integer }
+        occupiedMinutes: { type: integer }
+        items:
+          type: array
+          items:
+            type: object
+            required: [serviceId, variantId, name, variantName, priceCents, durationMinutes, preparationMinutes, cleanupMinutes]
+            properties:
+              serviceId: { type: string, format: uuid }
+              variantId: { type: [string, "null"], format: uuid }
+              name: { type: string }
+              variantName: { type: [string, "null"] }
+              employeeId: { type: string, format: uuid }
+              professionalName: { type: string }
+              priceCents: { type: integer }
+              durationMinutes: { type: integer }
+              preparationMinutes: { type: integer }
+              cleanupMinutes: { type: integer }
+    GalleryPhoto:
+      type: object
+      required: [id, alt]
+      properties:
+        id: { type: string, format: uuid }
+        alt: { type: string }
+    FavoriteSalon:
+      type: object
+      required: [id, slug, name, city]
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        name: { type: string }
+        city: { type: string }
     HealthStatus:
       type: object
       properties:
@@ -533,17 +3340,84 @@ components:
       type: object
       required: [id, name, description, durationMinutes, priceCents]
       properties:
+        groupName: { type: string, nullable: true }
+        onlineBooking: { type: boolean }
         id: { type: string }
         name: { type: string }
         description: { type: string }
         durationMinutes: { type: integer }
         priceCents: { type: integer }
+        variants:
+          type: array
+          items: { $ref: "#/components/schemas/PublicServiceVariant" }
+    PublicServiceVariant:
+      type: object
+      required: [id, name, priceCents, durationMinutes]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        priceCents: { type: integer }
+        durationMinutes: { type: integer }
+    OrganizationReviewReplyInput:
+      type: object
+      required: [reply]
+      properties:
+        reply: { type: string, maxLength: 2000 }
+    OrganizationReview:
+      allOf:
+        - $ref: "#/components/schemas/PublicReview"
+        - type: object
+          required: [location]
+          properties:
+            location: { type: string }
+    OrganizationReviewPage:
+      type: object
+      required: [reviews, hasMore]
+      properties:
+        reviews: { type: array, items: { $ref: "#/components/schemas/OrganizationReview" } }
+        hasMore: { type: boolean }
+    PublicReview:
+      type: object
+      required: [id, rating, comment, reply, date]
+      properties:
+        id: { type: string, format: uuid }
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        comment: { type: string }
+        reply: { type: string }
+        date: { type: string, format: date-time }
+    PublicReviewPage:
+      type: object
+      required: [count, average, reviews]
+      properties:
+        count: { type: integer }
+        average: { type: number, nullable: true }
+        reviews: { type: array, items: { $ref: "#/components/schemas/PublicReview" } }
+    PublicStaffProfile:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        title: { type: string }
+        photoUrl: { type: string }
     BusinessDetail:
       allOf:
         - $ref: "#/components/schemas/Business"
         - type: object
           required: [services, openingHours]
           properties:
+            verified: { type: boolean }
+            addressExtra: { type: string }
+            country: { type: string }
+            latitude: { type: number, nullable: true }
+            longitude: { type: number, nullable: true }
+            phone: { type: string }
+            website: { type: string }
+            socialUrl: { type: string }
+            logoUrl: { type: string }
+            staff:
+              type: array
+              items: { $ref: "#/components/schemas/PublicStaffProfile" }
             services:
               type: array
               items:
@@ -621,6 +3495,7 @@ components:
             email: { type: string }
             emailVerified: { type: boolean }
             deletionRequested: { type: boolean }
+            deletionRequestedAt: { type: [string, "null"], format: date-time }
             isPlatformAdmin: { type: boolean }
     ActionResult:
       type: object
@@ -629,11 +3504,30 @@ components:
         message: { type: string }
     PersonalExport:
       type: object
-      required: [profile, organizations, exportedAt]
+      required: [profile, organizations, exportedAt, records]
       properties:
         profile: { $ref: "#/components/schemas/UserProfile" }
         organizations: { type: array, items: { $ref: "#/components/schemas/OrganizationSummary" } }
-        exportedAt: { type: string }
+        exportedAt: { type: string, format: date-time }
+        records: { $ref: "#/components/schemas/PersonalExportRecords" }
+    PersonalExportRecords:
+      type: object
+      required: [bookings, payments, refunds, favorites, waitlist, reviews, reviewReports, policyAcceptances, paymentMethods, marketingPreferences, loyaltyAwards, loyaltyRewards, packages, supportCases]
+      properties:
+        bookings: { type: array, items: { type: object, additionalProperties: true } }
+        payments: { type: array, items: { type: object, additionalProperties: true } }
+        refunds: { type: array, items: { type: object, additionalProperties: true } }
+        favorites: { type: array, items: { type: object, additionalProperties: true } }
+        waitlist: { type: array, items: { type: object, additionalProperties: true } }
+        reviews: { type: array, items: { type: object, additionalProperties: true } }
+        reviewReports: { type: array, items: { type: object, additionalProperties: true } }
+        policyAcceptances: { type: array, items: { type: object, additionalProperties: true } }
+        paymentMethods: { type: array, items: { type: object, additionalProperties: true } }
+        marketingPreferences: { type: array, items: { type: object, additionalProperties: true } }
+        loyaltyAwards: { type: array, items: { type: object, additionalProperties: true } }
+        loyaltyRewards: { type: array, items: { type: object, additionalProperties: true } }
+        packages: { type: array, items: { type: object, additionalProperties: true } }
+        supportCases: { type: array, items: { type: object, additionalProperties: true } }
     PaymentReference:
       type: object
       required: [id, provider, status]
@@ -665,6 +3559,8 @@ components:
         description: { type: string, maxLength: 3000 }
         contactEmail: { type: string, maxLength: 200 }
         phone: { type: string, maxLength: 30 }
+        socialUrl: { type: string, maxLength: 500 }
+        logoUrl: { type: string, maxLength: 500 }
         website: { type: string, maxLength: 300 }
         categoryId: { type: string, format: uuid }
         onboardingStep: { type: integer, minimum: 1, maximum: 6 }
@@ -708,6 +3604,7 @@ components:
       required: [displayName, email, phone, locationId, active, workingHours]
       properties:
         displayName: { type: string, minLength: 1, maxLength: 100 }
+        publicName: { type: string, maxLength: 100 }
         email: { type: string, maxLength: 200 }
         phone: { type: string, maxLength: 30 }
         locationId: { type: string, format: uuid }
@@ -768,6 +3665,7 @@ components:
       type: object
       required: [noticeHours, lateFeeType, lateFeeValue, noShowFeeType, noShowFeeValue, waiverAllowed, exceptions]
       properties:
+        rescheduleNoticeHours: { type: integer, minimum: 0, maximum: 720 }
         noticeHours: { type: integer, minimum: 0, maximum: 720 }
         lateFeeType: { type: string, enum: [percentage, fixed] }
         lateFeeValue: { type: integer, minimum: 0, maximum: 10000000 }

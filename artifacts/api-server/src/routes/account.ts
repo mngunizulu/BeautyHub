@@ -1,10 +1,13 @@
 import { Router, type IRouter } from "express";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
+import { z } from "zod/v4";
 import { db, users, paymentReferences, staffInvitations, memberships, employees, auditEvents } from "@workspace/db";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
+import { simulatedPaymentProvider } from "../lib/payments";
 import { UpdateMyProfileBody, AcceptStaffInvitationBody, GetMyProfileResponse, ExportMyDataResponse } from "@workspace/api-zod";
 import { clerkClient } from "@clerk/express";
 import { requireAuthentication } from "../middlewares/authentication";
+import { accountExportRecords } from "../services/account-export";
 import { publicProfile } from "../services/identity";
 import { myOrganizations } from "../services/workspace";
 import { input } from "../lib/input";
@@ -21,15 +24,39 @@ router.patch("/me", async (req, res): Promise<void> => {
 });
 router.get("/me/export", async (req, res): Promise<void> => {
   res.setHeader("Content-Disposition", 'attachment; filename="beautyhub-personendaten.json"');
-  res.json(ExportMyDataResponse.parse({ profile: publicProfile(req.identity!), organizations: await myOrganizations(req.identity!.id), exportedAt: new Date().toISOString() }));
+  const user = req.identity!;
+  const [organizations, records] = await Promise.all([myOrganizations(user.id), accountExportRecords(user.id)]);
+  res.json(ExportMyDataResponse.parse({ profile: publicProfile(user), organizations, records, exportedAt: new Date().toISOString() }));
 });
 router.post("/me/deletion-requests", async (req, res): Promise<void> => {
-  await db.update(users).set({ deletionRequestedAt: req.identity!.deletionRequestedAt ?? new Date() }).where(eq(users.id, req.identity!.id));
+  await db.update(users).set({ deletionRequestedAt: sql`coalesce(${users.deletionRequestedAt}, clock_timestamp())` }).where(eq(users.id, req.identity!.id));
   res.json({ message: "Löschanfrage gespeichert. Vor der Löschung werden Unternehmensverantwortung und Aufbewahrungspflichten geprüft. Das Konto wurde noch nicht gelöscht." });
+});
+router.post("/me/deletion-requests/withdraw", async (req, res) => {
+  const { requestedAt } = input(z.strictObject({ requestedAt: z.iso.datetime() }), req.body);
+  await db.transaction(async (tx) => {
+    const [current] = await tx.select({ requestedAt: users.deletionRequestedAt }).from(users)
+      .where(eq(users.id, req.identity!.id)).for("update");
+    if (!current?.requestedAt) return;
+    if (+current.requestedAt !== Date.parse(requestedAt)) {
+      throw new HttpError(409, "Die Löschanfrage hat sich geändert.");
+    }
+    await tx.update(users).set({ deletionRequestedAt: null }).where(eq(users.id, req.identity!.id));
+  });
+  res.status(204).end();
 });
 router.get("/me/payment-methods", async (req, res): Promise<void> => {
   res.json(await db.select({ id: paymentReferences.id, provider: paymentReferences.provider, status: paymentReferences.status })
     .from(paymentReferences).where(eq(paymentReferences.userId, req.identity!.id)));
+});
+router.post("/me/payment-methods/simulated", async (req, res) => {
+  if (req.body !== undefined) throw new HttpError(400, "Für die Simulation werden keine Kartendaten benötigt.");
+  const [method] = await db.insert(paymentReferences).values({
+    userId: req.identity!.id, provider: simulatedPaymentProvider, providerCustomerId: randomUUID(), status: "active",
+  }).onConflictDoUpdate({
+    target: [paymentReferences.userId, paymentReferences.provider], set: { status: "active" },
+  }).returning({ id: paymentReferences.id, provider: paymentReferences.provider, status: paymentReferences.status });
+  res.json(method);
 });
 router.post("/invitations/accept", requireAuthentication, async (req, res): Promise<void> => {
   const data = input(AcceptStaffInvitationBody.strict(), req.body);

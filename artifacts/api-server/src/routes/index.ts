@@ -1,15 +1,56 @@
 import { Router, type IRouter } from "express";
+import { platformOverviewRouter } from "./platform-overview";
+import { supportRouter } from "./support";
+import { platformCustomersRouter } from "./platform-customers";
+import { platformBusinessesRouter } from "./platform-businesses";
+import { saasRouter } from "./saas";
+import { analyticsRouter } from "./analytics";
+import { appointmentPaymentsRouter } from "./appointment-payments";
 import healthRouter from "./health";
 import catalogRouter from "./catalog";
+import { bookingQuoteRouter } from "./booking-quote";
+import { bookingRouter } from "./bookings";
+import { professionalPricingRouter } from "./professional-pricing";
+import { staffOperationsRouter } from "./staff-operations";
+import { reviewModerationRouter } from "./review-moderation";
+import { reviewsRouter } from "./reviews";
+import { packagesRouter } from "./packages";
+import { loyaltyRouter } from "./loyalty";
+import { marketingRouter } from "./marketing";
+import { inventoryRouter } from "./inventory";
+import { crmRouter } from "./crm";
 import foundationRouter from "./foundation";
 import accountRouter from "./account";
 import organizationsRouter from "./organizations";
+
+import { galleryRouter } from "./gallery";
+import { favoritesRouter } from "./favorites";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
 router.use(catalogRouter);
+router.use(bookingQuoteRouter);
+router.use(appointmentPaymentsRouter);
+router.use(analyticsRouter);
+router.use(bookingRouter);
+router.use(professionalPricingRouter);
+router.use(staffOperationsRouter);
+router.use(crmRouter);
+router.use(inventoryRouter);
+router.use(marketingRouter);
+router.use(loyaltyRouter);
+router.use(packagesRouter);
+router.use(reviewsRouter);
 router.use(foundationRouter);
+router.use(platformOverviewRouter);
+router.use(supportRouter);
+router.use(platformBusinessesRouter);
+router.use(platformCustomersRouter);
+router.use(saasRouter);
+router.use(reviewModerationRouter);
+router.use(galleryRouter);
+router.use(favoritesRouter);
 router.use(accountRouter);
 router.use(organizationsRouter);
 

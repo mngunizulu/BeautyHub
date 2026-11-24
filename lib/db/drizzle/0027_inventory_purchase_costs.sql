@@ -1,0 +1,3 @@
+ALTER TABLE "inventory_products" DROP CONSTRAINT "inventory_product_values";--> statement-breakpoint
+ALTER TABLE "inventory_products" ADD COLUMN "purchase_cost_cents" integer;--> statement-breakpoint
+ALTER TABLE "inventory_products" ADD CONSTRAINT "inventory_product_values" CHECK ("inventory_products"."unit_cents" > 0 and ("inventory_products"."purchase_cost_cents" is null or "inventory_products"."purchase_cost_cents" between 0 and 10000000) and "inventory_products"."stock" >= 0 and "inventory_products"."reorder_at" >= 0);

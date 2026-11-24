@@ -5,6 +5,1485 @@
  * BeautyHub Stage 1 API. Public development catalog; bookings and account activation are deferred.
  * OpenAPI spec version: 0.1.0
  */
+export interface BusinessMarketingPreferenceInput {
+  consent: boolean;
+}
+
+export interface BusinessMarketingPreference {
+  organizationId: string;
+  name: string;
+  consent: boolean;
+}
+
+export interface MarketingCaptureInput {
+  idempotencyKey: string;
+}
+
+export interface MarketingCapture {
+  id: string;
+  /** @minimum 0 */
+  count: number;
+  createdAt: string;
+}
+
+export type MarketingCampaignInputSegment = typeof MarketingCampaignInputSegment[keyof typeof MarketingCampaignInputSegment];
+
+
+export const MarketingCampaignInputSegment = {
+  completed: 'completed',
+  repeat: 'repeat',
+} as const;
+
+export interface MarketingCampaignInput {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  title: string;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  subject: string;
+  /**
+     * @minLength 1
+     * @maxLength 4000
+     */
+  body: string;
+  segment: MarketingCampaignInputSegment;
+}
+
+export type MarketingTemplate = MarketingCampaignInput & {
+  id: string;
+  organizationId: string;
+  updatedAt: string;
+};
+
+export type MarketingCampaign = MarketingCampaignInput & {
+  id: string;
+  organizationId: string;
+  updatedAt: string;
+};
+
+export interface InventorySupplierInput {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  name: string;
+  email?: string;
+  /** @maxLength 30 */
+  phone?: string;
+}
+
+export interface InventorySupplier {
+  id: string;
+  locationId: string;
+  name: string;
+  email: string;
+  phone: string;
+}
+
+export type InventoryPurchaseOrderInputItemsItem = {
+  productId: string;
+  /**
+     * @minimum 1
+     * @maximum 1000000
+     */
+  quantity: number;
+};
+
+export interface InventoryPurchaseOrderInput {
+  idempotencyKey: string;
+  supplierId: string;
+  /**
+     * @minItems 1
+     * @maxItems 30
+     */
+  items: InventoryPurchaseOrderInputItemsItem[];
+}
+
+export type InventoryOrderReceiptInputItemsItem = {
+  productId: string;
+  /**
+     * @minimum 1
+     * @maximum 1000000
+     */
+  quantity: number;
+};
+
+export interface InventoryOrderReceiptInput {
+  idempotencyKey: string;
+  /**
+     * @minItems 1
+     * @maxItems 30
+     */
+  items: InventoryOrderReceiptInputItemsItem[];
+}
+
+export type InventoryOrderStatusInputStatus = typeof InventoryOrderStatusInputStatus[keyof typeof InventoryOrderStatusInputStatus];
+
+
+export const InventoryOrderStatusInputStatus = {
+  received: 'received',
+  cancelled: 'cancelled',
+} as const;
+
+export interface InventoryOrderStatusInput {
+  status: InventoryOrderStatusInputStatus;
+}
+
+export type InventoryPurchaseOrderStatus = typeof InventoryPurchaseOrderStatus[keyof typeof InventoryPurchaseOrderStatus];
+
+
+export const InventoryPurchaseOrderStatus = {
+  open: 'open',
+  received: 'received',
+  cancelled: 'cancelled',
+} as const;
+
+export type InventoryPurchaseOrderItemsItem = {
+  productId: string;
+  sku: string;
+  name: string;
+  quantity: number;
+  /** @nullable */
+  purchaseCostCents?: number | null;
+  /** @minimum 0 */
+  receivedQuantity?: number;
+};
+
+export interface InventoryPurchaseOrder {
+  id: string;
+  locationId: string;
+  supplierId: string;
+  supplierName: string;
+  actorId: string;
+  idempotencyKey: string;
+  status: InventoryPurchaseOrderStatus;
+  createdAt: string;
+  /** @nullable */
+  closedAt: string | null;
+  items: InventoryPurchaseOrderItemsItem[];
+}
+
+export interface InventoryProductInput {
+  /**
+     * @minLength 1
+     * @maxLength 40
+     */
+  sku: string;
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  name: string;
+  /** @maxLength 120 */
+  category: string;
+  /** @maxLength 120 */
+  supplier: string;
+  /** @maxLength 500 */
+  imageUrl: string;
+  /**
+     * @minimum 0
+     * @maximum 10000000
+     * @nullable
+     */
+  purchaseCostCents?: number | null;
+  /**
+     * @minimum 1
+     * @maximum 10000000
+     */
+  unitCents: number;
+  /**
+     * @minimum 0
+     * @maximum 1000000
+     */
+  reorderAt: number;
+  archived?: boolean;
+}
+
+export type InventoryProduct = InventoryProductInput & {
+  id: string;
+  locationId: string;
+  /** @minimum 0 */
+  stock: number;
+  archived: boolean;
+};
+
+export type InventoryMovementInputKind = typeof InventoryMovementInputKind[keyof typeof InventoryMovementInputKind];
+
+
+export const InventoryMovementInputKind = {
+  receipt: 'receipt',
+  adjustment: 'adjustment',
+} as const;
+
+export interface InventoryMovementInput {
+  idempotencyKey: string;
+  kind: InventoryMovementInputKind;
+  /**
+     * @minimum -1000000
+     * @maximum 1000000
+     */
+  quantity: number;
+  /**
+     * @minLength 1
+     * @maxLength 240
+     */
+  reason: string;
+}
+
+export type InventoryMovementKind = typeof InventoryMovementKind[keyof typeof InventoryMovementKind];
+
+
+export const InventoryMovementKind = {
+  receipt: 'receipt',
+  adjustment: 'adjustment',
+  sale: 'sale',
+} as const;
+
+export interface InventoryMovement {
+  id: string;
+  productId: string;
+  actorId: string;
+  idempotencyKey: string;
+  kind: InventoryMovementKind;
+  quantity: number;
+  balance: number;
+  reason: string;
+  createdAt: string;
+}
+
+export interface ProfessionalPricingSettings {
+  differentialPricing: boolean;
+  allowProfessionalChoice: boolean;
+  allowAnyProfessional: boolean;
+}
+
+export interface ProfessionalProfileInput {
+  /** @maxLength 100 */
+  professionalTitle: string;
+  /** @maxLength 1000 */
+  professionalPhotoUrl: string;
+}
+
+export interface ProfessionalOverrideInput {
+  employeeId: string;
+  serviceId: string;
+  /** @nullable */
+  variantId: string | null;
+  /**
+     * @minimum 0
+     * @maximum 10000000
+     * @nullable
+     */
+  priceCents: number | null;
+  /**
+     * @minimum 1
+     * @maximum 720
+     * @nullable
+     */
+  durationMinutes: number | null;
+}
+
+export interface CalendarMoveDate {
+  date: string;
+}
+
+export interface CalendarMoveInput {
+  startsAt: string;
+  employeeId: string;
+  expectedStartsAt: string;
+  expectedEmployeeId: string;
+}
+
+export interface StaffBreak {
+  /**
+     * @minimum 1
+     * @maximum 7
+     */
+  weekday: number;
+  begins: string;
+  ends: string;
+}
+
+export type StaffBreakList = StaffBreak[];
+
+export type CrmCustomerInputContactPreference = typeof CrmCustomerInputContactPreference[keyof typeof CrmCustomerInputContactPreference];
+
+
+export const CrmCustomerInputContactPreference = {
+  none: 'none',
+  email: 'email',
+  phone: 'phone',
+} as const;
+
+export interface CrmCustomerInput {
+  name: string;
+  email: string;
+  phone: string;
+  contactPreference: CrmCustomerInputContactPreference;
+  notes: string;
+  tags: string[];
+}
+
+export type CrmCustomerUpdateContactPreference = typeof CrmCustomerUpdateContactPreference[keyof typeof CrmCustomerUpdateContactPreference];
+
+
+export const CrmCustomerUpdateContactPreference = {
+  none: 'none',
+  email: 'email',
+  phone: 'phone',
+} as const;
+
+export interface CrmCustomerUpdate {
+  name: string;
+  email: string;
+  phone: string;
+  contactPreference: CrmCustomerUpdateContactPreference;
+  notes: string;
+  tags: string[];
+  revision: number;
+}
+
+export type CrmCustomerContactPreference = typeof CrmCustomerContactPreference[keyof typeof CrmCustomerContactPreference];
+
+
+export const CrmCustomerContactPreference = {
+  none: 'none',
+  email: 'email',
+  phone: 'phone',
+} as const;
+
+export interface CrmCustomer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  contactPreference: CrmCustomerContactPreference;
+  notes: string;
+  tags: string[];
+  revision: number;
+  updatedAt: string;
+  completedVisits?: number;
+}
+
+export type CrmVisitItemsItem = { [key: string]: unknown };
+
+export interface CrmVisit {
+  bookingId: string;
+  startsAt: string;
+  status: string;
+  salon: string;
+  timezone: string;
+  items: CrmVisitItemsItem[];
+  name?: string;
+}
+
+export interface CrmAttachment {
+  id: string;
+  name: string;
+  createdAt: string;
+}
+
+export type CalendarAppointmentSelectionSource = typeof CalendarAppointmentSelectionSource[keyof typeof CalendarAppointmentSelectionSource];
+
+
+export const CalendarAppointmentSelectionSource = {
+  manual: 'manual',
+  walk_in: 'walk_in',
+} as const;
+
+export interface CalendarAppointmentItem {
+  serviceId: string;
+  variantId?: string;
+}
+
+export interface CalendarAppointmentSelection {
+  locationId: string;
+  date: string;
+  /**
+     * @minItems 1
+     * @maxItems 12
+     */
+  items: CalendarAppointmentItem[];
+  source: CalendarAppointmentSelectionSource;
+}
+
+export type CalendarAppointmentInputSource = typeof CalendarAppointmentInputSource[keyof typeof CalendarAppointmentInputSource];
+
+
+export const CalendarAppointmentInputSource = {
+  manual: 'manual',
+  walk_in: 'walk_in',
+} as const;
+
+export interface CalendarAppointmentInput {
+  locationId: string;
+  /**
+     * @minItems 1
+     * @maxItems 12
+     */
+  items: CalendarAppointmentItem[];
+  source: CalendarAppointmentInputSource;
+  employeeId: string;
+  startsAt: string;
+  idempotencyKey: string;
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  guestName: string;
+}
+
+export type BookingQuoteItemsItem = {
+  serviceId: string;
+  /** @nullable */
+  variantId: string | null;
+  name: string;
+  /** @nullable */
+  variantName: string | null;
+  employeeId?: string;
+  professionalName?: string;
+  priceCents: number;
+  durationMinutes: number;
+  preparationMinutes: number;
+  cleanupMinutes: number;
+};
+
+export interface BookingQuote {
+  priceCents: number;
+  durationMinutes: number;
+  occupiedMinutes: number;
+  items: BookingQuoteItemsItem[];
+}
+
+export interface BookingSlot {
+  employeeId: string;
+  employeeName: string;
+  professionalTitle?: string;
+  professionalPhotoUrl?: string;
+  mixed?: boolean;
+  quote?: BookingQuote;
+  startsAt: string;
+  endsAt: string;
+}
+
+export type BookingAvailabilityProfessionalChoice = {
+  individual: boolean;
+  any: boolean;
+};
+
+/**
+ * @nullable
+ */
+export type BookingAvailabilityPolicy = { [key: string]: unknown } | null;
+
+export interface BookingAvailability {
+  quote: BookingQuote;
+  slots: BookingSlot[];
+  professionalChoice?: BookingAvailabilityProfessionalChoice;
+  /** @nullable */
+  policy: BookingAvailabilityPolicy;
+}
+
+export type AvailableDatesInputItemsItem = {
+  serviceId: string;
+  variantId?: string;
+};
+
+export interface AvailableDatesInput {
+  from: string;
+  /**
+     * @minItems 1
+     * @maxItems 12
+     */
+  items: AvailableDatesInputItemsItem[];
+}
+
+export interface PosVoucherQuote {
+  /** @pattern ^[A-Z0-9-]{4,32}$ */
+  code: string;
+  /**
+     * @minimum 1
+     * @maximum 2147483647
+     */
+  discountCents: number;
+}
+
+export interface GiftVoucherInput {
+  /**
+     * @minimum 1
+     * @maximum 100000
+     */
+  discountCents: number;
+  requestId: string;
+}
+
+export type PosVoucherInput = PosVoucherQuote & {
+  expiresAt?: string;
+};
+
+export type PosVoucher = PosVoucherQuote & ({
+  isGift?: boolean;
+  id: string;
+  organizationId: string;
+  /** @nullable */
+  expiresAt: string | null;
+  /** @nullable */
+  redeemedAt: string | null;
+});
+
+export type RetailSaleInputMethod = typeof RetailSaleInputMethod[keyof typeof RetailSaleInputMethod];
+
+
+export const RetailSaleInputMethod = {
+  cash: 'cash',
+  simulated_card: 'simulated_card',
+} as const;
+
+export type RetailSaleInputItemsItem = {
+  productId?: string;
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  description: string;
+  /**
+     * @minimum 1
+     * @maximum 10000000
+     */
+  unitCents: number;
+  /**
+     * @minimum 1
+     * @maximum 100
+     */
+  quantity: number;
+};
+
+export interface RetailSaleInput {
+  idempotencyKey: string;
+  /**
+     * @minLength 4
+     * @maxLength 32
+     * @nullable
+     */
+  voucherCode?: string | null;
+  method: RetailSaleInputMethod;
+  /**
+     * @minItems 1
+     * @maxItems 20
+     */
+  items: RetailSaleInputItemsItem[];
+}
+
+export type RetailSale = RetailSaleInput & {
+  id: string;
+  locationId: string;
+  actorId: string;
+  amountCents: number;
+  discountCents?: number;
+  createdAt: string;
+};
+
+export interface AppointmentRefundInput {
+  idempotencyKey: string;
+  /**
+     * @minimum 1
+     * @maximum 2147483647
+     */
+  amountCents: number;
+  /**
+     * @minLength 1
+     * @maxLength 240
+     */
+  reason: string;
+}
+
+export type RetailRefund = AppointmentRefundInput & {
+  id: string;
+  saleId: string;
+  actorId: string;
+  createdAt: string;
+};
+
+export interface RetailSaleBalance {
+  sale: RetailSale;
+  refunds: RetailRefund[];
+  refundableCents: number;
+}
+
+export type AppointmentTransactionReportCurrency = typeof AppointmentTransactionReportCurrency[keyof typeof AppointmentTransactionReportCurrency];
+
+
+export const AppointmentTransactionReportCurrency = {
+  EUR: 'EUR',
+} as const;
+
+export type AppointmentTransactionReportTotalsItemMethod = typeof AppointmentTransactionReportTotalsItemMethod[keyof typeof AppointmentTransactionReportTotalsItemMethod];
+
+
+export const AppointmentTransactionReportTotalsItemMethod = {
+  cash: 'cash',
+  simulated_card: 'simulated_card',
+} as const;
+
+export type AppointmentTransactionReportTotalsItem = {
+  method: AppointmentTransactionReportTotalsItemMethod;
+  receivedCents: number;
+  discountCents: number;
+  refundedCents: number;
+};
+
+export type AppointmentTransactionReportEntriesItemMethod = typeof AppointmentTransactionReportEntriesItemMethod[keyof typeof AppointmentTransactionReportEntriesItemMethod];
+
+
+export const AppointmentTransactionReportEntriesItemMethod = {
+  cash: 'cash',
+  simulated_card: 'simulated_card',
+} as const;
+
+export type AppointmentTransactionReportEntriesItemKind = typeof AppointmentTransactionReportEntriesItemKind[keyof typeof AppointmentTransactionReportEntriesItemKind];
+
+
+export const AppointmentTransactionReportEntriesItemKind = {
+  deposit: 'deposit',
+  settlement: 'settlement',
+  refund: 'refund',
+  retail: 'retail',
+  retail_refund: 'retail_refund',
+} as const;
+
+export type AppointmentTransactionReportEntriesItem = {
+  id: string;
+  /** @nullable */
+  bookingId: string | null;
+  paymentId: string;
+  recordedAt: string;
+  discountCents: number;
+  method: AppointmentTransactionReportEntriesItemMethod;
+  kind: AppointmentTransactionReportEntriesItemKind;
+  amountCents: number;
+};
+
+export interface AppointmentTransactionReport {
+  count: number;
+  date: string;
+  timezone: string;
+  currency: AppointmentTransactionReportCurrency;
+  totals: AppointmentTransactionReportTotalsItem[];
+  entries: AppointmentTransactionReportEntriesItem[];
+}
+
+export type AppointmentPaymentInputKind = typeof AppointmentPaymentInputKind[keyof typeof AppointmentPaymentInputKind];
+
+
+export const AppointmentPaymentInputKind = {
+  deposit: 'deposit',
+  settlement: 'settlement',
+} as const;
+
+export type AppointmentPaymentInputMethod = typeof AppointmentPaymentInputMethod[keyof typeof AppointmentPaymentInputMethod];
+
+
+export const AppointmentPaymentInputMethod = {
+  cash: 'cash',
+  simulated_card: 'simulated_card',
+} as const;
+
+export interface AppointmentPaymentInput {
+  idempotencyKey: string;
+  /**
+     * @minLength 4
+     * @maxLength 32
+     */
+  voucherCode?: string;
+  /**
+     * @minimum 1
+     * @maximum 2147483647
+     */
+  amountCents: number;
+  /**
+     * @minimum 0
+     * @maximum 2147483647
+     */
+  discountCents?: number;
+  /**
+     * @minLength 1
+     * @maxLength 240
+     */
+  discountReason?: string;
+  kind: AppointmentPaymentInputKind;
+  method: AppointmentPaymentInputMethod;
+}
+
+export type AppointmentPaymentKind = typeof AppointmentPaymentKind[keyof typeof AppointmentPaymentKind];
+
+
+export const AppointmentPaymentKind = {
+  deposit: 'deposit',
+  settlement: 'settlement',
+} as const;
+
+export type AppointmentPaymentMethod = typeof AppointmentPaymentMethod[keyof typeof AppointmentPaymentMethod];
+
+
+export const AppointmentPaymentMethod = {
+  cash: 'cash',
+  simulated_card: 'simulated_card',
+} as const;
+
+export interface AppointmentPayment {
+  idempotencyKey: string;
+  amountCents: number;
+  kind: AppointmentPaymentKind;
+  method: AppointmentPaymentMethod;
+  discountCents: number;
+  /** @nullable */
+  voucherCode?: string | null;
+  /** @nullable */
+  discountReason: string | null;
+  id: string;
+  bookingId: string;
+  actorId: string;
+  /** @nullable */
+  providerReference: string | null;
+  createdAt: string;
+}
+
+export type AppointmentRefund = AppointmentRefundInput & {
+  id: string;
+  paymentId: string;
+  actorId: string;
+  createdAt: string;
+};
+
+export type MyAppointmentPaymentHistoryCurrency = typeof MyAppointmentPaymentHistoryCurrency[keyof typeof MyAppointmentPaymentHistoryCurrency];
+
+
+export const MyAppointmentPaymentHistoryCurrency = {
+  EUR: 'EUR',
+} as const;
+
+export type MyAppointmentPaymentHistoryPaymentsItemKind = typeof MyAppointmentPaymentHistoryPaymentsItemKind[keyof typeof MyAppointmentPaymentHistoryPaymentsItemKind];
+
+
+export const MyAppointmentPaymentHistoryPaymentsItemKind = {
+  deposit: 'deposit',
+  settlement: 'settlement',
+} as const;
+
+export type MyAppointmentPaymentHistoryPaymentsItemMethod = typeof MyAppointmentPaymentHistoryPaymentsItemMethod[keyof typeof MyAppointmentPaymentHistoryPaymentsItemMethod];
+
+
+export const MyAppointmentPaymentHistoryPaymentsItemMethod = {
+  cash: 'cash',
+  simulated_card: 'simulated_card',
+} as const;
+
+export type MyAppointmentPaymentHistoryPaymentsItem = {
+  id: string;
+  kind: MyAppointmentPaymentHistoryPaymentsItemKind;
+  method: MyAppointmentPaymentHistoryPaymentsItemMethod;
+  amountCents: number;
+  discountCents: number;
+  createdAt: string;
+};
+
+export type MyAppointmentPaymentHistoryRefundsItem = {
+  id: string;
+  paymentId: string;
+  amountCents: number;
+  createdAt: string;
+};
+
+export interface MyAppointmentPaymentHistory {
+  /** @minimum 0 */
+  packageCoveredCents?: number;
+  currency: MyAppointmentPaymentHistoryCurrency;
+  payments: MyAppointmentPaymentHistoryPaymentsItem[];
+  refunds: MyAppointmentPaymentHistoryRefundsItem[];
+}
+
+export type AppointmentPaymentBalanceCurrency = typeof AppointmentPaymentBalanceCurrency[keyof typeof AppointmentPaymentBalanceCurrency];
+
+
+export const AppointmentPaymentBalanceCurrency = {
+  EUR: 'EUR',
+} as const;
+
+export interface AppointmentPaymentBalance {
+  /** @minimum 0 */
+  packageCoveredCents?: number;
+  currency: AppointmentPaymentBalanceCurrency;
+  paidCents: number;
+  discountCents: number;
+  outstandingCents: number;
+  refundedCents: number;
+  entries: AppointmentPayment[];
+  refunds: AppointmentRefund[];
+}
+
+export type ReviewModerationInputAction = typeof ReviewModerationInputAction[keyof typeof ReviewModerationInputAction];
+
+
+export const ReviewModerationInputAction = {
+  dismiss: 'dismiss',
+  hide: 'hide',
+  restore: 'restore',
+} as const;
+
+export interface ReviewModerationInput {
+  action: ReviewModerationInputAction;
+}
+
+export type ReviewModerationPageReviewsItemReportReason = typeof ReviewModerationPageReviewsItemReportReason[keyof typeof ReviewModerationPageReviewsItemReportReason];
+
+
+export const ReviewModerationPageReviewsItemReportReason = {
+  spam: 'spam',
+  abuse: 'abuse',
+  personal_information: 'personal_information',
+  other: 'other',
+} as const;
+
+/**
+ * @nullable
+ */
+export type ReviewModerationPageReviewsItemReport = {
+  reason: ReviewModerationPageReviewsItemReportReason;
+  details: string;
+  pendingCount: number;
+  reportedAt: string;
+} | null;
+
+export type ReviewModerationPageReviewsItem = {
+  id: string;
+  comment: string;
+  reply: string;
+  /**
+     * @minimum 1
+     * @maximum 5
+     */
+  rating: number;
+  hidden: boolean;
+  location: string;
+  /** @nullable */
+  report: ReviewModerationPageReviewsItemReport;
+};
+
+export interface ReviewModerationPage {
+  hasMore: boolean;
+  reviews: ReviewModerationPageReviewsItem[];
+}
+
+export type PlatformAnalyticsBusiness = {
+  /** @minimum 0 */
+  total: number;
+  /** @minimum 0 */
+  verified: number;
+  /** @minimum 0 */
+  suspended: number;
+};
+
+export type PlatformAnalyticsCustomers = {
+  /** @minimum 0 */
+  total: number;
+  /** @minimum 0 */
+  deletionRequested: number;
+};
+
+export type PlatformAnalyticsVisits = {
+  /** @minimum 0 */
+  total: number;
+  /** @minimum 0 */
+  completed: number;
+  /** @minimum 0 */
+  cancelled: number;
+  /** @minimum 0 */
+  noShows: number;
+};
+
+export type PlatformAnalyticsSubscriptions = {
+  /** @minimum 0 */
+  trial: number;
+  /** @minimum 0 */
+  active: number;
+  /** @minimum 0 */
+  expired: number;
+  /** @minimum 0 */
+  cancelled: number;
+};
+
+export type PlatformAnalyticsBilling = {
+  /** @minimum 0 */
+  activations: number;
+  /** @minimum 0 */
+  simulatedCents: number;
+};
+
+export type PlatformAnalyticsSupport = {
+  /** @minimum 0 */
+  open: number;
+  /** @minimum 0 */
+  resolved: number;
+};
+
+export interface PlatformAnalytics {
+  timezone: 'Europe/Berlin';
+  currency: 'EUR';
+  from: string;
+  to: string;
+  business: PlatformAnalyticsBusiness;
+  customers: PlatformAnalyticsCustomers;
+  visits: PlatformAnalyticsVisits;
+  subscriptions: PlatformAnalyticsSubscriptions;
+  billing: PlatformAnalyticsBilling;
+  support: PlatformAnalyticsSupport;
+}
+
+export interface PlatformIntakeSettings {
+  businessRegistrationOpen: boolean;
+  supportIntakeOpen: boolean;
+}
+
+export interface PlatformSettingsChangeInput {
+  expected: PlatformIntakeSettings;
+  next: PlatformIntakeSettings;
+}
+
+export type PlatformSettingsViewHistoryItem = {
+  id: string;
+  previous: PlatformIntakeSettings;
+  current: PlatformIntakeSettings;
+  createdAt: string;
+};
+
+export interface PlatformSettingsView {
+  current: PlatformIntakeSettings;
+  history: PlatformSettingsViewHistoryItem[];
+}
+
+export type SupportCaseState = typeof SupportCaseState[keyof typeof SupportCaseState];
+
+
+export const SupportCaseState = {
+  open: 'open',
+  resolved: 'resolved',
+} as const;
+
+export interface SupportCaseStateInput {
+  state: SupportCaseState;
+}
+
+export interface SupportMessageInput {
+  /**
+     * @minLength 1
+     * @maxLength 4000
+     */
+  body: string;
+  requestId: string;
+}
+
+export type SupportCaseInput = SupportMessageInput & {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  subject: string;
+};
+
+export interface SupportCaseSummary {
+  id: string;
+  subject: string;
+  state: SupportCaseState;
+  updatedAt: string;
+}
+
+export interface SupportCasePage {
+  cases: SupportCaseSummary[];
+  hasMore: boolean;
+}
+
+export type SupportCaseThreadMessagesItemKind = typeof SupportCaseThreadMessagesItemKind[keyof typeof SupportCaseThreadMessagesItemKind];
+
+
+export const SupportCaseThreadMessagesItemKind = {
+  customer: 'customer',
+  staff: 'staff',
+  resolved: 'resolved',
+  reopened: 'reopened',
+} as const;
+
+export type SupportCaseThreadMessagesItem = {
+  id: string;
+  kind: SupportCaseThreadMessagesItemKind;
+  body: string;
+  createdAt: string;
+};
+
+export type SupportCaseThread = SupportCaseSummary & {
+  hasOlder: boolean;
+  messages: SupportCaseThreadMessagesItem[];
+};
+
+export interface CustomerDeletionAssessment {
+  /** @minimum 0 */
+  activeOwnerships: number;
+  /** @minimum 0 */
+  staffProfiles: number;
+  /** @minimum 0 */
+  bookings: number;
+  /** @minimum 0 */
+  confirmedBookings: number;
+  /** @minimum 0 */
+  paymentReferences: number;
+  /** @minimum 0 */
+  bookingPayments: number;
+  /** @minimum 0 */
+  packages: number;
+  /** @minimum 0 */
+  supportCases: number;
+  /** @minimum 0 */
+  businessActions: number;
+  /** @minimum 0 */
+  policyAcceptances: number;
+}
+
+export interface CustomerDeletionReviewInput {
+  requestedAt: string;
+}
+
+export interface CustomerDeletionReviewResult {
+  reviewedAt: string;
+}
+
+export type PlatformCustomerDirectoryCustomersItem = {
+  id: string;
+  name: string;
+  email: string;
+  emailVerified: boolean;
+  /** @nullable */
+  deletionRequestedAt: string | null;
+  /** @nullable */
+  reviewedAt: string | null;
+  /** @minimum 0 */
+  activeOwnerships: number;
+  canRehearseErasure: boolean;
+};
+
+export interface PlatformCustomerDirectory {
+  hasMore: boolean;
+  customers: PlatformCustomerDirectoryCustomersItem[];
+}
+
+export type PlatformBusinessActionAction = typeof PlatformBusinessActionAction[keyof typeof PlatformBusinessActionAction];
+
+
+export const PlatformBusinessActionAction = {
+  verify: 'verify',
+  unverify: 'unverify',
+  suspend: 'suspend',
+  reactivate: 'reactivate',
+} as const;
+
+export interface PlatformBusinessAction {
+  action: PlatformBusinessActionAction;
+}
+
+export interface PlatformBusinessStatus {
+  id: string;
+  name: string;
+  /** @nullable */
+  verifiedAt: string | null;
+  /** @nullable */
+  suspendedAt: string | null;
+}
+
+export type PlatformBusinessDirectoryBusinessesItem = PlatformBusinessStatus & {
+  locationCount: number;
+};
+
+export interface PlatformBusinessDirectory {
+  hasMore: boolean;
+  businesses: PlatformBusinessDirectoryBusinessesItem[];
+}
+
+export type SaasPlanCode = typeof SaasPlanCode[keyof typeof SaasPlanCode];
+
+
+export const SaasPlanCode = {
+  starter: 'starter',
+  professional: 'professional',
+  enterprise: 'enterprise',
+} as const;
+
+export interface SaasPlanTerms {
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
+  name: string;
+  /**
+     * @minimum 0
+     * @maximum 10000000
+     */
+  monthlyCents: number;
+  /**
+     * @minimum 1
+     * @maximum 1000
+     */
+  locationLimit: number;
+  /**
+     * @minimum 0
+     * @maximum 90
+     */
+  trialDays: number;
+}
+
+export type SaasPlan = SaasPlanTerms & {
+  code: SaasPlanCode;
+};
+
+export type SaasSubscriptionChange = {
+  action: 'activate';
+  planCode: SaasPlanCode;
+  /** @minimum 0 */
+  expectedCents: number;
+  requestId: string;
+} | {
+  action: 'cancel';
+  requestId: string;
+};
+
+export type BusinessSaasSubscriptionCurrentState = typeof BusinessSaasSubscriptionCurrentState[keyof typeof BusinessSaasSubscriptionCurrentState];
+
+
+export const BusinessSaasSubscriptionCurrentState = {
+  trial: 'trial',
+  active: 'active',
+  cancelled: 'cancelled',
+  expired: 'expired',
+} as const;
+
+/**
+ * @nullable
+ */
+export type BusinessSaasSubscriptionCurrent = {
+  organizationId: string;
+  planCode: SaasPlanCode;
+  state: BusinessSaasSubscriptionCurrentState;
+  periodEndsAt: string;
+} | null;
+
+export type BusinessSaasSubscriptionHistoryItemAction = typeof BusinessSaasSubscriptionHistoryItemAction[keyof typeof BusinessSaasSubscriptionHistoryItemAction];
+
+
+export const BusinessSaasSubscriptionHistoryItemAction = {
+  trial: 'trial',
+  activate: 'activate',
+  cancel: 'cancel',
+} as const;
+
+export type BusinessSaasSubscriptionHistoryItem = {
+  organizationId: string;
+  requestId: string;
+  planCode: SaasPlanCode;
+  action: BusinessSaasSubscriptionHistoryItemAction;
+  amountCents: number;
+  createdAt: string;
+  periodEndsAt: string;
+};
+
+export interface BusinessSaasSubscription {
+  currency: 'EUR';
+  plans: SaasPlan[];
+  locationCount: number;
+  /** @nullable */
+  current: BusinessSaasSubscriptionCurrent;
+  history: BusinessSaasSubscriptionHistoryItem[];
+}
+
+export type OrganizationAnalyticsCurrency = typeof OrganizationAnalyticsCurrency[keyof typeof OrganizationAnalyticsCurrency];
+
+
+export const OrganizationAnalyticsCurrency = {
+  EUR: 'EUR',
+} as const;
+
+export type OrganizationAnalyticsLocationsItem = {
+  id: string;
+  name: string;
+  bookings: number;
+  completed: number;
+  cancelled: number;
+  noShows: number;
+  receivedCents: number;
+  refundedCents: number;
+  lowStock: number;
+  units: number;
+  inventoryValueCents: number;
+  unpricedUnits: number;
+  /** @minimum 0 */
+  capacityMinutes: number;
+  /** @minimum 0 */
+  occupiedMinutes: number;
+};
+
+export type OrganizationAnalyticsStaffItem = {
+  id: string;
+  name: string;
+  completed: number;
+  minutes: number;
+  receivedCents: number;
+  refundedCents: number;
+};
+
+export type OrganizationAnalyticsServicesItem = {
+  id: string;
+  name: string;
+  completed: number;
+  receivedCents: number;
+  refundedCents: number;
+};
+
+export type OrganizationAnalyticsCustomers = {
+  /** @minimum 0 */
+  new: number;
+  /** @minimum 0 */
+  repeat: number;
+};
+
+export type OrganizationAnalyticsMarketing = {
+  captures: number;
+  recipients: number;
+};
+
+export interface OrganizationAnalytics {
+  from: string;
+  to: string;
+  currency: OrganizationAnalyticsCurrency;
+  locations: OrganizationAnalyticsLocationsItem[];
+  staff: OrganizationAnalyticsStaffItem[];
+  services: OrganizationAnalyticsServicesItem[];
+  customers: OrganizationAnalyticsCustomers;
+  marketing: OrganizationAnalyticsMarketing;
+}
+
+export interface LoyaltyProgram {
+  /**
+     * @minimum 0
+     * @maximum 1000
+     */
+  pointsPerVisit: number;
+}
+
+export type ServicePackageTermsKind = typeof ServicePackageTermsKind[keyof typeof ServicePackageTermsKind];
+
+
+export const ServicePackageTermsKind = {
+  package: 'package',
+  membership: 'membership',
+} as const;
+
+export interface ServicePackageTerms {
+  kind?: ServicePackageTermsKind;
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  name: string;
+  serviceId: string;
+  /**
+     * @minimum 2
+     * @maximum 50
+     */
+  visits: number;
+  /**
+     * @minimum 1
+     * @maximum 10000000
+     */
+  priceCents: number;
+  /**
+     * @minimum 1
+     * @maximum 730
+     */
+  validDays: number;
+}
+
+export interface ServicePackageAvailability {
+  active: boolean;
+}
+
+export type ManagedServicePackage = ServicePackageTerms & ServicePackageAvailability & {
+  id: string;
+  organizationId: string;
+};
+
+export type ServicePackageOfferKind = typeof ServicePackageOfferKind[keyof typeof ServicePackageOfferKind];
+
+
+export const ServicePackageOfferKind = {
+  package: 'package',
+  membership: 'membership',
+} as const;
+
+export interface ServicePackageOffer {
+  kind?: ServicePackageOfferKind;
+  id: string;
+  name: string;
+  service: string;
+  business: string;
+  visits: number;
+  priceCents: number;
+  validDays: number;
+}
+
+export type CustomerServicePackageKind = typeof CustomerServicePackageKind[keyof typeof CustomerServicePackageKind];
+
+
+export const CustomerServicePackageKind = {
+  package: 'package',
+  membership: 'membership',
+} as const;
+
+export interface CustomerServicePackage {
+  kind?: CustomerServicePackageKind;
+  id: string;
+  name: string;
+  service: string;
+  business: string;
+  /** @minimum 0 */
+  remaining: number;
+  expiresAt: string;
+  priceCents: number;
+}
+
+export interface ServicePackagePurchaseInput {
+  requestId: string;
+  /** @minimum 1 */
+  expectedPriceCents: number;
+}
+
+export interface LoyaltyExchangeInput {
+  requestId: string;
+}
+
+export interface LoyaltyReward {
+  code: string;
+  /** @minimum 1 */
+  discountCents: number;
+  /** @nullable */
+  redeemedAt: string | null;
+}
+
+export interface LoyaltyBalance {
+  organizationId: string;
+  name: string;
+  /** @minimum 0 */
+  points: number;
+}
+
+export type ReviewReportInputReason = typeof ReviewReportInputReason[keyof typeof ReviewReportInputReason];
+
+
+export const ReviewReportInputReason = {
+  spam: 'spam',
+  abuse: 'abuse',
+  personal_information: 'personal_information',
+  other: 'other',
+} as const;
+
+export interface ReviewReportInput {
+  reason: ReviewReportInputReason;
+  /** @maxLength 1000 */
+  details?: string;
+}
+
+export interface AppointmentReviewInput {
+  /**
+     * @minimum 1
+     * @maximum 5
+     */
+  rating: number;
+  /** @maxLength 2000 */
+  comment: string;
+}
+
+export type AppointmentStatus = typeof AppointmentStatus[keyof typeof AppointmentStatus];
+
+
+export const AppointmentStatus = {
+  confirmed: 'confirmed',
+  cancelled: 'cancelled',
+  completed: 'completed',
+  no_show: 'no_show',
+} as const;
+
+export type AppointmentItemsItem = { [key: string]: unknown };
+
+export type AppointmentSource = typeof AppointmentSource[keyof typeof AppointmentSource];
+
+
+export const AppointmentSource = {
+  online: 'online',
+  manual: 'manual',
+  walk_in: 'walk_in',
+} as const;
+
+export interface Appointment {
+  id: string;
+  locationId: string;
+  employeeId: string;
+  startsAt: string;
+  endsAt: string;
+  /** @nullable */
+  appointmentNote?: string | null;
+  rescheduleNoticeHours?: number;
+  /**
+     * @minimum 1
+     * @maximum 5
+     * @nullable
+     */
+  reviewRating?: number | null;
+  status: AppointmentStatus;
+  items: AppointmentItemsItem[];
+  priceCents: number;
+  durationMinutes: number;
+  salon?: string;
+  slug?: string;
+  timezone?: string;
+  employeeName?: string;
+  customerName?: string;
+  source?: AppointmentSource;
+}
+
+export type BookingQuoteInputItemsItem = {
+  serviceId: string;
+  variantId?: string;
+};
+
+export interface BookingQuoteInput {
+  /**
+     * @minItems 1
+     * @maxItems 12
+     */
+  items: BookingQuoteInputItemsItem[];
+}
+
+export interface GalleryPhoto {
+  id: string;
+  alt: string;
+}
+
+export interface FavoriteSalon {
+  id: string;
+  slug: string;
+  name: string;
+  city: string;
+}
+
 export type HealthStatusStatus = typeof HealthStatusStatus[keyof typeof HealthStatusStatus];
 
 
@@ -60,12 +1539,63 @@ export interface Business {
   timezone: string;
 }
 
+export interface PublicServiceVariant {
+  id: string;
+  name: string;
+  priceCents: number;
+  durationMinutes: number;
+}
+
 export interface Service {
+  /** @nullable */
+  groupName?: string | null;
+  onlineBooking?: boolean;
   id: string;
   name: string;
   description: string;
   durationMinutes: number;
   priceCents: number;
+  variants?: PublicServiceVariant[];
+}
+
+export interface OrganizationReviewReplyInput {
+  /** @maxLength 2000 */
+  reply: string;
+}
+
+export interface PublicReview {
+  id: string;
+  /**
+     * @minimum 1
+     * @maximum 5
+     */
+  rating: number;
+  comment: string;
+  reply: string;
+  date: string;
+}
+
+export type OrganizationReview = PublicReview & {
+  location: string;
+};
+
+export interface OrganizationReviewPage {
+  reviews: OrganizationReview[];
+  hasMore: boolean;
+}
+
+export interface PublicReviewPage {
+  count: number;
+  /** @nullable */
+  average: number | null;
+  reviews: PublicReview[];
+}
+
+export interface PublicStaffProfile {
+  id: string;
+  name: string;
+  title?: string;
+  photoUrl?: string;
 }
 
 export interface OpeningHour {
@@ -74,10 +1604,22 @@ export interface OpeningHour {
   closes: string;
 }
 
-export type BusinessDetail = Business & {
+export type BusinessDetail = Business & ({
+  verified?: boolean;
+  addressExtra?: string;
+  country?: string;
+  /** @nullable */
+  latitude?: number | null;
+  /** @nullable */
+  longitude?: number | null;
+  phone?: string;
+  website?: string;
+  socialUrl?: string;
+  logoUrl?: string;
+  staff?: PublicStaffProfile[];
   services: Service[];
   openingHours: OpeningHour[];
-};
+});
 
 export interface MarketplaceSummary {
   businessCount: number;
@@ -128,13 +1670,15 @@ export interface ProfileInput {
   marketingConsent: boolean;
 }
 
-export type UserProfile = ProfileInput & {
+export type UserProfile = ProfileInput & ({
   id: string;
   email: string;
   emailVerified: boolean;
   deletionRequested: boolean;
+  /** @nullable */
+  deletionRequestedAt?: string | null;
   isPlatformAdmin: boolean;
-};
+});
 
 export interface SessionStatus {
   authenticated: boolean;
@@ -167,10 +1711,56 @@ export interface OrganizationSummary {
   locationCount: number;
 }
 
+export type PersonalExportRecordsBookingsItem = { [key: string]: unknown };
+
+export type PersonalExportRecordsPaymentsItem = { [key: string]: unknown };
+
+export type PersonalExportRecordsRefundsItem = { [key: string]: unknown };
+
+export type PersonalExportRecordsFavoritesItem = { [key: string]: unknown };
+
+export type PersonalExportRecordsWaitlistItem = { [key: string]: unknown };
+
+export type PersonalExportRecordsReviewsItem = { [key: string]: unknown };
+
+export type PersonalExportRecordsReviewReportsItem = { [key: string]: unknown };
+
+export type PersonalExportRecordsPolicyAcceptancesItem = { [key: string]: unknown };
+
+export type PersonalExportRecordsPaymentMethodsItem = { [key: string]: unknown };
+
+export type PersonalExportRecordsMarketingPreferencesItem = { [key: string]: unknown };
+
+export type PersonalExportRecordsLoyaltyAwardsItem = { [key: string]: unknown };
+
+export type PersonalExportRecordsLoyaltyRewardsItem = { [key: string]: unknown };
+
+export type PersonalExportRecordsPackagesItem = { [key: string]: unknown };
+
+export type PersonalExportRecordsSupportCasesItem = { [key: string]: unknown };
+
+export interface PersonalExportRecords {
+  bookings: PersonalExportRecordsBookingsItem[];
+  payments: PersonalExportRecordsPaymentsItem[];
+  refunds: PersonalExportRecordsRefundsItem[];
+  favorites: PersonalExportRecordsFavoritesItem[];
+  waitlist: PersonalExportRecordsWaitlistItem[];
+  reviews: PersonalExportRecordsReviewsItem[];
+  reviewReports: PersonalExportRecordsReviewReportsItem[];
+  policyAcceptances: PersonalExportRecordsPolicyAcceptancesItem[];
+  paymentMethods: PersonalExportRecordsPaymentMethodsItem[];
+  marketingPreferences: PersonalExportRecordsMarketingPreferencesItem[];
+  loyaltyAwards: PersonalExportRecordsLoyaltyAwardsItem[];
+  loyaltyRewards: PersonalExportRecordsLoyaltyRewardsItem[];
+  packages: PersonalExportRecordsPackagesItem[];
+  supportCases: PersonalExportRecordsSupportCasesItem[];
+}
+
 export interface PersonalExport {
   profile: UserProfile;
   organizations: OrganizationSummary[];
   exportedAt: string;
+  records: PersonalExportRecords;
 }
 
 export interface PaymentReference {
@@ -200,6 +1790,10 @@ export interface OrganizationProfileInput {
   contactEmail: string;
   /** @maxLength 30 */
   phone: string;
+  /** @maxLength 500 */
+  socialUrl?: string;
+  /** @maxLength 500 */
+  logoUrl?: string;
   /** @maxLength 300 */
   website: string;
   categoryId: string;
@@ -297,6 +1891,8 @@ export interface EmployeeInput {
      * @maxLength 100
      */
   displayName: string;
+  /** @maxLength 100 */
+  publicName?: string;
   /** @maxLength 200 */
   email: string;
   /** @maxLength 30 */
@@ -406,6 +2002,11 @@ export const PolicyInputNoShowFeeType = {
 } as const;
 
 export interface PolicyInput {
+  /**
+     * @minimum 0
+     * @maximum 720
+     */
+  rescheduleNoticeHours?: number;
   /**
      * @minimum 0
      * @maximum 720
@@ -550,5 +2151,321 @@ city?: string;
  * @maxLength 60
  */
 category?: string;
+/**
+ * @minLength 1
+ * @maxLength 100
+ */
+service?: string;
+/**
+ * Maximum price of the matching public service or variant in EUR cents
+ * @minimum 0
+ * @maximum 10000000
+ */
+maxPriceCents?: number;
+/**
+ * Local date with at least one bookable slot for a matching offering
+ * @pattern ^\d{4}-\d{2}-\d{2}$
+ */
+date?: string;
+};
+
+export type UploadGalleryPhotoParams = {
+/**
+ * @minLength 1
+ * @maxLength 160
+ */
+alt: string;
+};
+
+export type ListPublicBusinessReviewsParams = {
+sort?: ListPublicBusinessReviewsSort;
+/**
+ * @minimum 0
+ * @maximum 99999
+ */
+offset?: number;
+};
+
+export type ListPublicBusinessReviewsSort = typeof ListPublicBusinessReviewsSort[keyof typeof ListPublicBusinessReviewsSort];
+
+
+export const ListPublicBusinessReviewsSort = {
+  newest: 'newest',
+  highest: 'highest',
+  lowest: 'lowest',
+} as const;
+
+export type GetBusinessAvailableDates200Item = {
+  date: string;
+  available: boolean;
+};
+
+export type CheckBookingAvailabilityBodyItemsItem = {
+  serviceId: string;
+  variantId?: string;
+};
+
+export type CheckBookingAvailabilityBody = {
+  date: string;
+  professionalId?: string;
+  items: CheckBookingAvailabilityBodyItemsItem[];
+};
+
+export type CreateAppointmentBodyItemsItem = {
+  serviceId: string;
+  variantId?: string;
+};
+
+export type CreateAppointmentBody = {
+  items: CreateAppointmentBodyItemsItem[];
+  employeeId: string;
+  startsAt: string;
+  idempotencyKey: string;
+  policyVersion: number;
+  expectedPriceCents: number;
+  paymentMethodId: string;
+  acceptPolicy: true;
+  /** @maxLength 500 */
+  appointmentNote?: string;
+  expectedEndsAt?: string;
+  /**
+     * @minItems 1
+     * @maxItems 12
+     */
+  expectedProfessionals?: string[];
+};
+
+export type JoinBookingWaitlistBody = {
+  date: string;
+};
+
+export type ListReviewModerationQueueParams = {
+/**
+ * @minimum 0
+ * @maximum 1000000
+ */
+offset?: number;
+};
+
+export type SimulateCustomerPackagePurchase200 = {
+  id: string;
+};
+
+export type ListMyLoyaltyRewards200Item = LoyaltyReward & {
+  name: string;
+};
+
+export type ListCustomerSupportCasesParams = {
+state?: SupportCaseState;
+/**
+ * @minimum 0
+ * @maximum 1000000
+ */
+offset?: number;
+};
+
+export type GetCustomerSupportCaseParams = {
+/**
+ * @minimum 0
+ * @maximum 1000000
+ */
+offset?: number;
+};
+
+export type ListPlatformSupportCasesParams = {
+state?: SupportCaseState;
+/**
+ * @minimum 0
+ * @maximum 1000000
+ */
+offset?: number;
+};
+
+export type GetPlatformSupportCaseParams = {
+/**
+ * @minimum 0
+ * @maximum 1000000
+ */
+offset?: number;
+};
+
+export type GetPlatformAnalyticsParams = {
+from: string;
+to: string;
+};
+
+export type ListPlatformCustomersParams = {
+/**
+ * @maxLength 160
+ */
+search?: string;
+scope?: ListPlatformCustomersScope;
+/**
+ * @minimum 0
+ * @maximum 1000000
+ */
+offset?: number;
+};
+
+export type ListPlatformCustomersScope = typeof ListPlatformCustomersScope[keyof typeof ListPlatformCustomersScope];
+
+
+export const ListPlatformCustomersScope = {
+  all: 'all',
+  pending: 'pending',
+  reviewed: 'reviewed',
+} as const;
+
+export type ListPlatformBusinessesParams = {
+/**
+ * @maxLength 120
+ */
+search?: string;
+/**
+ * @minimum 0
+ * @maximum 1000000
+ */
+offset?: number;
+};
+
+export type GetOrganizationAnalyticsParams = {
+from: string;
+to: string;
+locationId?: string;
+};
+
+export type PublishMyAppointmentReview201 = {
+  /**
+     * @minimum 1
+     * @maximum 5
+     */
+  rating: number;
+};
+
+export type ListMyAppointmentEvents200Item = {
+  kind: string;
+  createdAt: string;
+  /** @nullable */
+  estimatedFeeCents: number | null;
+};
+
+export type CheckRescheduleAvailabilityBody = {
+  date: string;
+};
+
+export type RescheduleMyAppointmentBody = {
+  startsAt: string;
+  employeeId: string;
+};
+
+export type ListBusinessAppointmentsParams = {
+from: string;
+to: string;
+};
+
+export type ChangeBusinessAppointmentStatusBodyStatus = typeof ChangeBusinessAppointmentStatusBodyStatus[keyof typeof ChangeBusinessAppointmentStatusBodyStatus];
+
+
+export const ChangeBusinessAppointmentStatusBodyStatus = {
+  cancelled: 'cancelled',
+  completed: 'completed',
+  no_show: 'no_show',
+} as const;
+
+export type ChangeBusinessAppointmentStatusBody = {
+  status: ChangeBusinessAppointmentStatusBodyStatus;
+};
+
+export type ListBusinessBookingWaitlist200Item = {
+  locationId: string;
+  date: string;
+  salon: string;
+  createdAt: string;
+};
+
+export type GetLocationBookingSettings200 = { [key: string]: unknown };
+
+export type CreateBookingBlockBody = {
+  employeeId?: string;
+  startsAt: string;
+  endsAt: string;
+  reason: string;
+};
+
+export type CreateBookingBlock201 = { [key: string]: unknown };
+
+export type CreateBookingResourceBody = {
+  name: string;
+  serviceIds: string[];
+};
+
+export type CreateBookingResource201 = { [key: string]: unknown };
+
+export type ListMyBookingWaitlist200Item = {
+  locationId: string;
+  salon: string;
+  slug: string;
+  date: string;
+  /** @nullable */
+  openedAt: string | null;
+};
+
+export type GetAppointmentTransactionsParams = {
+date: string;
+/**
+ * @minimum 0
+ * @maximum 99999
+ */
+page?: number;
+};
+
+export type GetCalendarMoveSlots200 = {
+  slots: BookingSlot[];
+};
+
+export type FindCrmCustomersParams = {
+/**
+ * @maxLength 100
+ */
+q?: string;
+/**
+ * @maxLength 40
+ */
+tag?: string;
+/**
+ * @pattern ^\d{1,4}$
+ */
+minVisits?: string;
+};
+
+export type ListCrmAppointments200 = {
+  history: CrmVisit[];
+  candidates: CrmVisit[];
+};
+
+export type GetProfessionalPricing200 = { [key: string]: unknown };
+
+export type ListOrganizationReviewsParams = {
+/**
+ * @minimum 0
+ * @maximum 1000000
+ */
+offset?: number;
+};
+
+export type GetMarketingAudienceCountParams = {
+segment: GetMarketingAudienceCountSegment;
+};
+
+export type GetMarketingAudienceCountSegment = typeof GetMarketingAudienceCountSegment[keyof typeof GetMarketingAudienceCountSegment];
+
+
+export const GetMarketingAudienceCountSegment = {
+  completed: 'completed',
+  repeat: 'repeat',
+} as const;
+
+export type GetMarketingAudienceCount200 = {
+  count: number;
 };
 
