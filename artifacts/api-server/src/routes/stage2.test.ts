@@ -290,13 +290,28 @@ describe("Stage 2 persisted identities, onboarding and tenant boundaries", () =>
       const slotCall = (method: "post" | "put", actor = owner) =>
         authed(method, slotPath, actor).set("X-Forwarded-For", "192.0.2.86");
       const toggle = (enabled: boolean) => slotCall("put").send({ item: items[0], startsAt: first.startsAt, enabled });
+      const inspectSlots = () => slotCall("post").send({ item: items[0], date: day });
+      const staff = [employeeId, second!.id];
+      await db.update(employees).set({ workingHours: [] }).where(inArray(employees.id, staff));
+      try {
+        expect((await inspectSlots()).body).toEqual({ starts: [], emptyReason: "no_working_hours" });
+      } finally {
+        await db.update(employees).set({ workingHours: time }).where(inArray(employees.id, staff));
+      }
+      await db.delete(employeeServices).where(and(eq(employeeServices.serviceId, serviceId), inArray(employeeServices.employeeId, staff)));
+      try {
+        expect((await inspectSlots()).body).toEqual({ starts: [], emptyReason: "no_assignment" });
+      } finally {
+        await db.insert(employeeServices).values(staff.map((id) => ({ employeeId: id, serviceId })));
+      }
+
       expect((await slotCall("post", outsider).send({ item: items[0], date: day })).status).toBe(403);
-      expect((await slotCall("post").send({ item: items[0], date: day })).body)
+      expect((await slotCall("post").send({ item: items[0], date: day })).body.starts)
         .toContainEqual({ startsAt: first.startsAt, endsAt: [first.endsAt], enabled: true });
       try {
         expect((await toggle(false)).status).toBe(204);
         expect((await toggle(false)).status).toBe(204);
-        expect((await slotCall("post").send({ item: items[0], date: day })).body)
+        expect((await slotCall("post").send({ item: items[0], date: day })).body.starts)
           .toContainEqual({ startsAt: first.startsAt, endsAt: [first.endsAt], enabled: false });
         const visible = await request(app).post(business + "/availability").set("X-Forwarded-For", "192.0.2.86").send({ date: day, items });
         expect(visible.body.slots.some((slot: { startsAt: string }) => slot.startsAt === first.startsAt)).toBe(false);

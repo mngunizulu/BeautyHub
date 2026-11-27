@@ -288,8 +288,10 @@ function EmployeeForm({ ws, perms, employee, onDone }: Props & { employee?: Mana
           onChange={(e) => setF({ ...f, publicName: e.target.value })} className={inputCls}
           aria-describedby={`emp-${id}-public-note`} />
         <p id={`emp-${id}-public-note`} className="mt-1 text-sm text-muted-foreground">
-          Nur aktive Mitarbeitende mit Anzeigenamen erscheinen im veröffentlichten Salonprofil.
+          Kund:innen sehen diesen Namen im Salonprofil und bei der Auswahl einer Fachkraft. Ohne öffentlichen Namen erscheint bei der Buchung „Teammitglied“.
         </p>
+        {f.displayName.trim() && f.publicName !== f.displayName.trim() && <button type="button" className="text-sm underline"
+          onClick={() => setF({ ...f, publicName: f.displayName.trim() })}>Internen Namen als öffentlichen Namen übernehmen</button>}
       </Field>
       <Check id={`emp-${id}-active`} label="Aktiv" hint="Inaktive Mitarbeitende werden später nicht für Termine eingeplant." checked={f.active} onChange={(v) => setF({ ...f, active: v })} />
       <div>
@@ -434,6 +436,7 @@ function ServiceForm({ ws, perms, service, onDone }: Props & { service?: Managed
       <fieldset>
         <legend className="mb-2 text-sm font-medium">Mitarbeitende für diese Leistung</legend>
         <p className="mb-2 text-sm text-muted-foreground">Wähle die Personen aus, die diese Leistung anbieten.</p>
+        {f.onlineBooking && !f.employeeIds.length && <p className="mb-2 text-sm text-destructive">Für Online-Termine braucht diese Leistung mindestens eine aktive Person mit passenden Arbeitszeiten.</p>}
         {eligible.length === 0 ? <p className="text-sm text-muted-foreground">Für diesen Standort gibt es noch keine Mitarbeitenden.</p> : (
           <div className="flex flex-wrap gap-2">
             {eligible.map((e) => {

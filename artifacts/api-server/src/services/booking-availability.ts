@@ -21,6 +21,9 @@ export async function bookingLocation(tx: BookingTransaction, slug: string, lock
   return current;
 }
 
+type EmptyReason = "outside_window" | "closed" | "no_staff" | "no_assignment" | "no_working_hours" |
+  "no_contiguous_time" | "lead_time" | "occupied";
+
 export async function availability(
   tx: BookingTransaction, location: typeof locations.$inferSelect, items: BookingSelection,
   date: string, now: Date, excludeId?: string,
@@ -37,22 +40,24 @@ export async function availability(
     .where(and(eq(bookingResources.locationId, location.id), inArray(bookingServiceResources.serviceId, serviceIds)));
   const resourceIds = [...new Set(requiredResources.map(({ id }) => id))];
   const slots: { employeeId: string; employeeName: string; professionalTitle: string; professionalPhotoUrl: string; startsAt: string; endsAt: string; quote: typeof quote; mixed?: boolean }[] = [];
-  const result = { quote, slots, resourceIds };
-  if (requestedDay < today || requestedDay > today + location.advanceBookingDays * 1440 * minute) return result;
+  const result = { quote, slots, resourceIds, emptyReason: null as EmptyReason | null };
+  const empty = (reason: EmptyReason) => ({ ...result, emptyReason: reason });
+  if (requestedDay < today || requestedDay > today + location.advanceBookingDays * 1440 * minute) return empty("outside_window");
   const [opening] = await tx.select().from(openingHours)
     .where(and(eq(openingHours.locationId, location.id), eq(openingHours.weekday, weekday)));
-  if (!opening) return result;
+  if (!opening) return empty("closed");
   const staff = await tx.select().from(employees).where(and(
     eq(employees.organizationId, location.organizationId), eq(employees.locationId, location.id), eq(employees.active, true),
   ));
-  if (!staff.length) return result;
+  if (!staff.length) return empty("no_staff");
   const assignments = await tx.select().from(employeeServices)
     .where(and(inArray(employeeServices.employeeId, staff.map((entry) => entry.id)), inArray(employeeServices.serviceId, serviceIds)));
+  if (!assignments.length) return empty("no_assignment");
   const overrides = location.differentialPricing ? await tx.select().from(professionalPrices).where(and(
     inArray(professionalPrices.employeeId, staff.map(({ id }) => id)), inArray(professionalPrices.serviceId, serviceIds),
   )) : [];
   const dayMinutes = options?.dayMinutes?.() ?? localDayMinutes(date, location.timezone);
-  if (!dayMinutes.length) return result;
+  if (!dayMinutes.length) return empty("closed");
   const rangeStart = new Date(dayMinutes[0]!.instant);
   const rangeEnd = new Date(dayMinutes.at(-1)!.instant + minute);
   const [busy, blocks, occupiedResources, breaks, hidden] = await Promise.all([
@@ -83,6 +88,9 @@ export async function availability(
   }[] = [];
   const startingMinute = ({ instant, time }: { instant: number; time: string }) =>
     instant >= earliest && (options?.internalMode === "walk_in" || Number(time.slice(-2)) % 15 === 0);
+  let hasWorkingHours = false;
+  let fitsSchedule = false;
+  let fitsLeadTime = false;
   for (const employee of staff.sort((a, b) => a.id.localeCompare(b.id))) {
     if (options?.professionalId && options.professionalId !== employee.id) continue;
     const name = options?.internalMode ? employee.displayName : employee.publicName || "Teammitglied";
@@ -97,6 +105,7 @@ export async function availability(
     if (!schedule) continue;
     const eligible = new Set(assignments.filter((entry) => entry.employeeId === employee.id).map((entry) => entry.serviceId));
     if (!eligible.size) continue;
+    hasWorkingHours = true;
     const blocked = [...occupiedResources, ...blocks.filter((entry) => !entry.employeeId || entry.employeeId === employee.id),
       ...busy.filter((entry) => entry.employeeId === employee.id)];
     const employeeBreaks = breaks.filter((entry) => entry.employeeId === employee.id);
@@ -118,7 +127,12 @@ export async function availability(
     if (eligible.size !== serviceIds.length || exact.occupiedMinutes > 1500 ||
       (options?.maxPriceCents !== undefined && exact.priceCents > options.maxPriceCents)) continue;
     for (const [index, start] of dayMinutes.entries()) {
-      if (!startingMinute(start) || !canWork(index, exact.occupiedMinutes)) continue;
+      if ((contiguous[index] ?? 0) < exact.occupiedMinutes ||
+        (options?.internalMode !== "walk_in" && Number(start.time.slice(-2)) % 15 !== 0)) continue;
+      fitsSchedule = true;
+      if (!startingMinute(start)) continue;
+      fitsLeadTime = true;
+      if (!canWork(index, exact.occupiedMinutes)) continue;
       let offset = 0;
       const visible = exact.items.every((line) => {
         const result = offered(line.serviceId, start.instant + offset * minute);
@@ -175,5 +189,7 @@ export async function availability(
     }
   }
   slots.sort((a, b) => a.startsAt.localeCompare(b.startsAt) || a.employeeId.localeCompare(b.employeeId));
-  return result;
+  if (slots.length) return result;
+  return empty(!hasWorkingHours ? "no_working_hours" : !fitsSchedule ? "no_contiguous_time"
+    : !fitsLeadTime ? "lead_time" : "occupied");
 }

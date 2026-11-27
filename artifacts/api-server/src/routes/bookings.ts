@@ -492,8 +492,8 @@ bookingRouter.post(slotsPath, async (req, res) => {
   const locationId = uuid(req.params.locationId);
   const result = await db.transaction(async (tx) => {
     const location = await slotLocation(tx, locationId, tenantId(req), item.serviceId);
-    const { slots } = await availability(tx, location, [item], date, new Date(), undefined, { ignoreHiddenStarts: true });
-    if (!slots.length) return [];
+    const { slots, emptyReason } = await availability(tx, location, [item], date, new Date(), undefined, { ignoreHiddenStarts: true });
+    if (!slots.length) return { starts: [], emptyReason };
     const [first] = slots;
     const last = slots.at(-1)!;
     const existing = await tx.select({ startsAt: hiddenBookingStarts.startsAt }).from(hiddenBookingStarts)
@@ -506,7 +506,7 @@ bookingRouter.post(slotsPath, async (req, res) => {
       ends.add(endsAt);
       choices.set(startsAt, ends);
     }
-    return [...choices].map(([startsAt, ends]) => ({ startsAt, endsAt: [...ends].sort(), enabled: !hidden.has(startsAt) }));
+    return { starts: [...choices].map(([startsAt, ends]) => ({ startsAt, endsAt: [...ends].sort(), enabled: !hidden.has(startsAt) })), emptyReason: null };
   }, { isolationLevel: "repeatable read", accessMode: "read only" });
   res.set("Cache-Control", "no-store").json(result);
 });

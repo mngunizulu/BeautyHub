@@ -61,7 +61,31 @@ test("business can move an appointment, add a staff break and link private CRM h
     await breaks.getByLabel("Beginn", { exact: true }).fill(mobile ? "14:30" : "14:00");
     await breaks.getByLabel("Ende", { exact: true }).fill(mobile ? "14:45" : "14:15");
     await breaks.getByRole("button", { name: "Pause hinzufügen" }).click();
-    await expect(breaks.getByText(mobile ? /14:30–14:45/ : /14:00–14:15/)).toBeVisible();
+    const interval = mobile ? "14:30–14:45" : "14:00–14:15";
+    await expect(breaks.getByText("Montag · " + interval, { exact: false })).toBeVisible();
+    if (process.env.BEAUTYHUB_E2E_STAFF_BREAKS === "1") {
+      await expect(breaks.getByText("Dienstag · " + interval, { exact: false })).toBeVisible();
+      const slug = process.env.BEAUTYHUB_E2E_SALON_SLUG;
+      const publicPath = "/api/businesses/" + slug;
+      const before = await owner.request.get(publicPath);
+      expect(before.status()).toBe(200);
+      const business = await before.json();
+      expect(business.staff).toEqual([]);
+      const serviceId = business.services.find((service: { name: string }) => service.name === "QA Treatment").id;
+      const available = () => owner.request.post(publicPath + "/availability", { data: { date: day, items: [{ serviceId }] } });
+      expect((await (await available()).json()).slots).toContainEqual(expect.objectContaining({ employeeName: "Teammitglied" }));
+      const staffRow = page.getByRole("listitem").filter({ hasText: "Test Staff" });
+      await staffRow.getByRole("button", { name: "Bearbeiten" }).click();
+      const name = page.getByLabel("Öffentlicher Anzeigename (optional)");
+      await expect(name).toHaveValue("");
+      await page.getByRole("button", { name: "Internen Namen als öffentlichen Namen übernehmen" }).click();
+      await expect(name).toHaveValue("Test Staff");
+      await page.getByTestId("button-save-employee").click();
+      await expect(page.getByTestId("button-save-employee")).toHaveCount(0);
+      const profile = await owner.request.get(publicPath);
+      expect((await profile.json()).staff).toContainEqual(expect.objectContaining({ name: "Test Staff" }));
+      expect((await (await available()).json()).slots).toContainEqual(expect.objectContaining({ employeeName: "Test Staff" }));
+    }
 
     await page.getByTestId("nav-section-kunden").click();
     await page.getByRole("button", { name: "Kundenprofil anlegen" }).click();

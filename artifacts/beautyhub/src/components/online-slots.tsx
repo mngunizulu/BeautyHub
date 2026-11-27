@@ -1,3 +1,4 @@
+import { Link } from 'wouter';
 import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import type { BusinessWorkspace } from '@workspace/api-client-react';
@@ -6,6 +7,17 @@ import { appointmentLabel, dateInZone, sendBookingData } from '@/lib/booking';
 import { errorText } from '@/lib/api';
 
 type Start = { startsAt: string; endsAt: string[]; enabled: boolean };
+const emptyMessages = {
+  outside_window: 'Dieses Datum liegt außerhalb des Online-Buchungszeitraums.',
+  closed: 'Für diesen Wochentag fehlen Öffnungszeiten am Standort.',
+  no_staff: 'An diesem Standort gibt es keine aktiven Mitarbeitenden.',
+  no_assignment: 'Dieser Leistung sind keine aktiven Mitarbeitenden am Standort zugeordnet.',
+  no_working_hours: 'Die zugeordneten Mitarbeitenden haben an diesem Wochentag keine Arbeitszeiten.',
+  no_contiguous_time: 'Leistungsdauer und Puffer passen in keinen durchgehenden Zeitraum aus Öffnungs- und Arbeitszeiten. Prüfe auch regelmäßige Pausen.',
+  lead_time: 'Wegen des Mindestvorlaufs kann an diesem Tag kein passender Termin mehr online gebucht werden.',
+  occupied: 'Termine, Sperrzeiten oder belegte Ressourcen lassen an diesem Tag keine passende Startzeit frei.',
+};
+type OnlineStarts = { starts: Start[]; emptyReason: keyof typeof emptyMessages | null };
 
 export function OnlineSlots({ workspace, locationId, timezone, path }: {
   workspace: BusinessWorkspace; locationId: string; timezone: string; path: string;
@@ -20,7 +32,7 @@ export function OnlineSlots({ workspace, locationId, timezone, path }: {
   const query = useQuery({
     queryKey: [path, item, date],
     enabled: !!service && /^\d{4}-\d{2}-\d{2}$/.test(date) && date >= dateInZone(timezone),
-    queryFn: () => sendBookingData<Start[]>(path, { item, date }),
+    queryFn: () => sendBookingData<OnlineStarts>(path, { item, date }),
   });
   const change = useMutation({
     mutationFn: ({ startsAt, enabled }: Pick<Start, 'startsAt' | 'enabled'>) =>
@@ -55,10 +67,17 @@ export function OnlineSlots({ workspace, locationId, timezone, path }: {
       </fieldset>
       {query.isFetching && <p role="status" className="text-sm">Zeiten werden geladen …</p>}
       {query.isError && <button type="button" className="underline" onClick={() => void query.refetch()}>Zeiten erneut laden</button>}
-      {query.data?.length === 0 && <p className="text-sm">An diesem Tag gibt es keine passenden Zeiten.</p>}
+      {query.data?.emptyReason && <div role="status" className="space-y-2 rounded-lg border border-border bg-muted/40 p-3 text-sm">
+        <p>{emptyMessages[query.data.emptyReason]}</p>
+        <div className="flex flex-wrap gap-4">
+          <Link className="underline" href={`/unternehmen/${workspace.id}?bereich=team`}>Arbeitszeiten prüfen</Link>
+          <Link className="underline" href={`/unternehmen/${workspace.id}?bereich=leistungen`}>Leistungszuordnung prüfen</Link>
+          <Link className="underline" href={`/unternehmen/${workspace.id}?bereich=zeiten`}>Öffnungszeiten prüfen</Link>
+        </div>
+      </div>}
       <fieldset className="flex flex-wrap gap-2" disabled={change.isPending}>
         <legend className="sr-only">Buchbare Startzeiten</legend>
-        {query.data?.map((slot) => <label key={slot.startsAt} className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm">
+        {query.data?.starts.map((slot) => <label key={slot.startsAt} className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm">
           <input type="checkbox" checked={change.isPending && change.variables?.startsAt === slot.startsAt ? change.variables.enabled : slot.enabled} onChange={(event) => change.mutate({ startsAt: slot.startsAt, enabled: event.target.checked })}
             aria-label={appointmentLabel(slot.startsAt, timezone) + ' · ' + slot.startsAt.slice(11, 16) + ' UTC'} />
           <span>{time(slot.startsAt)}–{slot.endsAt.map(time).join(' / ')}</span>

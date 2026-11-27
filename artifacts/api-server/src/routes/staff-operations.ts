@@ -43,7 +43,8 @@ staffOperationsRouter.put(path, async (req, res) => {
     for (const entry of entries) {
       const shift = employee.workingHours.find((item) => item.weekday === entry.weekday);
       if (!shift || entry.begins < shift.opens || entry.ends > shift.closes) {
-        throw new HttpError(400, "Die Pause muss innerhalb der Arbeitszeit liegen.");
+        const day = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"][entry.weekday - 1];
+        throw new HttpError(400, `Die Pause am ${day} muss innerhalb der Arbeitszeit liegen.`);
       }
     }
     if (entries.length) {
