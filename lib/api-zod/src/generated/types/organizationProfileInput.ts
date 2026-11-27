@@ -26,6 +26,11 @@ export interface OrganizationProfileInput {
   website: string;
   categoryId: string;
   /**
+     * @minItems 1
+     * @maxItems 10
+     */
+  categoryIds?: string[];
+  /**
      * @minimum 1
      * @maximum 6
      */

@@ -42,9 +42,9 @@ export function CardSkeleton() {
   );
 }
 
-export function FilterBar({ value, cities, onChange, compact = false }: { value: Filters; cities: string[]; onChange: (f: Filters) => void; compact?: boolean }) {
+export function FilterBar({ value, cities, onChange, showCategories = true }: { value: Filters; cities: string[]; onChange: (f: Filters) => void; showCategories?: boolean }) {
   const [q, setQ] = useState(value.q);
-  const cats = useListCategories({ query: { queryKey: getListCategoriesQueryKey() } });
+  const cats = useListCategories({ query: { queryKey: getListCategoriesQueryKey(), enabled: showCategories } });
   const ref = useRef(onChange); ref.current = onChange;
   const valRef = useRef(value); valRef.current = value;
   useEffect(() => { setQ(value.q); }, [value.q]);
@@ -74,16 +74,16 @@ export function FilterBar({ value, cities, onChange, compact = false }: { value:
         </label>
         <button type="submit" className="rounded-2xl bg-primary px-6 py-3 text-primary-foreground transition-transform active:scale-95" data-testid="button-search">Suchen</button>
       </form>
-      <div className="flex flex-wrap gap-2" role="group" aria-label="Kategorie">
+      {showCategories && <div className="flex flex-wrap gap-2" role="group" aria-label="Kategorie">
         <Chip active={!value.category} onClick={() => onChange({ ...value, category: '' })} testId="chip-category-all">Alle</Chip>
         {cats.isLoading && Array.from({ length: 6 }).map((_, i) => <span key={i} className="h-9 w-24 animate-pulse rounded-full bg-muted" />)}
         {cats.isError && <button onClick={() => cats.refetch()} className="text-sm underline" data-testid="button-retry-categories">Kategorien neu laden</button>}
-        {cats.data?.filter((c) => !compact || c.businessCount > 0 || c.slug === value.category).map((c) => (
+        {cats.data?.map((c) => (
           <Chip key={c.slug} active={value.category === c.slug} onClick={() => onChange({ ...value, category: value.category === c.slug ? '' : c.slug })} testId={`chip-category-${c.slug}`}>
             {c.name}<span className="ml-1.5 font-mono text-[10px] opacity-60">{c.businessCount}</span>
           </Chip>
         ))}
-      </div>
+      </div>}
     </div>
   );
 }

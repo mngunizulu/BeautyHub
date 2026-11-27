@@ -40,4 +40,4 @@ Set the following variables on the web service.
 | `CLERK_SECRET_KEY` | Matching Clerk Development secret key. The image reads it at runtime. |
 | `BEAUTYHUB_PREVIEW_SEED` | Optional. Set to `1` to load the fictional catalog. |
 
-The preview container applies checked-in migrations to the configured database before opening its HTTP port. A migration failure stops startup. The preview serves the frontend and API together and leaves the local Compose and production deployment procedures in place. Use a dedicated preview database. The Render URL is internet-accessible.
+The preview container applies checked-in migrations to the configured database before opening its HTTP port. The marketplace categories come from migration 0045. The optional demo seed adds fictional salons and services. A migration failure stops startup. The preview serves the frontend and API together and leaves the local Compose and production deployment procedures in place. Use a dedicated preview database. The Render URL is internet-accessible.

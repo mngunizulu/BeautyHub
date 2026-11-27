@@ -298,3 +298,7 @@ All 76 PostgreSQL-backed tests passed on a fresh disposable database. The added 
 ## Render Free preview image
 
 The single-service image built from Dockerfile.render and ran locally against disposable PostgreSQL 17 with Clerk Development configuration. Checks covered HTTP 200 for health, the salon SPA, its built script and the demo catalog. Guest administrator access returned 401. Missing API routes and assets returned 404. A restart preserved all 45 migrations and the three fictional salons. Lint and type checking passed. The Render-hosted service has yet to be deployed and verified.
+
+## Marketplace category registration
+
+Migration 0045 adds ten marketplace categories without loading demo salons. A clean PostgreSQL database had ten categories and zero locations before seeding. A separate legacy fixture verified that existing Spa and Hautpflege locations retain valid category assignments after consolidation. All 77 PostgreSQL-backed tests passed, including multi-category onboarding, filtering, counts, validation and editing. Signed-in desktop and mobile Chromium registered a fictional business with two categories and verified both were retained in its profile. Lint, type checking and the Docker build passed.

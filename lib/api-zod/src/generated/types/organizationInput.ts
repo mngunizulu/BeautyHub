@@ -13,4 +13,9 @@ export interface OrganizationInput {
      */
   name: string;
   categoryId: string;
+  /**
+     * @minItems 1
+     * @maxItems 10
+     */
+  categoryIds?: string[];
 }

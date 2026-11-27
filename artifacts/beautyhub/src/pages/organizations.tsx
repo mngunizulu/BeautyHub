@@ -1,9 +1,10 @@
+import { BusinessCategoryPicker } from '@/components/business-category-picker';
 import { useState, type FormEvent } from 'react';
 import { Link, useLocation, useSearch } from 'wouter';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowUpRight, Building2, MapPin, Plus } from 'lucide-react';
 import {
-  useListMyOrganizations, getListMyOrganizationsQueryKey, useCreateOrganization, useListCategories, getListCategoriesQueryKey,
+  useListMyOrganizations, getListMyOrganizationsQueryKey, useCreateOrganization,
   getGetOrganizationWorkspaceQueryKey,
 } from '@workspace/api-client-react';
 import { EmptyNote, Field, FormStatus, Panel, PrimaryButton, inputCls } from '@/components/forms';
@@ -57,18 +58,18 @@ export default function OrganizationsPage() {
 function CreateOrganization({ onCancel }: { onCancel: () => void }) {
   const qc = useQueryClient();
   const [, navigate] = useLocation();
-  const cats = useListCategories({ query: { queryKey: getListCategoriesQueryKey() } });
   const create = useCreateOrganization();
   const [name, setName] = useState('');
-  const [categoryId, setCategoryId] = useState('');
+  const [categoryIds, setCategoryIds] = useState<string[]>([]);
   const [touched, setTouched] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const nameErr = name.trim().length < 2 ? 'Mindestens 2 Zeichen.' : name.length > 120 ? 'Höchstens 120 Zeichen.' : null;
-  const catErr = !categoryId ? 'Bitte eine Kategorie wählen.' : null;
+  const catErr = !categoryIds.length ? 'Bitte eine Kategorie wählen.' : null;
   const submit = (e: FormEvent) => {
     e.preventDefault(); setTouched(true); setErr(null);
-    if (nameErr || catErr) return;
-    create.mutate({ data: { name: name.trim(), categoryId } }, {
+    const [categoryId] = categoryIds;
+    if (nameErr || !categoryId) return;
+    create.mutate({ data: { name: name.trim(), categoryId, categoryIds } }, {
       onSuccess: (ws) => {
         qc.setQueryData(getGetOrganizationWorkspaceQueryKey(ws.id), ws);
         qc.invalidateQueries({ queryKey: getListMyOrganizationsQueryKey() });
@@ -79,23 +80,16 @@ function CreateOrganization({ onCancel }: { onCancel: () => void }) {
   };
   return (
     <Panel title="Neuen Betrieb anlegen" kicker="Schritt 0 von 6">
-      <form onSubmit={submit} noValidate className="grid gap-4 md:grid-cols-[1.3fr_1fr_auto] md:items-start">
+      <form onSubmit={submit} noValidate className="grid gap-4">
         <Field id="org-name" label="Name des Betriebs" error={touched ? nameErr : null}>
           <input id="org-name" value={name} maxLength={120} onChange={(e) => setName(e.target.value)} placeholder="z. B. Studio Lindgrün" className={inputCls} data-testid="input-organization-name" autoFocus />
         </Field>
-        <Field id="org-category" label="Kategorie" error={touched ? catErr : null}>
-          {cats.isError ? <button type="button" onClick={() => cats.refetch()} className="text-sm underline">Kategorien neu laden</button> : (
-            <select id="org-category" value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={inputCls} disabled={cats.isLoading} data-testid="select-organization-category">
-              <option value="">{cats.isLoading ? 'Lädt …' : 'Bitte wählen'}</option>
-              {cats.data?.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-          )}
-        </Field>
-        <div className="flex gap-2 md:pt-7">
+        <BusinessCategoryPicker value={categoryIds} onChange={setCategoryIds} error={touched ? catErr : null} />
+        <div className="flex gap-2">
           <PrimaryButton pending={create.isPending} testId="button-create-organization"><Building2 className="h-4 w-4" />Anlegen</PrimaryButton>
           <PrimaryButton type="button" variant="ghost" onClick={onCancel} testId="button-cancel-create">Abbrechen</PrimaryButton>
         </div>
-        <div className="md:col-span-3"><FormStatus error={err} /></div>
+        <FormStatus error={err} />
       </form>
     </Panel>
   );

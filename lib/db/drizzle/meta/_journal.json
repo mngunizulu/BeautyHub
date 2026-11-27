@@ -316,6 +316,13 @@
       "when": 1795516264879,
       "tag": "0044_platform_admin_bootstraps",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1795779123861,
+      "tag": "0045_marketplace_categories",
+      "breakpoints": true
     }
   ]
 }

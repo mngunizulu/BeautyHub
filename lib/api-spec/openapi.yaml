@@ -3541,6 +3541,12 @@ components:
       properties:
         name: { type: string, minLength: 2, maxLength: 120 }
         categoryId: { type: string, format: uuid }
+        categoryIds:
+          type: array
+          minItems: 1
+          maxItems: 10
+          uniqueItems: true
+          items: { type: string, format: uuid }
     OrganizationSummary:
       type: object
       required: [id, name, role, status, published, locationCount]
@@ -3563,6 +3569,12 @@ components:
         logoUrl: { type: string, maxLength: 500 }
         website: { type: string, maxLength: 300 }
         categoryId: { type: string, format: uuid }
+        categoryIds:
+          type: array
+          minItems: 1
+          maxItems: 10
+          uniqueItems: true
+          items: { type: string, format: uuid }
         onboardingStep: { type: integer, minimum: 1, maximum: 6 }
     HourInput:
       type: object

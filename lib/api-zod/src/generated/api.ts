@@ -330,11 +330,14 @@ export const ListMyOrganizationsResponse = zod.array(ListMyOrganizationsResponse
 export const createOrganizationBodyNameMin = 2;
 export const createOrganizationBodyNameMax = 120;
 
+export const createOrganizationBodyCategoryIdsMax = 10;
+
 
 
 export const CreateOrganizationBody = zod.object({
   "name": zod.string().min(createOrganizationBodyNameMin).max(createOrganizationBodyNameMax),
-  "categoryId": zod.uuid()
+  "categoryId": zod.uuid(),
+  "categoryIds": zod.array(zod.uuid()).min(1).max(createOrganizationBodyCategoryIdsMax).optional()
 })
 
 export const createOrganizationResponseProfileNameMin = 2;
@@ -351,6 +354,8 @@ export const createOrganizationResponseProfileSocialUrlMax = 500;
 export const createOrganizationResponseProfileLogoUrlMax = 500;
 
 export const createOrganizationResponseProfileWebsiteMax = 300;
+
+export const createOrganizationResponseProfileCategoryIdsMax = 10;
 
 export const createOrganizationResponseProfileOnboardingStepMax = 6;
 
@@ -457,6 +462,7 @@ export const CreateOrganizationResponse = zod.object({
   "logoUrl": zod.string().max(createOrganizationResponseProfileLogoUrlMax).optional(),
   "website": zod.string().max(createOrganizationResponseProfileWebsiteMax),
   "categoryId": zod.uuid(),
+  "categoryIds": zod.array(zod.uuid()).min(1).max(createOrganizationResponseProfileCategoryIdsMax).optional(),
   "onboardingStep": zod.int().min(1).max(createOrganizationResponseProfileOnboardingStepMax)
 }),
   "locations": zod.array(zod.object({
@@ -578,6 +584,8 @@ export const getOrganizationWorkspaceResponseProfileLogoUrlMax = 500;
 
 export const getOrganizationWorkspaceResponseProfileWebsiteMax = 300;
 
+export const getOrganizationWorkspaceResponseProfileCategoryIdsMax = 10;
+
 export const getOrganizationWorkspaceResponseProfileOnboardingStepMax = 6;
 
 export const getOrganizationWorkspaceResponseLocationsItemOneNameMin = 2;
@@ -683,6 +691,7 @@ export const GetOrganizationWorkspaceResponse = zod.object({
   "logoUrl": zod.string().max(getOrganizationWorkspaceResponseProfileLogoUrlMax).optional(),
   "website": zod.string().max(getOrganizationWorkspaceResponseProfileWebsiteMax),
   "categoryId": zod.uuid(),
+  "categoryIds": zod.array(zod.uuid()).min(1).max(getOrganizationWorkspaceResponseProfileCategoryIdsMax).optional(),
   "onboardingStep": zod.int().min(1).max(getOrganizationWorkspaceResponseProfileOnboardingStepMax)
 }),
   "locations": zod.array(zod.object({
@@ -804,6 +813,8 @@ export const saveOrganizationProfileBodyLogoUrlMax = 500;
 
 export const saveOrganizationProfileBodyWebsiteMax = 300;
 
+export const saveOrganizationProfileBodyCategoryIdsMax = 10;
+
 export const saveOrganizationProfileBodyOnboardingStepMax = 6;
 
 
@@ -817,6 +828,7 @@ export const SaveOrganizationProfileBody = zod.object({
   "logoUrl": zod.string().max(saveOrganizationProfileBodyLogoUrlMax).optional(),
   "website": zod.string().max(saveOrganizationProfileBodyWebsiteMax),
   "categoryId": zod.uuid(),
+  "categoryIds": zod.array(zod.uuid()).min(1).max(saveOrganizationProfileBodyCategoryIdsMax).optional(),
   "onboardingStep": zod.int().min(1).max(saveOrganizationProfileBodyOnboardingStepMax)
 })
 
@@ -834,6 +846,8 @@ export const saveOrganizationProfileResponseProfileSocialUrlMax = 500;
 export const saveOrganizationProfileResponseProfileLogoUrlMax = 500;
 
 export const saveOrganizationProfileResponseProfileWebsiteMax = 300;
+
+export const saveOrganizationProfileResponseProfileCategoryIdsMax = 10;
 
 export const saveOrganizationProfileResponseProfileOnboardingStepMax = 6;
 
@@ -940,6 +954,7 @@ export const SaveOrganizationProfileResponse = zod.object({
   "logoUrl": zod.string().max(saveOrganizationProfileResponseProfileLogoUrlMax).optional(),
   "website": zod.string().max(saveOrganizationProfileResponseProfileWebsiteMax),
   "categoryId": zod.uuid(),
+  "categoryIds": zod.array(zod.uuid()).min(1).max(saveOrganizationProfileResponseProfileCategoryIdsMax).optional(),
   "onboardingStep": zod.int().min(1).max(saveOrganizationProfileResponseProfileOnboardingStepMax)
 }),
   "locations": zod.array(zod.object({
@@ -1118,6 +1133,8 @@ export const createBusinessLocationResponseProfileLogoUrlMax = 500;
 
 export const createBusinessLocationResponseProfileWebsiteMax = 300;
 
+export const createBusinessLocationResponseProfileCategoryIdsMax = 10;
+
 export const createBusinessLocationResponseProfileOnboardingStepMax = 6;
 
 export const createBusinessLocationResponseLocationsItemOneNameMin = 2;
@@ -1223,6 +1240,7 @@ export const CreateBusinessLocationResponse = zod.object({
   "logoUrl": zod.string().max(createBusinessLocationResponseProfileLogoUrlMax).optional(),
   "website": zod.string().max(createBusinessLocationResponseProfileWebsiteMax),
   "categoryId": zod.uuid(),
+  "categoryIds": zod.array(zod.uuid()).min(1).max(createBusinessLocationResponseProfileCategoryIdsMax).optional(),
   "onboardingStep": zod.int().min(1).max(createBusinessLocationResponseProfileOnboardingStepMax)
 }),
   "locations": zod.array(zod.object({
@@ -1402,6 +1420,8 @@ export const saveBusinessLocationResponseProfileLogoUrlMax = 500;
 
 export const saveBusinessLocationResponseProfileWebsiteMax = 300;
 
+export const saveBusinessLocationResponseProfileCategoryIdsMax = 10;
+
 export const saveBusinessLocationResponseProfileOnboardingStepMax = 6;
 
 export const saveBusinessLocationResponseLocationsItemOneNameMin = 2;
@@ -1507,6 +1527,7 @@ export const SaveBusinessLocationResponse = zod.object({
   "logoUrl": zod.string().max(saveBusinessLocationResponseProfileLogoUrlMax).optional(),
   "website": zod.string().max(saveBusinessLocationResponseProfileWebsiteMax),
   "categoryId": zod.uuid(),
+  "categoryIds": zod.array(zod.uuid()).min(1).max(saveBusinessLocationResponseProfileCategoryIdsMax).optional(),
   "onboardingStep": zod.int().min(1).max(saveBusinessLocationResponseProfileOnboardingStepMax)
 }),
   "locations": zod.array(zod.object({
@@ -1658,6 +1679,8 @@ export const createEmployeeResponseProfileLogoUrlMax = 500;
 
 export const createEmployeeResponseProfileWebsiteMax = 300;
 
+export const createEmployeeResponseProfileCategoryIdsMax = 10;
+
 export const createEmployeeResponseProfileOnboardingStepMax = 6;
 
 export const createEmployeeResponseLocationsItemOneNameMin = 2;
@@ -1763,6 +1786,7 @@ export const CreateEmployeeResponse = zod.object({
   "logoUrl": zod.string().max(createEmployeeResponseProfileLogoUrlMax).optional(),
   "website": zod.string().max(createEmployeeResponseProfileWebsiteMax),
   "categoryId": zod.uuid(),
+  "categoryIds": zod.array(zod.uuid()).min(1).max(createEmployeeResponseProfileCategoryIdsMax).optional(),
   "onboardingStep": zod.int().min(1).max(createEmployeeResponseProfileOnboardingStepMax)
 }),
   "locations": zod.array(zod.object({
@@ -1915,6 +1939,8 @@ export const saveEmployeeResponseProfileLogoUrlMax = 500;
 
 export const saveEmployeeResponseProfileWebsiteMax = 300;
 
+export const saveEmployeeResponseProfileCategoryIdsMax = 10;
+
 export const saveEmployeeResponseProfileOnboardingStepMax = 6;
 
 export const saveEmployeeResponseLocationsItemOneNameMin = 2;
@@ -2020,6 +2046,7 @@ export const SaveEmployeeResponse = zod.object({
   "logoUrl": zod.string().max(saveEmployeeResponseProfileLogoUrlMax).optional(),
   "website": zod.string().max(saveEmployeeResponseProfileWebsiteMax),
   "categoryId": zod.uuid(),
+  "categoryIds": zod.array(zod.uuid()).min(1).max(saveEmployeeResponseProfileCategoryIdsMax).optional(),
   "onboardingStep": zod.int().min(1).max(saveEmployeeResponseProfileOnboardingStepMax)
 }),
   "locations": zod.array(zod.object({
@@ -2149,6 +2176,8 @@ export const createServiceCategoryResponseProfileLogoUrlMax = 500;
 
 export const createServiceCategoryResponseProfileWebsiteMax = 300;
 
+export const createServiceCategoryResponseProfileCategoryIdsMax = 10;
+
 export const createServiceCategoryResponseProfileOnboardingStepMax = 6;
 
 export const createServiceCategoryResponseLocationsItemOneNameMin = 2;
@@ -2254,6 +2283,7 @@ export const CreateServiceCategoryResponse = zod.object({
   "logoUrl": zod.string().max(createServiceCategoryResponseProfileLogoUrlMax).optional(),
   "website": zod.string().max(createServiceCategoryResponseProfileWebsiteMax),
   "categoryId": zod.uuid(),
+  "categoryIds": zod.array(zod.uuid()).min(1).max(createServiceCategoryResponseProfileCategoryIdsMax).optional(),
   "onboardingStep": zod.int().min(1).max(createServiceCategoryResponseProfileOnboardingStepMax)
 }),
   "locations": zod.array(zod.object({
@@ -2423,6 +2453,8 @@ export const createBusinessServiceResponseProfileLogoUrlMax = 500;
 
 export const createBusinessServiceResponseProfileWebsiteMax = 300;
 
+export const createBusinessServiceResponseProfileCategoryIdsMax = 10;
+
 export const createBusinessServiceResponseProfileOnboardingStepMax = 6;
 
 export const createBusinessServiceResponseLocationsItemOneNameMin = 2;
@@ -2528,6 +2560,7 @@ export const CreateBusinessServiceResponse = zod.object({
   "logoUrl": zod.string().max(createBusinessServiceResponseProfileLogoUrlMax).optional(),
   "website": zod.string().max(createBusinessServiceResponseProfileWebsiteMax),
   "categoryId": zod.uuid(),
+  "categoryIds": zod.array(zod.uuid()).min(1).max(createBusinessServiceResponseProfileCategoryIdsMax).optional(),
   "onboardingStep": zod.int().min(1).max(createBusinessServiceResponseProfileOnboardingStepMax)
 }),
   "locations": zod.array(zod.object({
@@ -2698,6 +2731,8 @@ export const saveBusinessServiceResponseProfileLogoUrlMax = 500;
 
 export const saveBusinessServiceResponseProfileWebsiteMax = 300;
 
+export const saveBusinessServiceResponseProfileCategoryIdsMax = 10;
+
 export const saveBusinessServiceResponseProfileOnboardingStepMax = 6;
 
 export const saveBusinessServiceResponseLocationsItemOneNameMin = 2;
@@ -2803,6 +2838,7 @@ export const SaveBusinessServiceResponse = zod.object({
   "logoUrl": zod.string().max(saveBusinessServiceResponseProfileLogoUrlMax).optional(),
   "website": zod.string().max(saveBusinessServiceResponseProfileWebsiteMax),
   "categoryId": zod.uuid(),
+  "categoryIds": zod.array(zod.uuid()).min(1).max(saveBusinessServiceResponseProfileCategoryIdsMax).optional(),
   "onboardingStep": zod.int().min(1).max(saveBusinessServiceResponseProfileOnboardingStepMax)
 }),
   "locations": zod.array(zod.object({
@@ -2925,6 +2961,8 @@ export const archiveBusinessServiceResponseProfileLogoUrlMax = 500;
 
 export const archiveBusinessServiceResponseProfileWebsiteMax = 300;
 
+export const archiveBusinessServiceResponseProfileCategoryIdsMax = 10;
+
 export const archiveBusinessServiceResponseProfileOnboardingStepMax = 6;
 
 export const archiveBusinessServiceResponseLocationsItemOneNameMin = 2;
@@ -3030,6 +3068,7 @@ export const ArchiveBusinessServiceResponse = zod.object({
   "logoUrl": zod.string().max(archiveBusinessServiceResponseProfileLogoUrlMax).optional(),
   "website": zod.string().max(archiveBusinessServiceResponseProfileWebsiteMax),
   "categoryId": zod.uuid(),
+  "categoryIds": zod.array(zod.uuid()).min(1).max(archiveBusinessServiceResponseProfileCategoryIdsMax).optional(),
   "onboardingStep": zod.int().min(1).max(archiveBusinessServiceResponseProfileOnboardingStepMax)
 }),
   "locations": zod.array(zod.object({
@@ -3178,6 +3217,8 @@ export const saveCancellationPolicyResponseProfileLogoUrlMax = 500;
 
 export const saveCancellationPolicyResponseProfileWebsiteMax = 300;
 
+export const saveCancellationPolicyResponseProfileCategoryIdsMax = 10;
+
 export const saveCancellationPolicyResponseProfileOnboardingStepMax = 6;
 
 export const saveCancellationPolicyResponseLocationsItemOneNameMin = 2;
@@ -3283,6 +3324,7 @@ export const SaveCancellationPolicyResponse = zod.object({
   "logoUrl": zod.string().max(saveCancellationPolicyResponseProfileLogoUrlMax).optional(),
   "website": zod.string().max(saveCancellationPolicyResponseProfileWebsiteMax),
   "categoryId": zod.uuid(),
+  "categoryIds": zod.array(zod.uuid()).min(1).max(saveCancellationPolicyResponseProfileCategoryIdsMax).optional(),
   "onboardingStep": zod.int().min(1).max(saveCancellationPolicyResponseProfileOnboardingStepMax)
 }),
   "locations": zod.array(zod.object({
@@ -3409,6 +3451,8 @@ export const setBusinessPublicationResponseProfileLogoUrlMax = 500;
 
 export const setBusinessPublicationResponseProfileWebsiteMax = 300;
 
+export const setBusinessPublicationResponseProfileCategoryIdsMax = 10;
+
 export const setBusinessPublicationResponseProfileOnboardingStepMax = 6;
 
 export const setBusinessPublicationResponseLocationsItemOneNameMin = 2;
@@ -3514,6 +3558,7 @@ export const SetBusinessPublicationResponse = zod.object({
   "logoUrl": zod.string().max(setBusinessPublicationResponseProfileLogoUrlMax).optional(),
   "website": zod.string().max(setBusinessPublicationResponseProfileWebsiteMax),
   "categoryId": zod.uuid(),
+  "categoryIds": zod.array(zod.uuid()).min(1).max(setBusinessPublicationResponseProfileCategoryIdsMax).optional(),
   "onboardingStep": zod.int().min(1).max(setBusinessPublicationResponseProfileOnboardingStepMax)
 }),
   "locations": zod.array(zod.object({
@@ -3662,6 +3707,8 @@ export const saveOrganizationMembershipResponseProfileLogoUrlMax = 500;
 
 export const saveOrganizationMembershipResponseProfileWebsiteMax = 300;
 
+export const saveOrganizationMembershipResponseProfileCategoryIdsMax = 10;
+
 export const saveOrganizationMembershipResponseProfileOnboardingStepMax = 6;
 
 export const saveOrganizationMembershipResponseLocationsItemOneNameMin = 2;
@@ -3767,6 +3814,7 @@ export const SaveOrganizationMembershipResponse = zod.object({
   "logoUrl": zod.string().max(saveOrganizationMembershipResponseProfileLogoUrlMax).optional(),
   "website": zod.string().max(saveOrganizationMembershipResponseProfileWebsiteMax),
   "categoryId": zod.uuid(),
+  "categoryIds": zod.array(zod.uuid()).min(1).max(saveOrganizationMembershipResponseProfileCategoryIdsMax).optional(),
   "onboardingStep": zod.int().min(1).max(saveOrganizationMembershipResponseProfileOnboardingStepMax)
 }),
   "locations": zod.array(zod.object({

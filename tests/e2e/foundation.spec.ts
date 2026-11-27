@@ -62,3 +62,13 @@ test("keyboard navigation skips to content and exposes the current page", async 
       .getByRole("link", { name: "Salons entdecken" })).toHaveAttribute("aria-current", "page");
   }
 });
+
+test("homepage category links open filtered salon results", async ({ page }) => {
+  await page.goto("/");
+  const categories = page.getByRole("region", { name: "Nach Kategorie entdecken" });
+  await expect(categories.getByRole("link")).toHaveCount(10);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width);
+  await categories.getByRole("link", { name: "Friseure" }).click();
+  await expect(page).toHaveURL(/\/salons\?category=friseur$/);
+  await expect(page.getByTestId("chip-category-friseur")).toHaveAttribute("aria-pressed", "true");
+});

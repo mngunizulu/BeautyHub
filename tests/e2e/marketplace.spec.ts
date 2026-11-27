@@ -73,3 +73,33 @@ test("owner uploads a public photo and customer saves and removes the salon", as
     }
   }
 });
+
+test("a business can choose multiple marketplace categories during registration", async ({ browser, baseURL }, testInfo) => {
+  test.skip(!ownerState, "Set the Clerk development owner session.");
+  const { defaultBrowserType: _browserType, ...device } = devices[
+    testInfo.project.name === "mobile-chromium" ? "Pixel 7" : "Desktop Chrome"
+  ];
+  const owner = await browser.newContext({ ...device, baseURL, storageState: ownerState });
+  try {
+    const page = await owner.newPage();
+    await page.goto("/unternehmen?neu");
+    const picker = page.getByRole("group", { name: "Kategorien" });
+    await expect(picker.getByRole("checkbox")).toHaveCount(10);
+    await page.getByTestId("input-organization-name").fill("Kategorie QA " + randomUUID().slice(0, 8));
+    await picker.getByRole("checkbox", { name: "Friseure", exact: true }).check();
+    await picker.getByRole("checkbox", { name: "Haarentfernung", exact: true }).check();
+    const [created] = await Promise.all([
+      page.waitForResponse((response) => response.request().method() === "POST" && new URL(response.url()).pathname === "/api/organizations"),
+      page.getByTestId("button-create-organization").click(),
+    ]);
+    expect(created.status()).toBe(201);
+    const business = await created.json();
+    expect(business.profile.categoryIds).toHaveLength(2);
+    await expect(page).toHaveURL(new RegExp("/unternehmen/" + business.id));
+    const saved = page.getByRole("group", { name: "Kategorien" });
+    await expect(saved.getByRole("checkbox", { name: /Friseure.*Hauptkategorie/ })).toBeChecked();
+    await expect(saved.getByRole("checkbox", { name: "Haarentfernung", exact: true })).toBeChecked();
+  } finally {
+    await owner.close();
+  }
+});

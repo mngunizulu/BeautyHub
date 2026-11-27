@@ -1776,6 +1776,11 @@ export interface OrganizationInput {
      */
   name: string;
   categoryId: string;
+  /**
+     * @minItems 1
+     * @maxItems 10
+     */
+  categoryIds?: string[];
 }
 
 export interface OrganizationProfileInput {
@@ -1797,6 +1802,11 @@ export interface OrganizationProfileInput {
   /** @maxLength 300 */
   website: string;
   categoryId: string;
+  /**
+     * @minItems 1
+     * @maxItems 10
+     */
+  categoryIds?: string[];
   /**
      * @minimum 1
      * @maximum 6

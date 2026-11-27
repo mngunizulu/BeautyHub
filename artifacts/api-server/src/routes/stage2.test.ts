@@ -93,7 +93,14 @@ describe("Stage 2 persisted identities, onboarding and tenant boundaries", () =>
     expect((await authed("patch", "/api/me").send({ ...profile, isPlatformAdmin: true })).status).toBe(400);
   });
   it("atomically creates a draft organization, owner, location, employee and configurable default policy", async () => {
-    const res = await authed("post", "/api/organizations").send({ name: `Test Studio ${suffix}`, categoryId });
+    const [secondary] = await db.select().from(categories).where(eq(categories.slug, "haarentfernung"));
+    const categoryIds = [categoryId, secondary!.id];
+    expect((await authed("post", "/api/organizations").set("X-Forwarded-For", "192.0.2.83").send({ name: "Invalid categories", categoryId,
+      categoryIds: [categoryId, randomUUID()] })).status).toBe(400);
+    expect((await authed("post", "/api/organizations").set("X-Forwarded-For", "192.0.2.83").send({ name: "Repeated categories", categoryId,
+      categoryIds: [categoryId, categoryId] })).status).toBe(400);
+    const res = await authed("post", "/api/organizations").set("X-Forwarded-For", "192.0.2.83").send({ name: `Test Studio ${suffix}`, categoryId, categoryIds });
+    expect(res.body.profile.categoryIds).toEqual(categoryIds);
     expect(res.status, JSON.stringify(res.body)).toBe(201);
     orgId = res.body.id; orgIds.push(orgId);
     locationId = res.body.locations[0].id;
@@ -193,6 +200,28 @@ describe("Stage 2 persisted identities, onboarding and tenant boundaries", () =>
     expect(publicProfile.body.services[0]).toMatchObject({ name: "Facial Test", priceCents: 6500 });
     expect((await request(app).get("/api/marketplace/summary")).body.cities).toContain("Essen");
   });
+  it("discovers a published business under both selected categories and updates membership", async () => {
+    const [primary] = await db.select().from(categories).where(eq(categories.id, categoryId));
+    const [secondary] = await db.select().from(categories).where(eq(categories.slug, "haarentfernung"));
+    const headers = { "X-Forwarded-For": "192.0.2.84" };
+    const match = (category: string) => request(app).get("/api/businesses").set(headers).query({ category, city: "Essen" });
+    for (const category of [primary!.slug, secondary!.slug]) {
+      const response = await match(category);
+      expect(response.status).toBe(200);
+      expect(response.body.filter(({ id }: { id: string }) => id === locationId)).toHaveLength(1);
+    }
+    const catalog = await request(app).get("/api/categories").set(headers);
+    expect(catalog.body).toHaveLength(10);
+    expect(catalog.body).toContainEqual(expect.objectContaining({ slug: secondary!.slug, businessCount: 1 }));
+    const workspace = await authed("get", orgPath("/workspace")).set(headers);
+    expect(workspace.body.profile.categoryIds).toEqual([categoryId, secondary!.id]);
+    const updated = await authed("put", orgPath("/profile")).set(headers).send({ ...workspace.body.profile, categoryIds: [categoryId] });
+    expect(updated.status).toBe(200);
+    expect(updated.body.profile.categoryIds).toEqual([categoryId]);
+    expect((await match(secondary!.slug)).body).toEqual([]);
+    expect((await match(primary!.slug)).body).toContainEqual(expect.objectContaining({ id: locationId }));
+  });
+
   it("quotes a multi-service selection using persisted prices, durations and buffers", async () => {
     const listing = (await authed("get", orgPath("/workspace"))).body.locations.find((entry: { id: string }) => entry.id === locationId);
     const path = `/api/businesses/${listing.slug}/booking-quote`;

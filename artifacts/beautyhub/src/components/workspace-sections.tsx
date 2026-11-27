@@ -1,10 +1,11 @@
+import { BusinessCategoryPicker } from '@/components/business-category-picker';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { mergeLocationPart } from '@/lib/location-data';
 import { Archive, Check as CheckIcon, Copy, Link2, MapPin, Pencil, Plus, Trash2, UserPlus, X } from 'lucide-react';
 import {
   useSaveOrganizationProfile, useCreateBusinessLocation, useSaveBusinessLocation, useCreateEmployee, useSaveEmployee,
   useCreateServiceCategory, useCreateBusinessService, useSaveBusinessService, useArchiveBusinessService, useSaveCancellationPolicy,
-  useSetBusinessPublication, useCreateStaffInvitation, useSaveOrganizationMembership, useListCategories, getListCategoriesQueryKey,
+  useSetBusinessPublication, useCreateStaffInvitation, useSaveOrganizationMembership,
   getGetOrganizationWorkspaceQueryKey,
   type BusinessWorkspace, type EmployeeInput, type LocationInput, type ManagedEmployee, type ManagedLocation, type ManagedService,
   type OrganizationProfileInput, type PolicyInput, type ServiceInput, type InvitationDelivery, type ManagedMembership,
@@ -20,7 +21,7 @@ type Props = { ws: BusinessWorkspace; perms: Perms };
 
 /* ---------- DTO builders (explicit, never pass output objects back) ---------- */
 export const profileDto = (p: OrganizationProfileInput, step?: number): OrganizationProfileInput => ({
-  name: p.name, description: p.description, contactEmail: p.contactEmail, phone: p.phone, website: p.website, socialUrl: p.socialUrl ?? "", logoUrl: p.logoUrl ?? "", categoryId: p.categoryId,
+  name: p.name, description: p.description, contactEmail: p.contactEmail, phone: p.phone, website: p.website, socialUrl: p.socialUrl ?? "", logoUrl: p.logoUrl ?? "", categoryId: p.categoryId, categoryIds: p.categoryIds,
   onboardingStep: Math.min(6, Math.max(1, step ?? p.onboardingStep)),
 });
 const locationDto = (l: LocationInput): LocationInput => ({
@@ -46,7 +47,6 @@ const errOf = (e: unknown) => errorText(e);
 export function ProfileSection({ ws, perms, nextStep, onSaved, submitLabel = 'Speichern' }: Props & { nextStep?: number; onSaved?: () => void; submitLabel?: string }) {
   const sync = useWorkspaceSync(ws.id);
   const save = useSaveOrganizationProfile();
-  const cats = useListCategories({ query: { queryKey: getListCategoriesQueryKey() } });
   const [f, setF] = useState(() => profileDto(ws.profile));
   const [touched, setTouched] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -74,12 +74,9 @@ export function ProfileSection({ ws, perms, nextStep, onSaved, submitLabel = 'Sp
       <form onSubmit={submit} noValidate>
         <fieldset disabled={!perms.canEdit} className="grid gap-4 sm:grid-cols-2">
           <Field id="profile-name" label="Name des Betriebs" error={t('name')}><input id="profile-name" value={f.name} maxLength={120} onChange={(e) => setF({ ...f, name: e.target.value })} className={inputCls} data-testid="input-profile-name" /></Field>
-          <Field id="profile-category" label="Kategorie" error={t('categoryId')}>
-            <select id="profile-category" value={f.categoryId} onChange={(e) => setF({ ...f, categoryId: e.target.value })} className={inputCls} data-testid="select-profile-category">
-              <option value="">Bitte wählen</option>
-              {cats.data?.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-          </Field>
+          <BusinessCategoryPicker value={f.categoryIds ?? [f.categoryId]}
+            onChange={(categoryIds) => setF({ ...f, categoryIds, categoryId: categoryIds[0] ?? '' })}
+            error={t('categoryId')} />
           <Field id="profile-description" label="Beschreibung" className="sm:col-span-2" hint={`${f.description.length}/3000 Zeichen`}>
             <textarea id="profile-description" rows={4} maxLength={3000} value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} className={inputCls} placeholder="Was macht euren Betrieb aus?" data-testid="input-profile-description" />
           </Field>

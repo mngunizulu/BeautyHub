@@ -1,8 +1,8 @@
 import { Router, type IRouter } from "express";
 import { randomUUID } from "node:crypto";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, inArray } from "drizzle-orm";
 import {
-  db, organizations, memberships, categories, locations, openingHours, employees, services, cancellationPolicies, auditEvents,
+  db, organizations, memberships, categories, organizationCategories, locations, openingHours, employees, services, cancellationPolicies, auditEvents,
 } from "@workspace/db";
 import {
   CreateOrganizationBody, SaveOrganizationProfileBody, SaveBusinessLocationBody,
@@ -18,21 +18,30 @@ import { staffRouter } from "./staff";
 import { serviceAdminRouter } from "./service-admin";
 
 const router: IRouter = Router();
+
+async function selectedCategories(primary: string, all: string[] = [primary]) {
+  const ids = [...new Set(all)];
+  if (ids.length !== all.length || !ids.includes(primary)) throw new HttpError(400, "Ungültige Kategorieauswahl.");
+  const available = await db.select({ id: categories.id }).from(categories).where(inArray(categories.id, ids));
+  if (available.length !== ids.length) throw new HttpError(400, "Ungültige Unternehmenskategorie.");
+  return ids.filter((id) => id !== primary);
+}
+
 const slugify = (name: string) => name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 50) || "studio";
 router.use("/organizations", requireAuthentication);
 router.get("/organizations", async (req, res): Promise<void> => { res.json(await myOrganizations(req.identity!.id)); });
 router.post("/organizations", async (req, res): Promise<void> => {
   const data = input(CreateOrganizationBody.strict(), req.body);
   if (data.name.trim().length < 2) throw new HttpError(400, "Unternehmensname benötigt mindestens zwei Zeichen.");
-  const [category] = await db.select().from(categories).where(eq(categories.id, data.categoryId));
-  if (!category) throw new HttpError(400, "Ungültige Unternehmenskategorie.");
+  const additional = await selectedCategories(data.categoryId, data.categoryIds);
   const orgId = await db.transaction(async (tx) => {
     await requirePlatformIntake(tx, "businessRegistrationOpen");
     const [org] = await tx.insert(organizations).values({ name: data.name.trim() }).returning();
     await startSaasTrial(tx, org!.id);
+    if (additional.length) await tx.insert(organizationCategories).values(additional.map((categoryId) => ({ organizationId: org!.id, categoryId })));
     await tx.insert(memberships).values({ userId: req.identity!.id, organizationId: org!.id, role: "owner" });
     const [location] = await tx.insert(locations).values({
-      organizationId: org!.id, categoryId: category.id, name: org!.name, slug: `${slugify(org!.name)}-${randomUUID().slice(0, 8)}`,
+      organizationId: org!.id, categoryId: data.categoryId, name: org!.name, slug: `${slugify(org!.name)}-${randomUUID().slice(0, 8)}`,
       description: "", city: "", district: "", address: "", postalCode: "", imageKey: "illustration",
     }).returning();
     await tx.insert(employees).values({
@@ -64,14 +73,19 @@ router.put("/organizations/:organizationId/profile", allowRoles("owner", "manage
       throw new HttpError(400, "Logo und Social-Media-Link benötigen eine vollständige HTTPS-Adresse.");
     }
   }
-  const [category] = await db.select().from(categories).where(eq(categories.id, data.categoryId));
-  if (!category) throw new HttpError(400, "Unternehmenskategorie nicht gefunden.");
+  const additional = await selectedCategories(data.categoryId, data.categoryIds);
   const [live] = await db.select().from(locations).where(and(eq(locations.organizationId, orgId), eq(locations.published, true)));
   if (live && (!data.description.trim() || !data.contactEmail || !data.phone)) throw new HttpError(400, "Veröffentlichte Profile benötigen Beschreibung und Kontaktdaten. Bitte zuerst unveröffentlichen.");
-  const { categoryId, onboardingStep, ...profile } = data;
+  const { categoryId, categoryIds, onboardingStep, ...profile } = data;
   await db.transaction(async (tx) => {
     await tx.update(organizations).set({ ...profile, name: data.name.trim(), onboardingStep: String(onboardingStep) }).where(eq(organizations.id, orgId));
     await tx.update(locations).set({ description: data.description, categoryId }).where(eq(locations.organizationId, orgId));
+    if (categoryIds !== undefined) {
+      await tx.delete(organizationCategories).where(eq(organizationCategories.organizationId, orgId));
+      if (additional.length) await tx.insert(organizationCategories).values(additional.map((categoryId) => ({ organizationId: orgId, categoryId })));
+    } else {
+      await tx.delete(organizationCategories).where(and(eq(organizationCategories.organizationId, orgId), eq(organizationCategories.categoryId, categoryId)));
+    }
   });
   res.json(await workspace(orgId, req.organizationRole!, req.identity!.id));
 });

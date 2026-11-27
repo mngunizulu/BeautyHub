@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, uuid, integer, boolean, index, check, uniqueIndex, doublePrecision, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, primaryKey, text, uuid, integer, boolean, index, check, uniqueIndex, doublePrecision, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { organizations } from "./identity";
 
@@ -9,6 +9,14 @@ export const categories = pgTable("service_categories", {
   name: text("name").notNull(),
   sortOrder: integer("sort_order").notNull().default(0),
 });
+
+export const organizationCategories = pgTable("organization_categories", {
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  categoryId: uuid("category_id").notNull().references(() => categories.id),
+}, (table) => [
+  primaryKey({ columns: [table.organizationId, table.categoryId] }),
+  index("organization_categories_category_idx").on(table.categoryId, table.organizationId),
+]);
 
 export const locations = pgTable("locations", {
   id: uuid("id").defaultRandom().primaryKey(),

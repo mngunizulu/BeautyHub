@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import {
-  db, organizations, memberships, locations, openingHours, employees, services,
+  db, organizations, organizationCategories, memberships, locations, openingHours, employees, services,
   serviceGroups, employeeServices, serviceVariants, cancellationPolicies, staffInvitations, users,
 } from "@workspace/db";
 import { GetOrganizationWorkspaceResponse, ListMyOrganizationsResponse } from "@workspace/api-zod";
@@ -23,7 +23,7 @@ export async function workspace(organizationId: string, role: "owner" | "manager
   if (!org) throw new HttpError(404, "Unternehmen nicht gefunden.");
   const locs = await db.select().from(locations).where(eq(locations.organizationId, organizationId)).orderBy(asc(locations.createdAt), asc(locations.id));
   const ids = locs.map((loc) => loc.id);
-  const [hours, staff, catalog, groups, members, invites, policies] = await Promise.all([
+  const [hours, staff, catalog, groups, members, invites, policies, additionalCategories] = await Promise.all([
     ids.length ? db.select().from(openingHours).where(inArray(openingHours.locationId, ids)).orderBy(asc(openingHours.weekday)) : [],
     db.select().from(employees).where(and(eq(employees.organizationId, organizationId), role === "employee" ? eq(employees.userId, userId) : undefined)),
     ids.length ? db.select().from(services).where(inArray(services.locationId, ids)).orderBy(asc(services.name)) : [],
@@ -37,6 +37,8 @@ export async function workspace(organizationId: string, role: "owner" | "manager
       expiresAt: staffInvitations.expiresAt, acceptedAt: staffInvitations.acceptedAt,
     }).from(staffInvitations).where(eq(staffInvitations.organizationId, organizationId)) : [],
     db.select().from(cancellationPolicies).where(eq(cancellationPolicies.organizationId, organizationId)).orderBy(desc(cancellationPolicies.version)),
+    db.select({ id: organizationCategories.categoryId }).from(organizationCategories)
+      .where(eq(organizationCategories.organizationId, organizationId)).orderBy(asc(organizationCategories.categoryId)),
   ]);
   const serviceIds = catalog.map((service) => service.id);
   const [assignments, variants] = await Promise.all([
@@ -50,6 +52,7 @@ export async function workspace(organizationId: string, role: "owner" | "manager
     profile: {
       name: org.name, description: org.description, contactEmail: org.contactEmail,
       phone: org.phone, website: org.website, socialUrl: org.socialUrl, logoUrl: org.logoUrl, categoryId: locs[0]?.categoryId,
+      categoryIds: [...new Set([locs[0]?.categoryId, ...additionalCategories.map(({ id }) => id)])].filter((id) => id !== undefined),
       onboardingStep: Number(org.onboardingStep),
     },
     locations: locs.map((loc) => ({ ...loc, openingHours: hours.filter((hour) => hour.locationId === loc.id) })),

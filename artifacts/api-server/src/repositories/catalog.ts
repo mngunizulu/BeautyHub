@@ -1,6 +1,6 @@
 import { publicLocation } from "../services/marketplace-visibility";
-import { and, eq, ilike, ne, or, sql, asc, desc, isNotNull } from "drizzle-orm";
-import { db, bookingReviews, reservations, serviceGroups, categories, locations, organizations, services, openingHours, serviceVariants, employees } from "@workspace/db";
+import { and, eq, exists, ilike, ne, or, sql, asc, desc, isNotNull } from "drizzle-orm";
+import { db, bookingReviews, reservations, serviceGroups, categories, organizationCategories, locations, organizations, services, openingHours, serviceVariants, employees } from "@workspace/db";
 
 const publicFields = {
   id: locations.id,
@@ -41,6 +41,17 @@ function hasPublicOffering(name?: string, maxPriceCents?: number) {
   )`;
 }
 
+const legacyCategorySlugs: ReadonlyMap<string, string> = new Map([["spa", "massage"], ["hautpflege", "kosmetik"]]);
+
+function matchesCategory(slug: string) {
+  const canonical = legacyCategorySlugs.get(slug) ?? slug;
+  return or(eq(categories.slug, canonical), exists(
+    db.select({ id: organizationCategories.categoryId }).from(organizationCategories)
+      .innerJoin(categories, eq(organizationCategories.categoryId, categories.id))
+      .where(and(eq(organizationCategories.organizationId, locations.organizationId), eq(categories.slug, canonical))),
+  ));
+}
+
 export async function findPublicBusinesses(filters: {
   q?: string; city?: string; category?: string; service?: string; maxPriceCents?: number;
 } = {}) {
@@ -55,7 +66,7 @@ export async function findPublicBusinesses(filters: {
         hasPublicOffering(filters.q),
       ) : undefined,
       filters.city ? ilike(locations.city, literalPattern(filters.city)) : undefined,
-      filters.category ? eq(categories.slug, filters.category) : undefined,
+      filters.category ? matchesCategory(filters.category) : undefined,
       filters.service || filters.maxPriceCents !== undefined
         ? hasPublicOffering(filters.service, filters.maxPriceCents)
         : undefined,
@@ -112,7 +123,10 @@ export async function findCategories() {
     id: categories.id, slug: categories.slug, name: categories.name,
     businessCount: sql<number>`count(${locations.id})::int`,
   }).from(categories)
-    .leftJoin(locations, and(eq(locations.categoryId, categories.id), publicLocation))
+    .leftJoin(locations, and(publicLocation, or(eq(locations.categoryId, categories.id), exists(
+      db.select({ id: organizationCategories.categoryId }).from(organizationCategories)
+        .where(and(eq(organizationCategories.organizationId, locations.organizationId), eq(organizationCategories.categoryId, categories.id))),
+    ))))
     .groupBy(categories.id).orderBy(asc(categories.sortOrder));
 }
 

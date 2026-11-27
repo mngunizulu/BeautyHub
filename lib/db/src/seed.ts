@@ -5,30 +5,27 @@ if (process.env.NODE_ENV !== "development") {
   throw new Error("Synthetic seed is development-only. Set NODE_ENV=development.");
 }
 const id = (n: number) => `00000000-0000-4000-8000-${n.toString().padStart(12, "0")}`;
-const categoryData = [
-  ["friseur", "Friseur"], ["barbershop", "Barbershop"], ["nagelstudio", "Nagelstudio"],
-  ["kosmetik", "Kosmetik"], ["massage", "Massage"], ["wellness", "Wellness"],
-  ["spa", "Spa"], ["hautpflege", "Hautpflege"], ["augenbrauen-wimpern", "Augenbrauen & Wimpern"],
-];
-
 try {
   await db.transaction(async (tx) => {
-    await tx.insert(categories).values(categoryData.map(([slug, name], i) => ({
-      id: id(i + 1), slug: slug!, name: name!, sortOrder: i,
-    }))).onConflictDoNothing();
+    const categoryIds = new Map((await tx.select().from(categories)).map(({ slug, id: categoryId }) => [slug, categoryId]));
+    function category(slug: string) {
+      const categoryId = categoryIds.get(slug);
+      if (!categoryId) throw new Error("Apply the marketplace category migration before seeding.");
+      return categoryId;
+    }
     const businesses = [
       {
-        slug: "atelier-haar", name: "Atelier Haar", categoryId: id(1), district: "Prenzlauer Berg",
+        slug: "atelier-haar", name: "Atelier Haar", categoryId: category("friseur"), district: "Prenzlauer Berg",
         address: "Beispielstraße 12", postalCode: "10405", imageKey: "hair",
         description: "Ein fiktives Berliner Haaratelier für präzise Schnitte, natürliche Farben und einen Moment nur für dich. Synthetische Entwicklungsdaten – kein echtes buchbares Studio.",
       },
       {
-        slug: "studio-ruhe", name: "Studio Ruhe", categoryId: id(6), district: "Mitte",
+        slug: "studio-ruhe", name: "Studio Ruhe", categoryId: category("wellness"), district: "Mitte",
         address: "Musterallee 8", postalCode: "10115", imageKey: "wellness",
         description: "Ein fiktiver Rückzugsort für wohltuende Massagen und bewusste Auszeiten. Synthetische Entwicklungsdaten – kein echtes buchbares Studio.",
       },
       {
-        slug: "nail-atelier", name: "Nail Atelier", categoryId: id(3), district: "Charlottenburg",
+        slug: "nail-atelier", name: "Nail Atelier", categoryId: category("nagelstudio"), district: "Charlottenburg",
         address: "Demoweg 24", postalCode: "10623", imageKey: "nails",
         description: "Ein fiktives Nagelstudio für gepflegte Hände, kreative Details und individuelle Looks. Synthetische Entwicklungsdaten – kein echtes buchbares Studio.",
       },
@@ -58,7 +55,7 @@ try {
       ...service, id: id(301 + i), published: true, onlineBooking: false,
     }))).onConflictDoUpdate({ target: services.id, set: { onlineBooking: false } });
   });
-  process.stdout.write("Development catalog seeded: 3 synthetic studios, 9 categories, 9 services. No real accounts created.\n");
+  process.stdout.write("Development catalog seeded: 3 synthetic studios, 9 services. No real accounts created.\n");
 } finally {
   await pool.end();
 }
