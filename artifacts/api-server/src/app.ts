@@ -1,3 +1,4 @@
+import { join } from "node:path";
 import express, { type Express, type ErrorRequestHandler } from "express";
 import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
@@ -33,6 +34,20 @@ app.use(
     },
   }),
 );
+const frontend = process.env.BEAUTYHUB_FRONTEND_DIR;
+if (frontend) {
+  const assets = express.static(frontend, { index: false, redirect: false });
+  app.use((req, res, next) => {
+    if (/^\/api(?:\/|$)/.test(req.path)) { next(); return; }
+    assets(req, res, next);
+  });
+  app.get(/^(?!\/api(?:\/|$)|\/assets(?:\/|$)).*/, (req, res, next) => {
+    if (!req.accepts("html") || req.path.includes(".")) { next(); return; }
+    res.set("Cache-Control", "no-cache").sendFile(join(frontend, "index.html"), (error) => {
+      if (error) next(error);
+    });
+  });
+}
 app.use(helmet());
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
 app.use(

@@ -25,3 +25,19 @@ docker compose --env-file .env -p beautyhub-local images
 ```
 
 The tag applies to the local web, API and migration images. Compose defaults to `dev` when the variable is unset. The existing Git remote and Docker image tags are managed independently.
+
+## Render Free preview
+
+Use a Docker Web Service linked to this Git repository and a separate Render PostgreSQL database in the same region. Use the repository root for the build context and set the Dockerfile path to `./Dockerfile.render`. Set the health check to `/api/healthz`. Leave Docker Command and Pre-Deploy Command empty. Start with Auto-Deploy off.
+
+Set the following variables on the web service.
+
+| Variable | Value |
+| --- | --- |
+| `DATABASE_URL` | Internal connection URL from the Render preview database. |
+| `CLERK_PUBLISHABLE_KEY` | Clerk Development publishable key. |
+| `VITE_CLERK_PUBLISHABLE_KEY` | The same Clerk Development publishable key. Render passes it into the frontend build. |
+| `CLERK_SECRET_KEY` | Matching Clerk Development secret key. The image reads it at runtime. |
+| `BEAUTYHUB_PREVIEW_SEED` | Optional. Set to `1` to load the fictional catalog. |
+
+The preview container applies checked-in migrations to the configured database before opening its HTTP port. A migration failure stops startup. The preview serves the frontend and API together and leaves the local Compose and production deployment procedures in place. Use a dedicated preview database. The Render URL is internet-accessible.

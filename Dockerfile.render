@@ -1,0 +1,13 @@
+FROM node:24-bookworm-slim
+WORKDIR /workspace
+RUN npm install --global pnpm@10.34.9
+COPY . .
+RUN pnpm install --frozen-lockfile --ignore-scripts
+
+ARG VITE_CLERK_PUBLISHABLE_KEY
+ENV NODE_ENV=production PORT=10000 BASE_PATH=/ BEAUTYHUB_FRONTEND_DIR=/workspace/artifacts/beautyhub/dist/public
+RUN test -n "$VITE_CLERK_PUBLISHABLE_KEY" && pnpm --filter @workspace/beautyhub build && pnpm --filter @workspace/api-server build
+
+USER node
+EXPOSE 10000
+CMD ["sh", "/workspace/docker/render-start.sh"]
