@@ -1,3 +1,4 @@
+import { getGetManagedGalleryImageUrl } from '@workspace/api-client-react';
 import { useId, useState, type FormEvent } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import type { BusinessWorkspace, InventoryMovement as Movement, InventoryProduct as Product } from '@workspace/api-client-react';
@@ -17,11 +18,11 @@ export function LocationInventory({ workspace }: { workspace: BusinessWorkspace 
         {workspace.locations.map((location) => <option key={location.id} value={location.id}>{location.name}</option>)}
       </select>
     </Field>
-    <ProductList key={location.id} timezone={location.timezone} path={'/api/organizations/' + workspace.id + '/locations/' + location.id + '/inventory'} />
+    <ProductList key={location.id} organizationId={workspace.id} locationId={location.id} timezone={location.timezone} path={'/api/organizations/' + workspace.id + '/locations/' + location.id + '/inventory'} />
   </Panel>;
 }
 
-function ProductList({ path, timezone }: { path: string; timezone: string }) {
+function ProductList({ path, timezone, organizationId, locationId }: { path: string; timezone: string; organizationId: string; locationId: string }) {
   const [editing, setEditing] = useState<string | 'new'>();
   const products = useQuery({ queryKey: [path], queryFn: ({ signal }) => getBookingData<Product[]>(path, signal) });
   const selected = products.data?.find(({ id }) => id === editing);
@@ -37,7 +38,7 @@ function ProductList({ path, timezone }: { path: string; timezone: string }) {
     {!!products.data?.length && <ul className="divide-y divide-border">
       {products.data.map((product) => <li key={product.id} className="space-y-2 py-3">
         <div className="flex flex-wrap items-start gap-3">
-          {product.imageUrl && <img src={product.imageUrl} alt="" referrerPolicy="no-referrer" loading="lazy" className="size-12 rounded object-cover" />}
+          {(product.photoId || product.imageUrl) && <img src={product.photoId ? getGetManagedGalleryImageUrl(organizationId, locationId, product.photoId) : product.imageUrl} alt="" referrerPolicy="no-referrer" loading="lazy" className="size-12 rounded object-cover" />}
           <div>
             <p className="font-semibold">{product.name} · {product.sku}</p>
             <p className="text-sm">{[product.category, product.supplier, formatCents(product.unitCents)].filter(Boolean).join(' · ')}</p>

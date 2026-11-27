@@ -203,13 +203,15 @@ export interface InventoryProductInput {
   archived?: boolean;
 }
 
-export type InventoryProduct = InventoryProductInput & {
+export type InventoryProduct = InventoryProductInput & ({
   id: string;
   locationId: string;
   /** @minimum 0 */
   stock: number;
+  /** @nullable */
+  photoId?: string | null;
   archived: boolean;
-};
+});
 
 export type InventoryMovementInputKind = typeof InventoryMovementInputKind[keyof typeof InventoryMovementInputKind];
 
@@ -1472,6 +1474,38 @@ export interface BookingQuoteInput {
   items: BookingQuoteInputItemsItem[];
 }
 
+export type GalleryAssignmentInputKind = typeof GalleryAssignmentInputKind[keyof typeof GalleryAssignmentInputKind];
+
+
+export const GalleryAssignmentInputKind = {
+  cover: 'cover',
+  service: 'service',
+  product: 'product',
+} as const;
+
+export interface GalleryAssignmentInput {
+  kind: GalleryAssignmentInputKind;
+  /** Required for service and product assignments. */
+  targetId?: string;
+  /** @nullable */
+  photoId: string | null;
+}
+
+export interface GalleryAssignmentItem {
+  id: string;
+  name: string;
+  sku?: string;
+  /** @nullable */
+  photoId: string | null;
+}
+
+export interface GalleryAssignments {
+  /** @nullable */
+  coverPhotoId: string | null;
+  services: GalleryAssignmentItem[];
+  products: GalleryAssignmentItem[];
+}
+
 export interface GalleryPhoto {
   id: string;
   alt: string;
@@ -1530,6 +1564,10 @@ export interface Business {
   postalCode: string;
   categorySlug: string;
   categoryName: string;
+  /** @nullable */
+  coverPhotoId?: string | null;
+  /** @nullable */
+  coverPhotoAlt?: string | null;
   /** Local image asset mapping key */
   imageKey: string;
   /** @nullable */
@@ -1547,6 +1585,10 @@ export interface PublicServiceVariant {
 }
 
 export interface Service {
+  /** @nullable */
+  photoId?: string | null;
+  /** @nullable */
+  photoAlt?: string | null;
   /** @nullable */
   groupName?: string | null;
   onlineBooking?: boolean;

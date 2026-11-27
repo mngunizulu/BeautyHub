@@ -128,6 +128,12 @@ function BookSelection({ business, items, signedIn, date, setDate, selectedServi
       : availableDates.data?.some((entry) => entry.available) ? 'Verfügbare Tage wurden geladen.'
         : 'In dieser Woche sind keine Tage verfügbar.';
   const calendarBusy = search.isPending || confirm.isPending || waitlist.isPending;
+  const chooseDate = (next: string) => {
+    setDate(next); setSelected(''); setProfessionalId(''); setAccepted(false);
+    waitlist.reset(); confirm.reset(); setKey(crypto.randomUUID());
+    if (/^\d{4}-\d{2}-\d{2}$/.test(next) && next >= dateInZone(business.timezone)) search.mutate(next);
+    else search.reset();
+  };
   const result = search.data;
   const professionals = [...new Map(result?.slots.filter((entry) => !entry.mixed).map((entry) => [entry.employeeId, entry])).values()];
   const eligibleSlots = result?.slots.filter((entry) => !professionalId || (!entry.mixed && entry.employeeId === professionalId)) ?? [];
@@ -166,8 +172,7 @@ function BookSelection({ business, items, signedIn, date, setDate, selectedServi
           aria-pressed={date === entry.date} className="rounded-md border border-border px-2 py-1 text-sm aria-pressed:bg-muted disabled:opacity-50 aria-disabled:opacity-50"
           onClick={() => {
             if (calendarBusy) return;
-            setDate(entry.date); setSelected(''); setProfessionalId(''); setAccepted(false);
-            waitlist.reset(); confirm.reset(); setKey(crypto.randomUUID()); search.mutate(entry.date);
+            chooseDate(entry.date);
           }}>
           {calendarDate.format(new Date(entry.date))}
         </button>
@@ -175,11 +180,11 @@ function BookSelection({ business, items, signedIn, date, setDate, selectedServi
     </section>
     <Field id="booking-date" label="Wunschtermin">
       <input type="date" id="booking-date" className={inputCls} value={date} min={dateInZone(business.timezone)}
-        disabled={search.isPending || confirm.isPending || waitlist.isPending}
-        onChange={(e) => { setDate(e.target.value); setProfessionalId(''); search.reset(); waitlist.reset(); confirm.reset(); setAccepted(false); setSelected(''); setKey(crypto.randomUUID()); }} />
+        disabled={confirm.isPending || waitlist.isPending}
+        onChange={(e) => chooseDate(e.target.value)} />
     </Field>
-    <PrimaryButton type="button" testId="booking-search" pending={search.isPending} disabled={!date || confirm.isPending}
-      onClick={() => { setSelected(''); setProfessionalId(''); setAccepted(false); confirm.reset(); search.mutate(date); }}>Verfügbarkeit prüfen</PrimaryButton>
+    <PrimaryButton type="button" testId="booking-search" pending={search.isPending} disabled={!date || confirm.isPending || waitlist.isPending}
+      onClick={() => chooseDate(date)}>Verfügbarkeit prüfen</PrimaryButton>
     <p role="status" className="sr-only">
       {search.isPending ? 'Termine werden gesucht …' : result?.slots.length ? 'Termine gefunden.' : ''}
     </p>
@@ -194,9 +199,13 @@ function BookSelection({ business, items, signedIn, date, setDate, selectedServi
       </Field>}
       {slot?.professionalPhotoUrl && !slot.mixed && <img src={slot.professionalPhotoUrl} alt={slot.employeeName} referrerPolicy="no-referrer"
         className="h-16 w-16 rounded-full object-cover" />}
-      {shownSlots.length && (result.professionalChoice?.any || professionalId || !result.professionalChoice) ? <SlotPicker slots={shownSlots} zone={business.timezone} selected={selected}
-        onChange={(value) => { setSelected(value); setAccepted(false); confirm.reset(); setKey(crypto.randomUUID()); }} />
-        : <p role="status">{shownSlots.length ? 'Wähle zuerst eine Fachkraft.' : 'An diesem Tag sind keine Termine verfügbar.'}</p>}
+      {shownSlots.length ? <SlotPicker slots={shownSlots} zone={business.timezone} selected={selected}
+        onChange={(value) => {
+          const choice = shownSlots.find((entry) => slotKey(entry) === value);
+          if (choice && result.professionalChoice?.individual && !result.professionalChoice.any && !professionalId) setProfessionalId(choice.employeeId);
+          setSelected(value); setAccepted(false); confirm.reset(); setKey(crypto.randomUUID());
+        }} />
+        : <p role="status">An diesem Tag sind keine Termine verfügbar.</p>}
       {!signedIn ? <Link className="underline" href={`/sign-in?redirect_url=${encodeURIComponent(`/salons/${business.slug}`)}`}>Anmelden zum Buchen</Link>
         : !result.slots.length ? <PrimaryButton type="button" testId="booking-waitlist" pending={waitlist.isPending}
           disabled={waitlist.isSuccess} onClick={() => waitlist.mutate()}>{waitlist.isSuccess ? 'Auf der Warteliste' : 'Auf die Warteliste setzen'}</PrimaryButton>

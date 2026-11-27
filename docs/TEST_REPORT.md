@@ -302,3 +302,13 @@ The single-service image built from Dockerfile.render and ran locally against di
 ## Marketplace category registration
 
 Migration 0045 adds ten marketplace categories without loading demo salons. A clean PostgreSQL database had ten categories and zero locations before seeding. A separate legacy fixture verified that existing Spa and Hautpflege locations retain valid category assignments after consolidation. All 77 PostgreSQL-backed tests passed, including multi-category onboarding, filtering, counts, validation and editing. Signed-in desktop and mobile Chromium registered a fictional business with two categories and verified both were retained in its profile. Lint, type checking and the Docker build passed.
+
+## Business gallery and image assignments
+
+Migration 0046 adds optional cover, service and inventory photo assignments. Galleries accept up to ten new uploads per location, with size and dimension limits validated by the server. All 77 PostgreSQL-backed tests passed. The gallery regression covers upload rejection, authorization, the concurrent ten-photo limit, assignment projections, publication boundaries and automatic clearing on deletion. Signed-in desktop and mobile Chromium verified the Gallery navigation, assigning one uploaded 1280 × 720 image to a cover, service and product, then rendering it on the public card and profile, the public service and the private inventory row. Lint, type checking, API generation and the Docker application build passed.
+
+## Homepage gallery and online booking start controls
+
+Migration 0047 adds platform homepage image storage and service-specific hidden starts. All 78 PostgreSQL-backed tests passed. Coverage verifies administrator-only image management, public access only after placement, cleanup on deletion, tenant access checks for start switches, repeatable updates and server rejection of a booking at a hidden start.
+
+Signed-in desktop and mobile Chromium both verified that picking a date loads available times automatically, a business can hide and restore a start in booking settings, and a platform administrator can publish an image for the homepage hero and the Friseure tile. A guest browser verified both published placements. Lint, type checking and the Docker application build passed.

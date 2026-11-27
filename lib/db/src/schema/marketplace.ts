@@ -13,6 +13,19 @@ export const galleryPhotos = pgTable("gallery_photos", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, (t) => [index("gallery_photos_location_idx").on(t.locationId)]);
 
+export const homepagePhotos = pgTable("homepage_photos", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  alt: text("alt").notNull(),
+  mime: text("mime").notNull(),
+  content: bytea("content").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const homepagePhotoPlacements = pgTable("homepage_photo_placements", {
+  target: text("target").primaryKey(),
+  photoId: uuid("photo_id").notNull().references(() => homepagePhotos.id, { onDelete: "cascade" }),
+});
+
 export const favorites = pgTable("favorites", {
   userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   locationId: uuid("location_id").notNull().references(() => locations.id, { onDelete: "cascade" }),

@@ -537,9 +537,31 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/GalleryPhoto" }
         "413":
-          description: Photo exceeds 768 KiB
+          description: Photo exceeds 3 MiB
         "409":
-          description: Gallery already has 12 photos
+          description: Gallery already has 10 photos
+  /organizations/{organizationId}/locations/{locationId}/gallery/assignments:
+    parameters:
+      - { name: organizationId, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: locationId, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: getGalleryAssignments
+      responses:
+        "200":
+          description: Current photo assignments for the location
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GalleryAssignments" }
+    put:
+      operationId: saveGalleryAssignment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/GalleryAssignmentInput" }
+      responses:
+        "204":
+          description: Assignment saved
   /organizations/{organizationId}/locations/{locationId}/gallery/{photoId}:
     parameters:
       - { name: organizationId, in: path, required: true, schema: { type: string, format: uuid } }
@@ -2467,6 +2489,7 @@ components:
             id: { type: string, format: uuid }
             locationId: { type: string, format: uuid }
             stock: { type: integer, minimum: 0 }
+            photoId: { type: [string, "null"], format: uuid }
             archived: { type: boolean }
     InventoryMovementInput:
       type: object
@@ -3271,6 +3294,32 @@ components:
               durationMinutes: { type: integer }
               preparationMinutes: { type: integer }
               cleanupMinutes: { type: integer }
+    GalleryAssignmentInput:
+      type: object
+      required: [kind, photoId]
+      properties:
+        kind: { type: string, enum: [cover, service, product] }
+        targetId: { type: string, format: uuid, description: Required for service and product assignments. }
+        photoId: { type: [string, "null"], format: uuid }
+    GalleryAssignments:
+      type: object
+      required: [coverPhotoId, services, products]
+      properties:
+        coverPhotoId: { type: [string, "null"], format: uuid }
+        services:
+          type: array
+          items: { $ref: "#/components/schemas/GalleryAssignmentItem" }
+        products:
+          type: array
+          items: { $ref: "#/components/schemas/GalleryAssignmentItem" }
+    GalleryAssignmentItem:
+      type: object
+      required: [id, name, photoId]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        sku: { type: string }
+        photoId: { type: [string, "null"], format: uuid }
     GalleryPhoto:
       type: object
       required: [id, alt]
@@ -3331,6 +3380,8 @@ components:
         postalCode: { type: string }
         categorySlug: { type: string }
         categoryName: { type: string }
+        coverPhotoId: { type: [string, "null"], format: uuid }
+        coverPhotoAlt: { type: [string, "null"] }
         imageKey: { type: string, description: Local image asset mapping key, not an external placeholder URL }
         minPriceCents: { type: ["integer", "null"] }
         serviceCount: { type: integer }
@@ -3340,6 +3391,8 @@ components:
       type: object
       required: [id, name, description, durationMinutes, priceCents]
       properties:
+        photoId: { type: [string, "null"], format: uuid }
+        photoAlt: { type: [string, "null"] }
         groupName: { type: string, nullable: true }
         onlineBooking: { type: boolean }
         id: { type: string }

@@ -1,3 +1,4 @@
+import { getGetPublicGalleryImageUrl } from '@workspace/api-client-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'wouter';
 import { MapPin, Search, X } from 'lucide-react';
@@ -14,7 +15,7 @@ export function BusinessCard({ b, index = 0 }: { b: Business; index?: number }) 
       className="group rise block overflow-hidden rounded-[1.4rem] border border-card-border bg-card transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_24px_50px_-24px_hsl(332_45%_26%/.45)]"
       style={{ animationDelay: `${index * 80}ms` }}>
       <div className="relative aspect-[4/3] overflow-hidden">
-        <img src={imageFor(b.imageKey)} alt={`Atmosphäre bei ${b.name}`} loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+        <img src={b.coverPhotoId ? getGetPublicGalleryImageUrl(b.coverPhotoId) : imageFor(b.imageKey)} alt={b.coverPhotoAlt ?? `Atmosphäre bei ${b.name}`} loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
         {b.isDemo && <DemoBadge className="absolute left-3 top-3 bg-background/90 backdrop-blur" />}
       </div>
       <div className="p-5">

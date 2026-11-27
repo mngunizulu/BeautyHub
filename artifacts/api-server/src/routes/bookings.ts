@@ -5,7 +5,7 @@ import { and, asc, desc, eq, gt, inArray, isNull, lt, notInArray, sql, type SQL 
 import { z } from "zod/v4";
 import {
   db, auditEvents, bookingReviews, bookingBlocks, bookingEvents, bookingResources, bookingResourceReservations,
-  bookingServiceResources, bookingStaffReservations, bookingWaitlist, cancellationPolicies, employees, locations, loyaltyAwards, loyaltyPrograms, paymentReferences, reservations, services, users,
+  bookingServiceResources, bookingStaffReservations, hiddenBookingStarts, bookingWaitlist, cancellationPolicies, employees, locations, loyaltyAwards, loyaltyPrograms, paymentReferences, reservations, services, users,
 } from "@workspace/db";
 import { input, tenantId, uuid } from "../lib/input";
 import { HttpError } from "../lib/http-error";
@@ -473,6 +473,63 @@ bookingRouter.get(`${calendar}/waitlist`, async (req, res) => {
 
 const settings = "/organizations/:organizationId/locations/:locationId/booking-settings" as const;
 bookingRouter.use(settings, requireAuthentication, requireOrganization, allowRoles("owner", "manager"));
+const slotItem = z.strictObject({ serviceId: z.uuid(), variantId: z.uuid().optional() });
+const slotsPath = `${settings}/online-slots`;
+async function slotLocation(tx: BookingTransaction, locationId: string, organizationId: string, serviceId: string, lock = false) {
+  const query = tx.select().from(locations)
+    .where(and(eq(locations.id, locationId), eq(locations.organizationId, organizationId)));
+  const [location] = await (lock ? query.for("update") : query);
+  if (!location) throw new HttpError(404, "Standort nicht gefunden.");
+  const [service] = await tx.select({ id: services.id }).from(services)
+    .where(and(eq(services.id, serviceId), eq(services.locationId, locationId), eq(services.published, true),
+      eq(services.onlineBooking, true), eq(services.archived, false)));
+  if (!service) throw new HttpError(404, "Leistung ist an diesem Standort nicht online buchbar.");
+  return location;
+}
+
+bookingRouter.post(slotsPath, async (req, res) => {
+  const { item, date } = input(z.strictObject({ item: slotItem, date: z.iso.date() }), req.body);
+  const locationId = uuid(req.params.locationId);
+  const result = await db.transaction(async (tx) => {
+    const location = await slotLocation(tx, locationId, tenantId(req), item.serviceId);
+    const { slots } = await availability(tx, location, [item], date, new Date(), undefined, { ignoreHiddenStarts: true });
+    if (!slots.length) return [];
+    const [first] = slots;
+    const last = slots.at(-1)!;
+    const existing = await tx.select({ startsAt: hiddenBookingStarts.startsAt }).from(hiddenBookingStarts)
+      .where(and(eq(hiddenBookingStarts.locationId, locationId), eq(hiddenBookingStarts.serviceId, item.serviceId),
+        sql`${hiddenBookingStarts.startsAt} between ${new Date(first!.startsAt).toISOString()} and ${new Date(last.startsAt).toISOString()}`));
+    const hidden = new Set(existing.map(({ startsAt }) => startsAt.toISOString()));
+    const choices = new Map<string, Set<string>>();
+    for (const { startsAt, endsAt } of slots) {
+      const ends = choices.get(startsAt) ?? new Set<string>();
+      ends.add(endsAt);
+      choices.set(startsAt, ends);
+    }
+    return [...choices].map(([startsAt, ends]) => ({ startsAt, endsAt: [...ends].sort(), enabled: !hidden.has(startsAt) }));
+  }, { isolationLevel: "repeatable read", accessMode: "read only" });
+  res.set("Cache-Control", "no-store").json(result);
+});
+
+bookingRouter.put(slotsPath, async (req, res) => {
+  const { item, startsAt, enabled } = input(z.strictObject({ item: slotItem, startsAt: instant, enabled: z.boolean() }), req.body);
+  const locationId = uuid(req.params.locationId);
+  await db.transaction(async (tx) => {
+    const location = await slotLocation(tx, locationId, tenantId(req), item.serviceId, true);
+    const scope = { locationId, serviceId: item.serviceId, startsAt };
+    if (enabled) {
+      await tx.delete(hiddenBookingStarts).where(and(eq(hiddenBookingStarts.locationId, locationId),
+        eq(hiddenBookingStarts.serviceId, item.serviceId), eq(hiddenBookingStarts.startsAt, startsAt)));
+      return;
+    }
+    const date = localClock(location.timezone)(+startsAt).date;
+    const { slots } = await availability(tx, location, [item], date, new Date(), undefined, { ignoreHiddenStarts: true });
+    if (!slots.some((slot) => slot.startsAt === startsAt.toISOString())) throw conflict();
+    await tx.insert(hiddenBookingStarts).values(scope).onConflictDoNothing();
+  });
+  res.status(204).end();
+});
+
 bookingRouter.get(settings, async (req, res) => {
   const locationId = uuid(req.params.locationId);
   const [location] = await db.select({ id: locations.id }).from(locations)

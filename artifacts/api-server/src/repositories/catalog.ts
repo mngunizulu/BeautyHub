@@ -1,6 +1,6 @@
 import { publicLocation } from "../services/marketplace-visibility";
 import { and, eq, exists, ilike, ne, or, sql, asc, desc, isNotNull } from "drizzle-orm";
-import { db, bookingReviews, reservations, serviceGroups, categories, organizationCategories, locations, organizations, services, openingHours, serviceVariants, employees } from "@workspace/db";
+import { db, bookingReviews, reservations, serviceGroups, categories, galleryPhotos, organizationCategories, locations, organizations, services, openingHours, serviceVariants, employees } from "@workspace/db";
 
 const publicFields = {
   id: locations.id,
@@ -14,6 +14,8 @@ const publicFields = {
   categorySlug: categories.slug,
   categoryName: categories.name,
   imageKey: locations.imageKey,
+  coverPhotoId: galleryPhotos.id,
+  coverPhotoAlt: galleryPhotos.alt,
   timezone: locations.timezone,
   isDemo: organizations.isDemo,
   minPriceCents: sql<number | null>`(select min(s.price_cents) from services s where s.location_id = ${locations.id} and s.published = true and s.archived = false)`,
@@ -57,6 +59,7 @@ export async function findPublicBusinesses(filters: {
 } = {}) {
   return db.select(publicFields).from(locations)
     .innerJoin(categories, eq(locations.categoryId, categories.id))
+    .leftJoin(galleryPhotos, and(eq(locations.coverPhotoId, galleryPhotos.id), eq(locations.id, galleryPhotos.locationId)))
     .innerJoin(organizations, eq(locations.organizationId, organizations.id))
     .where(and(
       publicLocation,
@@ -81,6 +84,7 @@ export async function findPublicBusiness(slug: string) {
     verified: sql<boolean>`${organizations.verifiedAt} is not null`,
   }).from(locations)
     .innerJoin(categories, eq(locations.categoryId, categories.id))
+    .leftJoin(galleryPhotos, and(eq(locations.coverPhotoId, galleryPhotos.id), eq(locations.id, galleryPhotos.locationId)))
     .innerJoin(organizations, eq(locations.organizationId, organizations.id))
     .where(and(eq(locations.slug, slug), publicLocation)).limit(1);
   if (!business) return null;
@@ -88,7 +92,10 @@ export async function findPublicBusiness(slug: string) {
     db.select({
       id: services.id, name: services.name, description: services.description, groupName: serviceGroups.name,
       durationMinutes: services.durationMinutes, priceCents: services.priceCents, onlineBooking: services.onlineBooking,
-    }).from(services).innerJoin(locations, eq(locations.id, services.locationId)).leftJoin(serviceGroups, and(eq(serviceGroups.id, services.categoryId), eq(serviceGroups.organizationId, locations.organizationId))).where(and(eq(services.locationId, business.id), eq(services.published, true), eq(services.archived, false))).orderBy(asc(services.priceCents)),
+      photoId: galleryPhotos.id, photoAlt: galleryPhotos.alt,
+    }).from(services).innerJoin(locations, eq(locations.id, services.locationId))
+      .leftJoin(galleryPhotos, and(eq(services.photoId, galleryPhotos.id), eq(services.locationId, galleryPhotos.locationId)))
+      .leftJoin(serviceGroups, and(eq(serviceGroups.id, services.categoryId), eq(serviceGroups.organizationId, locations.organizationId))).where(and(eq(services.locationId, business.id), eq(services.published, true), eq(services.archived, false))).orderBy(asc(services.priceCents)),
     db.select({ weekday: openingHours.weekday, opens: openingHours.opens, closes: openingHours.closes })
       .from(openingHours).where(eq(openingHours.locationId, business.id)).orderBy(asc(openingHours.weekday)),
     db.select({

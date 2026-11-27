@@ -1,3 +1,6 @@
+import { useQuery } from '@tanstack/react-query';
+import { getBookingData } from '@/lib/booking';
+import { homepageImagesPath, type HomepagePlacement } from '@/lib/homepage-images';
 import { Link, useLocation } from 'wouter';
 import { ArrowUpRight, Brush, Droplet, Flower2, Hand, Heart, Paintbrush, Scissors, Sparkles, UserRound, type LucideIcon } from 'lucide-react';
 import { getListCategoriesQueryKey, useListCategories, useGetMarketplaceSummary, getGetMarketplaceSummaryQueryKey, useListBusinesses, getListBusinessesQueryKey } from '@workspace/api-client-react';
@@ -29,6 +32,9 @@ export default function Home() {
     navigate(`/salons${s ? `?${s}` : ''}`);
   };
   const categories = useListCategories({ query: { queryKey: getListCategoriesQueryKey() } });
+  const images = useQuery({ queryKey: [homepageImagesPath], queryFn: ({ signal }) => getBookingData<HomepagePlacement[]>(homepageImagesPath, signal) });
+  const placements = new Map(images.data?.map((photo) => [photo.target, photo]));
+  const hero = placements.get('hero');
   const s = summary.data;
   return (
     <>
@@ -43,7 +49,7 @@ export default function Home() {
         </div>
         <div className="relative rise" style={{ animationDelay: '150ms' }}>
           <div className="overflow-hidden rounded-t-[12rem] rounded-b-[1.5rem] border border-border">
-            <img src={heroImage} alt="Salon-Schaufenster in einem Altbau im Abendlicht" className="h-[260px] w-full object-cover sm:h-[420px] md:h-[560px]" />
+            <img src={hero ? homepageImagesPath + '/' + hero.id : heroImage} alt={hero?.alt ?? "Salon-Schaufenster in einem Altbau im Abendlicht"} className="h-[260px] w-full object-cover sm:h-[420px] md:h-[560px]" />
           </div>
           <div className="absolute -bottom-6 -left-4 rounded-2xl border border-border bg-card p-5 shadow-xl sm:-left-8" data-testid="card-summary">
             {summary.isLoading ? <div className="h-16 w-48 animate-pulse rounded bg-muted" /> : summary.isError ? (
@@ -66,11 +72,13 @@ export default function Home() {
           : categories.isPending ? <p role="status" className="text-muted-foreground">Kategorien werden geladen …</p>
           : <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             {categories.data.map(({ slug, name }) => {
+              const photo = placements.get('category:' + slug);
               const Icon = categoryIcons[slug] ?? Sparkles;
               return <li key={slug}>
                 <Link href={`/salons?category=${encodeURIComponent(slug)}`}
                   className="flex h-full min-h-28 flex-col justify-between gap-3 rounded-2xl border border-border bg-card p-4 text-primary transition-colors hover:border-primary hover:bg-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
-                  <span className="flex items-center justify-between"><Icon className="h-6 w-6" aria-hidden /><ArrowUpRight className="h-4 w-4" aria-hidden /></span>
+                  {photo && <img src={homepageImagesPath + '/' + photo.id} alt="" loading="lazy" className="aspect-video w-full rounded-lg object-cover" />}
+                  {!photo && <span className="flex items-center justify-between"><Icon className="h-6 w-6" aria-hidden /><ArrowUpRight className="h-4 w-4" aria-hidden /></span>}
                   <span className="break-words font-medium text-foreground">{name}</span>
                 </Link>
               </li>;

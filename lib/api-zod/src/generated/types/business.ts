@@ -17,6 +17,10 @@ export interface Business {
   postalCode: string;
   categorySlug: string;
   categoryName: string;
+  /** @nullable */
+  coverPhotoId?: string | null;
+  /** @nullable */
+  coverPhotoAlt?: string | null;
   /** Local image asset mapping key */
   imageKey: string;
   /** @nullable */

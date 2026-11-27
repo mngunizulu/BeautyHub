@@ -1,3 +1,4 @@
+import { Link } from 'wouter';
 import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Field, FormStatus, Panel, PrimaryButton, inputCls } from '@/components/forms';
@@ -42,6 +43,7 @@ export default function PlatformOverview() {
   const data = analytics.data;
   return <div className="mx-auto max-w-5xl space-y-6 px-5 py-10">
     <h1 className="font-display text-4xl">Plattformübersicht</h1>
+    <Link href="/admin/startseite" className="inline-block underline">Startseitengalerie</Link>
     <Panel title="Plattformberichte">
       <div className="grid gap-3 sm:grid-cols-2">
         <Field id="platform-from" label="Von"><input id="platform-from" type="date" className={inputCls}

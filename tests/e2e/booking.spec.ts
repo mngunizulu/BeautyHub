@@ -18,6 +18,7 @@ test("customer books and reschedules multiple services and the business calendar
   try {
     const page = await customer.newPage();
     const staged = process.env.BEAUTYHUB_E2E_STAGE_55 === "1";
+    const homeSlots = process.env.BEAUTYHUB_E2E_HOME_SLOTS === "1";
     const refundCase = process.env.BEAUTYHUB_E2E_APPOINTMENT_REFUNDS === "1";
     const refundNote = "Refund case " + testInfo.project.name;
     await page.goto(`/salons?date=${day}&service=QA%20Treatment${staged ? "&city=Essen" : ""}`);
@@ -58,9 +59,37 @@ test("customer books and reschedules multiple services and the business calendar
       await expect(page.getByRole("status").filter({ hasText: "Termine gefunden." })).toBeAttached();
     } else {
       await page.locator("#booking-date").fill(day!);
-      await page.getByRole("button", { name: "Verfügbarkeit prüfen" }).click();
     }
     await expect(page.getByText(staged ? /Standardpreis.*90,00\s*€/ : /70,00\s*€/)).toBeVisible();
+    await expect(page.getByLabel("Verfügbare Termine").locator("option").nth(1)).toBeAttached();
+    if (homeSlots) {
+      const settings = await owner.newPage();
+      await settings.goto(`/unternehmen/${organizationId}?bereich=buchung`);
+      const release = settings.getByRole("region", { name: "Online-Termine freigeben" });
+      await release.getByLabel("Leistung", { exact: true }).selectOption({ label: "QA Treatment" });
+      await release.getByLabel("Datum für Online-Termine").fill(day!);
+      const customerSlots = page.getByLabel("Verfügbare Termine");
+      const first = (await customerSlots.locator("option").nth(1).getAttribute("value"))!;
+      const startsAt = first.split("/")[1]!;
+      const checkbox = release.getByRole("checkbox", { name: new RegExp(startsAt.slice(11, 16) + " UTC") });
+      const update = async (enabled: boolean) => {
+        const [response] = await Promise.all([
+          settings.waitForResponse((reply) => reply.request().method() === "PUT" && new URL(reply.url()).pathname.endsWith("/online-slots")),
+          checkbox.click(),
+        ]);
+        expect(response.status()).toBe(204);
+        await expect(checkbox).toBeEnabled();
+        await expect(checkbox).toBeChecked({ checked: enabled });
+      };
+      await update(false);
+      await page.getByRole("button", { name: "Verfügbarkeit prüfen" }).click();
+      await expect(customerSlots.locator("option").nth(1)).toBeAttached();
+      await expect(customerSlots.locator(`option[value="${first}"]`)).toHaveCount(0);
+      await update(true);
+      await page.getByRole("button", { name: "Verfügbarkeit prüfen" }).click();
+      await expect(customerSlots.locator(`option[value="${first}"]`)).toHaveCount(1);
+      await settings.close();
+    }
     const differential = process.env.BEAUTYHUB_E2E_PROFESSIONAL_PRICING === "1";
     const mixed = process.env.BEAUTYHUB_E2E_MIXED_PROFESSIONALS === "1";
     if (differential && !mixed) await page.getByLabel("Fachkraft", { exact: true }).selectOption({ label: "Test Staff · Senior QA" });
@@ -378,10 +407,11 @@ test("customer books and reschedules multiple services and the business calendar
       page.setDefaultTimeout(12_000);
       if (!baseURL || new URL(baseURL).origin !== "http://localhost:18083" ||
           !bookingId || !/^[0-9a-f-]{36}$/i.test(bookingId)) throw new Error("Expected the isolated review fixture.");
-      const dbContainer = "beautyhub-review-flow-db-1";
+      const fixtureProject = homeSlots ? "beautyhub-review-flow-qa" : "beautyhub-review-flow";
+      const dbContainer = fixtureProject + "-db-1";
       const project = execFileSync("docker", ["inspect", "--format",
         '{{index .Config.Labels "com.docker.compose.project"}}', dbContainer], { encoding: "utf8" }).trim();
-      expect(project).toBe("beautyhub-review-flow");
+      expect(project).toBe(fixtureProject);
       const fixtureSql = (statement: string) => execFileSync("docker",
         ["exec", dbContainer, "psql", "-v", "ON_ERROR_STOP=1", "-U", "beautyhub", "-d", "beautyhub", "-c", statement],
         { encoding: "utf8" });
@@ -487,6 +517,38 @@ test("customer books and reschedules multiple services and the business calendar
       expect(fixtureSql("update users set is_platform_admin=true where id='" + ownerId + "'")).toContain("UPDATE 1");
       try {
         await business.goto("/konto");
+        if (homeSlots) {
+          await business.getByRole("link", { name: "Startseitengalerie" }).click();
+          const alt = "Startseitenfoto QA";
+          await business.getByLabel("Foto", { exact: true }).setInputFiles({
+            name: "homepage.png", mimeType: "image/png", buffer: await readFile("tests/fixtures/gallery-photo.png"),
+          });
+          await business.getByLabel("Bildbeschreibung").fill(alt);
+          const [upload] = await Promise.all([
+            business.waitForResponse((reply) => reply.request().method() === "POST" && new URL(reply.url()).pathname === "/api/admin/homepage-gallery"),
+            business.getByRole("button", { name: "Foto hochladen" }).click(),
+          ]);
+          expect(upload.status()).toBe(201);
+          const { id } = await upload.json();
+          try {
+            const hero = business.getByLabel("Hauptbild der Startseite");
+            await hero.selectOption(id);
+            await expect(hero).toHaveValue(id);
+            const category = business.getByLabel("Friseure", { exact: true });
+            await category.selectOption(id);
+            await expect(category).toHaveValue(id);
+            const guest = await browser.newPage({ baseURL, ...device });
+            try {
+              await guest.goto("/");
+              await expect(guest.getByRole("img", { name: alt })).toHaveAttribute("src", "/api/marketplace/homepage-images/" + id);
+              await expect(guest.getByRole("region", { name: "Nach Kategorie entdecken" }).getByRole("link", { name: "Friseure", exact: true }).locator("img"))
+                .toHaveAttribute("src", "/api/marketplace/homepage-images/" + id);
+            } finally { await guest.close(); }
+          } finally {
+            expect((await owner.request.delete("/api/admin/homepage-gallery/" + id)).status()).toBe(204);
+          }
+          await business.goto("/konto");
+        }
         await business.getByRole("link", { name: "Bewertungsmoderation" }).click();
         await expect(business.getByText(reportText, { exact: true })).toBeVisible();
         await business.getByTestId("hide-review-" + reviewId).click();

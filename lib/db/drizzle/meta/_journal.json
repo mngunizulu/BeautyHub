@@ -323,6 +323,20 @@
       "when": 1795779123861,
       "tag": "0045_marketplace_categories",
       "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1795783621279,
+      "tag": "0046_gallery_assignments",
+      "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1795784739836,
+      "tag": "0047_homepage_gallery_and_booking_starts",
+      "breakpoints": true
     }
   ]
 }

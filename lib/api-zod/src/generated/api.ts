@@ -63,6 +63,8 @@ export const ListBusinessesResponseItem = zod.object({
   "postalCode": zod.string(),
   "categorySlug": zod.string(),
   "categoryName": zod.string(),
+  "coverPhotoId": zod.uuid().nullish(),
+  "coverPhotoAlt": zod.string().nullish(),
   "imageKey": zod.string().describe('Local image asset mapping key'),
   "minPriceCents": zod.int().nullable(),
   "serviceCount": zod.int(),
@@ -93,6 +95,8 @@ export const GetBusinessResponse = zod.object({
   "postalCode": zod.string(),
   "categorySlug": zod.string(),
   "categoryName": zod.string(),
+  "coverPhotoId": zod.uuid().nullish(),
+  "coverPhotoAlt": zod.string().nullish(),
   "imageKey": zod.string().describe('Local image asset mapping key'),
   "minPriceCents": zod.int().nullable(),
   "serviceCount": zod.int(),
@@ -115,6 +119,8 @@ export const GetBusinessResponse = zod.object({
   "photoUrl": zod.string().optional()
 })).optional(),
   "services": zod.array(zod.object({
+  "photoId": zod.uuid().nullish(),
+  "photoAlt": zod.string().nullish(),
   "groupName": zod.string().nullish(),
   "onlineBooking": zod.boolean().optional(),
   "id": zod.string(),
@@ -3991,6 +3997,42 @@ export const UploadGalleryPhotoResponse = zod.object({
 })
 
 
+export const GetGalleryAssignmentsParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid()
+})
+
+export const GetGalleryAssignmentsResponse = zod.object({
+  "coverPhotoId": zod.uuid().nullable(),
+  "services": zod.array(zod.object({
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "sku": zod.string().optional(),
+  "photoId": zod.uuid().nullable()
+})),
+  "products": zod.array(zod.object({
+  "id": zod.uuid(),
+  "name": zod.string(),
+  "sku": zod.string().optional(),
+  "photoId": zod.uuid().nullable()
+}))
+})
+
+
+export const SaveGalleryAssignmentParams = zod.object({
+  "organizationId": zod.uuid(),
+  "locationId": zod.uuid()
+})
+
+export const SaveGalleryAssignmentBody = zod.object({
+  "kind": zod.enum(['cover', 'service', 'product']),
+  "targetId": zod.uuid().optional().describe('Required for service and product assignments.'),
+  "photoId": zod.uuid().nullable()
+})
+
+export const SaveGalleryAssignmentResponse = zod.void()
+
+
 export const GetManagedGalleryImageParams = zod.object({
   "organizationId": zod.uuid(),
   "locationId": zod.uuid(),
@@ -6488,6 +6530,7 @@ export const ListInventoryProductsResponseItem = zod.object({
   "id": zod.uuid(),
   "locationId": zod.uuid(),
   "stock": zod.int().min(listInventoryProductsResponseTwoStockMin),
+  "photoId": zod.uuid().nullish(),
   "archived": zod.boolean()
 }))
 export const ListInventoryProductsResponse = zod.array(ListInventoryProductsResponseItem)
@@ -6566,6 +6609,7 @@ export const CreateInventoryProductResponse = zod.object({
   "id": zod.uuid(),
   "locationId": zod.uuid(),
   "stock": zod.int().min(createInventoryProductResponseTwoStockMin),
+  "photoId": zod.uuid().nullish(),
   "archived": zod.boolean()
 }))
 
@@ -6644,6 +6688,7 @@ export const UpdateInventoryProductResponse = zod.object({
   "id": zod.uuid(),
   "locationId": zod.uuid(),
   "stock": zod.int().min(updateInventoryProductResponseTwoStockMin),
+  "photoId": zod.uuid().nullish(),
   "archived": zod.boolean()
 }))
 

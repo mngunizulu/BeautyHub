@@ -30,6 +30,7 @@ export default function AccountPage() {
       <h1 className="mt-2 font-display text-5xl sm:text-6xl rise" data-testid="text-account-heading">Hallo, <span className="italic text-primary">{p.displayName || 'du'}.</span></h1>
       {p.isPlatformAdmin && <Link href="/admin/bewertungen" className="mt-4 inline-block underline">Bewertungsmoderation</Link>}
       <Link href="/konto/support" className="mt-4 inline-block underline">Meine Supportanfragen</Link>
+      {p.isPlatformAdmin && <Link href="/admin/startseite" className="ml-4 mt-4 inline-block underline">Startseitengalerie</Link>}
       {p.isPlatformAdmin && <Link href="/admin/plattform" className="ml-4 mt-4 inline-block underline">Plattformübersicht</Link>}
       {p.isPlatformAdmin && <Link href="/admin/support" className="ml-4 mt-4 inline-block underline">Supportfälle</Link>}
       {p.isPlatformAdmin && <Link href="/admin/kunden" className="ml-4 mt-4 inline-block underline">Kundenkonten</Link>}

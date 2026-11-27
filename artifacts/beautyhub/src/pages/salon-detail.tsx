@@ -1,6 +1,6 @@
 import { Link, useParams } from 'wouter';
 import { ArrowLeft, CalendarX2, Clock, MapPin } from 'lucide-react';
-import { useGetBusiness, getGetBusinessQueryKey } from '@workspace/api-client-react';
+import { useGetBusiness, getGetBusinessQueryKey, getGetPublicGalleryImageUrl } from '@workspace/api-client-react';
 import { SalonBooking } from '@/components/booking';
 import { PublicGallery } from '@/components/gallery';
 import { PublicReviews } from '@/components/public-reviews';
@@ -28,7 +28,7 @@ export default function SalonDetail() {
       ) : q.isError || !b ? <div className="mt-8"><ErrorState onRetry={() => q.refetch()} /></div> : (
         <>
           <section className="mt-6 grid gap-10 md:grid-cols-[1.1fr_1fr] rise">
-            <div className="overflow-hidden rounded-[1.5rem] border border-border"><img src={imageFor(b.imageKey)} alt={`Atmosphäre bei ${b.name}`} className="h-full max-h-[520px] w-full object-cover" /></div>
+            <div className="overflow-hidden rounded-[1.5rem] border border-border"><img src={b.coverPhotoId ? getGetPublicGalleryImageUrl(b.coverPhotoId) : imageFor(b.imageKey)} alt={b.coverPhotoAlt ?? `Atmosphäre bei ${b.name}`} className="h-full max-h-[520px] w-full object-cover" /></div>
             <div>
               {b.isDemo && <DemoBadge />}
               <p className="mt-5 font-mono text-xs uppercase tracking-wider text-muted-foreground">{b.categoryName}</p>
@@ -59,7 +59,9 @@ export default function SalonDetail() {
                 <ul className="mt-4 divide-y divide-dashed divide-border border-y border-border">
                   {b.services.map((s) => (
                     <li key={s.id} className="group flex items-start justify-between gap-6 py-5 transition-colors hover:bg-secondary/50 sm:px-3" data-testid={`row-service-${s.id}`}>
-                      <div><p className="font-semibold">{s.name}</p><p className="mt-1 text-sm text-muted-foreground">{s.description}</p>
+                      <div className="min-w-0">
+                        {s.photoId && <img src={getGetPublicGalleryImageUrl(s.photoId)} alt={s.photoAlt ?? ''} loading="lazy" className="mb-2 aspect-video w-32 rounded-lg object-cover" />}
+                        <p className="font-semibold">{s.name}</p><p className="mt-1 text-sm text-muted-foreground">{s.description}</p>
                         <p className="mt-2 inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground"><Clock className="h-3 w-3" />{formatDuration(s.durationMinutes)}</p>
                           {!!s.variants?.length && <ul className="mt-3 space-y-1 text-sm">
                             {s.variants.map((variant) => (

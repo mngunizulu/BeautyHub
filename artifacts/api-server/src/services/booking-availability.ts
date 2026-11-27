@@ -1,7 +1,7 @@
-import { and, eq, gt, inArray, lt, ne } from "drizzle-orm";
+import { and, eq, gte, gt, inArray, lt, ne } from "drizzle-orm";
 import {
   bookingBlocks, bookingResources, bookingResourceReservations, bookingServiceResources, employees, bookingStaffReservations, type BookingLine,
-  employeeServices, locations, organizations, openingHours, staffBreaks, professionalPrices,
+  employeeServices, hiddenBookingStarts, locations, organizations, openingHours, staffBreaks, professionalPrices,
 } from "@workspace/db";
 import { HttpError } from "../lib/http-error";
 import { quoteSelection, type BookingSelection, type BookingTransaction } from "./booking-quote";
@@ -24,9 +24,9 @@ export async function bookingLocation(tx: BookingTransaction, slug: string, lock
 export async function availability(
   tx: BookingTransaction, location: typeof locations.$inferSelect, items: BookingSelection,
   date: string, now: Date, excludeId?: string,
-  options?: { internalMode?: "manual" | "walk_in"; firstOnly?: boolean; professionalId?: string; fixedLines?: BookingLine[]; maxPriceCents?: number; dayMinutes?: () => ReturnType<typeof localDayMinutes> },
+  options?: { internalMode?: "manual" | "walk_in"; firstOnly?: boolean; ignoreHiddenStarts?: boolean; professionalId?: string; fixedLines?: BookingLine[]; maxPriceCents?: number; dayMinutes?: () => ReturnType<typeof localDayMinutes> },
 ) {
-  const quote = await quoteSelection(tx, location.slug, items, !!options?.internalMode);
+  const quote = await quoteSelection(tx, location.slug, items, !!options?.internalMode || !!options?.ignoreHiddenStarts);
   const clock = localClock(location.timezone);
   const requestedDay = dateNumber(date);
   const today = dateNumber(clock(+now).date);
@@ -55,7 +55,7 @@ export async function availability(
   if (!dayMinutes.length) return result;
   const rangeStart = new Date(dayMinutes[0]!.instant);
   const rangeEnd = new Date(dayMinutes.at(-1)!.instant + minute);
-  const [busy, blocks, occupiedResources, breaks] = await Promise.all([
+  const [busy, blocks, occupiedResources, breaks, hidden] = await Promise.all([
     tx.select().from(bookingStaffReservations).where(and(
       inArray(bookingStaffReservations.employeeId, staff.map(({ id }) => id)),
       lt(bookingStaffReservations.startsAt, rangeEnd), gt(bookingStaffReservations.endsAt, rangeStart),
@@ -67,7 +67,13 @@ export async function availability(
       gt(bookingResourceReservations.endsAt, rangeStart), excludeId ? ne(bookingResourceReservations.bookingId, excludeId) : undefined,
     )) : [],
     tx.select().from(staffBreaks).where(and(eq(staffBreaks.weekday, weekday), inArray(staffBreaks.employeeId, staff.map(({ id }) => id)))),
+    options?.internalMode || options?.ignoreHiddenStarts ? [] : tx.select().from(hiddenBookingStarts).where(and(
+      eq(hiddenBookingStarts.locationId, location.id), inArray(hiddenBookingStarts.serviceId, serviceIds),
+      gte(hiddenBookingStarts.startsAt, rangeStart), lt(hiddenBookingStarts.startsAt, rangeEnd),
+    )),
   ]);
+  const hiddenKeys = new Set(hidden.map(({ serviceId, startsAt }) => serviceId + ":" + +startsAt));
+  const offered = (serviceId: string, instant: number) => !hiddenKeys.has(serviceId + ":" + instant);
   const earliest = +now + (options?.internalMode ? 0 : location.leadTimeHours) * 60 * minute;
   const candidates: {
     professional: Pick<(typeof slots)[number], "employeeId" | "employeeName" | "professionalTitle" | "professionalPhotoUrl">;
@@ -113,6 +119,13 @@ export async function availability(
       (options?.maxPriceCents !== undefined && exact.priceCents > options.maxPriceCents)) continue;
     for (const [index, start] of dayMinutes.entries()) {
       if (!startingMinute(start) || !canWork(index, exact.occupiedMinutes)) continue;
+      let offset = 0;
+      const visible = exact.items.every((line) => {
+        const result = offered(line.serviceId, start.instant + offset * minute);
+        offset += line.preparationMinutes + line.durationMinutes + line.cleanupMinutes;
+        return result;
+      });
+      if (!visible) continue;
       slots.push({ ...professional, startsAt: new Date(start.instant).toISOString(),
         endsAt: new Date(start.instant + exact.occupiedMinutes * minute).toISOString(), quote: exact });
       if (options?.firstOnly) return result;
@@ -139,7 +152,7 @@ export async function availability(
         for (const candidate of candidates) {
           const line = candidate.lines[position]!;
           const length = line.preparationMinutes + line.durationMinutes + line.cleanupMinutes;
-          if (offset + length > limit || !candidate.eligible.has(line.serviceId) || !candidate.canWork(index + offset, length)) continue;
+          if (offset + length > limit || !offered(line.serviceId, start.instant + offset * minute) || !candidate.eligible.has(line.serviceId) || !candidate.canWork(index + offset, length)) continue;
           const remaining = assign(position + 1, offset + length);
           if (!remaining) continue;
           const price = line.priceCents + remaining.reduce((total, entry) => total + entry.priceCents, 0);

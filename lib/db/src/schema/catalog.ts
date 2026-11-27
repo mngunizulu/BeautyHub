@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
-import { pgTable, primaryKey, text, uuid, integer, boolean, index, check, uniqueIndex, doublePrecision, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, primaryKey, text, uuid, integer, boolean, index, check, uniqueIndex, doublePrecision, timestamp, type AnyPgColumn } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
+import { galleryPhotos } from "./marketplace";
 import { organizations } from "./identity";
 
 export const categories = pgTable("service_categories", {
@@ -38,6 +39,7 @@ export const locations = pgTable("locations", {
   leadTimeHours: integer("lead_time_hours").notNull().default(2),
   advanceBookingDays: integer("advance_booking_days").notNull().default(90),
   contactPreference: text("contact_preference").notNull().default("email"),
+  coverPhotoId: uuid("cover_photo_id").references((): AnyPgColumn => galleryPhotos.id, { onDelete: "set null" }),
   imageKey: text("image_key").notNull(),
   timezone: text("timezone").notNull().default("Europe/Berlin"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -58,6 +60,7 @@ export const serviceGroups = pgTable("business_service_categories", {
 }, (table) => [uniqueIndex("service_group_name_unique").on(table.organizationId, table.name)]);
 
 export const services = pgTable("services", {
+  photoId: uuid("photo_id").references((): AnyPgColumn => galleryPhotos.id, { onDelete: "set null" }),
   id: uuid("id").defaultRandom().primaryKey(),
   locationId: uuid("location_id").notNull().references(() => locations.id, { onDelete: "cascade" }),
   name: text("name").notNull(),

@@ -59,6 +59,12 @@ export const bookingStaffReservations = pgTable("booking_staff_reservations", {
   check("booking_staff_valid_interval", sql`${t.startsAt} < ${t.endsAt}`),
 ]);
 
+export const hiddenBookingStarts = pgTable("hidden_booking_starts", {
+  locationId: uuid("location_id").notNull().references(() => locations.id, { onDelete: "cascade" }),
+  serviceId: uuid("service_id").notNull().references(() => services.id, { onDelete: "cascade" }),
+  startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+}, (table) => [primaryKey({ columns: [table.locationId, table.serviceId, table.startsAt] })]);
+
 export const bookingBlocks = pgTable("booking_blocks", {
   id: uuid("id").defaultRandom().primaryKey(),
   locationId: uuid("location_id").notNull().references(() => locations.id, { onDelete: "cascade" }),

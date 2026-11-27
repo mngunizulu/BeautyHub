@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useParams, useSearch } from 'wouter';
-import { ArrowLeft, BarChart3, CalendarClock, Check, Circle, Clock, FileText, LayoutGrid, MapPin, Package, Scissors, Settings2, ShieldCheck, Sparkles, Users } from 'lucide-react';
+import { ArrowLeft, BarChart3, CalendarClock, Check, Circle, Clock, FileText, Images, LayoutGrid, MapPin, Package, Scissors, Settings2, ShieldCheck, Sparkles, Users } from 'lucide-react';
 import { useGetOrganizationWorkspace, getGetOrganizationWorkspaceQueryKey, useSaveOrganizationProfile, type BusinessWorkspace } from '@workspace/api-client-react';
 import { FormStatus, Panel, PrimaryButton } from '@/components/forms';
 import { ErrorState, DemoBadge } from '@/components/site';
@@ -29,6 +29,7 @@ const SECTIONS = [
   { key: 'uebersicht', label: 'Übersicht', icon: LayoutGrid },
   { key: 'profil', label: 'Profil', icon: FileText },
   { key: 'standorte', label: 'Standorte', icon: MapPin },
+  { key: 'galerie', label: 'Galerie', icon: Images, edit: true },
   { key: 'berichte', label: 'Berichte', icon: BarChart3, edit: true },
   { key: 'marketing', label: 'Marketing', icon: Sparkles, edit: true },
   { key: 'kunden', label: 'Kunden', icon: Users, edit: true },
@@ -106,7 +107,8 @@ export default function WorkspacePage() {
           {section === 'einrichtung' && <Onboarding ws={ws} perms={perms} onFinish={() => go('uebersicht')} />}
           {section === 'uebersicht' && <Overview ws={ws} perms={perms} go={go} />}
           {section === 'profil' && <ProfileSection ws={ws} perms={perms} />}
-          {section === 'standorte' && <div className="space-y-6"><LocationsSection ws={ws} perms={perms} /><PublicationPanel ws={ws} perms={perms} />{perms.canEdit && <GalleryPanel ws={ws} />}</div>}
+          {section === 'standorte' && <div className="space-y-6"><LocationsSection ws={ws} perms={perms} /><PublicationPanel ws={ws} perms={perms} />{perms.canEdit && <Link className="underline" href={`/unternehmen/${ws.id}?bereich=galerie`}>Galerie öffnen</Link>}</div>}
+          {section === 'galerie' && perms.canEdit && <GalleryPanel ws={ws} />}
           {section === 'berichte' && <BusinessAnalytics key={ws.id} workspace={ws} />}
           {section === 'marketing' && <div className="space-y-6"><MarketingCampaigns organizationId={ws.id} /><LoyaltySettings key={'loyalty-' + ws.id} organizationId={ws.id} /><BusinessPackages key={'packages-' + ws.id} organizationId={ws.id} services={ws.services} /><BusinessReviews key={ws.id} organizationId={ws.id} /></div>}
           {section === 'kunden' && <PrivateCrm organizationId={ws.id} />}
@@ -117,7 +119,7 @@ export default function WorkspacePage() {
           {section === 'kalender' && <BusinessCalendar workspace={ws} />}
           {section === 'buchung' && <div className="space-y-6">
             <LocationPartSection ws={ws} perms={perms} part="booking" title="Buchungseinstellungen" kicker="Pro Standort" />
-            <BookingSettings workspace={ws} />
+            {perms.canEdit && <BookingSettings workspace={ws} />}
             {perms.canEdit && <ProfessionalPricingSettings workspace={ws} />}
           </div>}
           {section === 'storno' && <PolicySection ws={ws} perms={perms} />}

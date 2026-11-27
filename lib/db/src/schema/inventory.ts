@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
-import { boolean, check, integer, jsonb, pgTable, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
+import { boolean, check, integer, jsonb, pgTable, text, timestamp, unique, uuid, type AnyPgColumn } from "drizzle-orm/pg-core";
+import { galleryPhotos } from "./marketplace";
 import { locations } from "./catalog";
 import { users } from "./identity";
 
@@ -10,6 +11,7 @@ export const inventoryProducts = pgTable("inventory_products", {
   name: text("name").notNull(),
   category: text("category").notNull().default(""),
   supplier: text("supplier").notNull().default(""),
+  photoId: uuid("photo_id").references((): AnyPgColumn => galleryPhotos.id, { onDelete: "set null" }),
   imageUrl: text("image_url").notNull().default(""),
   purchaseCostCents: integer("purchase_cost_cents"),
   unitCents: integer("unit_cents").notNull(),

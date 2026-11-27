@@ -364,15 +364,23 @@ function ServiceForm({ ws, perms, service, onDone }: Props & { service?: Managed
   };
   const eligible = ws.employees.filter((e) => e.locationId === f.locationId || f.employeeIds.includes(e.id));
   const addCategory = () => {
-    if (!newCat.trim()) return;
+    const name = newCat.trim();
+    if (!name || createCat.isPending) return;
     setErr(null);
-    createCat.mutate({ organizationId: ws.id, data: { name: newCat.trim() } }, {
-      onSuccess: (w) => { sync(w, false); const c = w.serviceCategories.find((x) => x.name === newCat.trim()) ?? w.serviceCategories[w.serviceCategories.length - 1]; if (c) setF((p) => ({ ...p, categoryId: c.id })); setNewCat(''); },
+    createCat.mutate({ organizationId: ws.id, data: { name } }, {
+      onSuccess: (w) => {
+        sync(w, false);
+        const group = w.serviceCategories.find((item) => item.name === name);
+        if (group) setF((draft) => ({ ...draft, categoryId: group.id }));
+        setNewCat('');
+      },
       onError: (e2) => setErr(errOf(e2)),
     });
   };
   const submit = (e: FormEvent) => {
-    e.preventDefault(); setTouched(true); setErr(null);
+    e.preventDefault();
+    if (createCat.isPending) return;
+    setTouched(true); setErr(null);
     if (Object.values(errors).some(Boolean)) { setErr('Bitte prüfe die markierten Felder.'); return; }
     const data: ServiceInput = {
       name: f.name.trim(), description: f.description, locationId: f.locationId, categoryId: f.categoryId || null, priceCents,
@@ -395,24 +403,37 @@ function ServiceForm({ ws, perms, service, onDone }: Props & { service?: Managed
           <select id={`svc-${id}-location`} value={f.locationId} onChange={(e) => setF({ ...f, locationId: e.target.value })} className={inputCls} data-testid="select-service-location"><option value="">Bitte wählen</option>{ws.locations.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}</select>
         </Field>
         <Field id={`svc-${id}-desc`} label="Beschreibung" className="sm:col-span-6"><textarea id={`svc-${id}-desc`} rows={2} maxLength={2000} value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} className={inputCls} data-testid="input-service-description" /></Field>
-        <Field id={`svc-${id}-price`} label="Preis (Euro)" error={t('price')} className="sm:col-span-2"><input id={`svc-${id}-price`} inputMode="decimal" value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} placeholder="45,00" className={inputCls} data-testid="input-service-price" /></Field>
-        <Field id={`svc-${id}-duration`} label="Dauer (Minuten)" error={t('duration')} className="sm:col-span-2"><input id={`svc-${id}-duration`} type="number" min={1} max={1440} value={f.durationMinutes} onChange={(e) => setF({ ...f, durationMinutes: Number(e.target.value) })} className={inputCls} data-testid="input-service-duration" /></Field>
-        <Field id={`svc-${id}-category`} label="Leistungsgruppe" className="sm:col-span-2">
-          <select id={`svc-${id}-category`} value={f.categoryId ?? ''} onChange={(e) => setF({ ...f, categoryId: e.target.value || null })} className={inputCls} data-testid="select-service-category"><option value="">Ohne Gruppe</option>{ws.serviceCategories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
-        </Field>
-        <div className="flex items-end gap-2 sm:col-span-6">
-          <Field id={`svc-${id}-newcat`} label="Neue Leistungsgruppe" className="flex-1"><input id={`svc-${id}-newcat`} value={newCat} maxLength={100} onChange={(e) => setNewCat(e.target.value)} placeholder="z. B. Färben" className={inputCls} data-testid="input-new-service-category" /></Field>
-          <PrimaryButton type="button" variant="ghost" onClick={addCategory} pending={createCat.isPending} disabled={!newCat.trim()} testId="button-create-service-category"><Plus className="h-4 w-4" />Gruppe anlegen</PrimaryButton>
-        </div>
+        <Field id={`svc-${id}-price`} label="Preis (Euro)" error={t('price')} className="sm:col-span-3"><input id={`svc-${id}-price`} inputMode="decimal" value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} placeholder="45,00" className={inputCls} data-testid="input-service-price" /></Field>
+        <Field id={`svc-${id}-duration`} label="Dauer (Minuten)" error={t('duration')} className="sm:col-span-3"><input id={`svc-${id}-duration`} type="number" min={1} max={1440} value={f.durationMinutes} onChange={(e) => setF({ ...f, durationMinutes: Number(e.target.value) })} className={inputCls} data-testid="input-service-duration" /></Field>
+        <fieldset className="min-w-0 space-y-3 rounded-lg border border-border p-3 sm:col-span-6">
+          <legend className="px-1 text-sm font-medium">Leistungsgruppe (optional)</legend>
+          <p className="text-sm text-muted-foreground">Gruppen ordnen deine Leistungen für Kund:innen, z. B. Massagen oder Gesichtsbehandlungen.</p>
+          {ws.serviceCategories.length === 0 && <p className="text-sm text-muted-foreground">Du hast noch keine Gruppen. Du kannst hier eine anlegen oder die Leistung ohne Gruppe speichern.</p>}
+          <Field id={`svc-${id}-category`} label="Gruppe auswählen">
+            <select id={`svc-${id}-category`} value={f.categoryId ?? ''} onChange={(e) => setF({ ...f, categoryId: e.target.value || null })} className={inputCls} data-testid="select-service-category">
+              <option value="">Ohne Gruppe</option>
+              {ws.serviceCategories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </Field>
+          <Field id={`svc-${id}-newcat`} label="Name der neuen Gruppe">
+            <input id={`svc-${id}-newcat`} value={newCat} maxLength={100} onChange={(e) => setNewCat(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCategory(); } }}
+              disabled={createCat.isPending} placeholder="z. B. Massagen" className={inputCls} data-testid="input-new-service-category" />
+          </Field>
+          <PrimaryButton type="button" variant="ghost" onClick={addCategory} pending={createCat.isPending} disabled={!newCat.trim()} testId="button-create-service-category">
+            <Plus className="h-4 w-4" />Gruppe anlegen
+          </PrimaryButton>
+        </fieldset>
         <Field id={`svc-${id}-prep`} label="Vorbereitung (Min.)" error={t('buffers')} className="sm:col-span-3"><input id={`svc-${id}-prep`} type="number" min={0} max={240} value={f.preparationMinutes} onChange={(e) => setF({ ...f, preparationMinutes: Number(e.target.value) })} className={inputCls} data-testid="input-service-preparation" /></Field>
         <Field id={`svc-${id}-clean`} label="Nachbereitung (Min.)" className="sm:col-span-3"><input id={`svc-${id}-clean`} type="number" min={0} max={240} value={f.cleanupMinutes} onChange={(e) => setF({ ...f, cleanupMinutes: Number(e.target.value) })} className={inputCls} data-testid="input-service-cleanup" /></Field>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <Check id={`svc-${id}-published`} label="Öffentlich anzeigen" hint="Erscheint im Profil, sobald der Standort veröffentlicht ist" checked={f.published} onChange={(v) => setF({ ...f, published: v })} />
-        <Check id={`svc-${id}-online`} label="Für Online-Buchung vorsehen" hint="Wird erst mit Stufe 4 buchbar" checked={f.onlineBooking} onChange={(v) => setF({ ...f, onlineBooking: v })} />
+        <Check id={`svc-${id}-online`} label="Online-Buchung anbieten" hint="Erfordert eine veröffentlichte Leistung und verfügbare Mitarbeitende" checked={f.onlineBooking} onChange={(v) => setF({ ...f, onlineBooking: v })} />
       </div>
       <fieldset>
-        <legend className="mb-2 text-sm font-medium">Wer bietet die Leistung an?</legend>
+        <legend className="mb-2 text-sm font-medium">Mitarbeitende für diese Leistung</legend>
+        <p className="mb-2 text-sm text-muted-foreground">Wähle die Personen aus, die diese Leistung anbieten.</p>
         {eligible.length === 0 ? <p className="text-sm text-muted-foreground">Für diesen Standort gibt es noch keine Mitarbeitenden.</p> : (
           <div className="flex flex-wrap gap-2">
             {eligible.map((e) => {
@@ -424,18 +445,19 @@ function ServiceForm({ ws, perms, service, onDone }: Props & { service?: Managed
         )}
       </fieldset>
       <fieldset>
-        <legend className="mb-2 text-sm font-medium">Varianten (optional)</legend>
+        <legend className="mb-2 text-sm font-medium">Leistungsvarianten (optional)</legend>
+        <p className="mb-2 text-sm text-muted-foreground">Varianten sind buchbare Optionen derselben Leistung, z. B. 45 oder 60 Minuten Massage zu unterschiedlichen Preisen.</p>
         <div className="space-y-2">
           {f.variants.map((v, i) => (
-            <div key={v.id ?? `n${i}`} className="grid grid-cols-[1fr_6rem_6rem_auto] items-center gap-2">
+            <div key={v.id ?? `n${i}`} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-center gap-2 sm:grid-cols-[minmax(0,1fr)_6rem_6rem_auto]">
               <label className="sr-only" htmlFor={`svc-${id}-v${i}-name`}>Variante {i + 1} Name</label>
-              <input id={`svc-${id}-v${i}-name`} value={v.name} maxLength={100} onChange={(e) => setV(i, { name: e.target.value })} placeholder="z. B. Langes Haar" className={inputCls} data-testid={`input-variant-name-${i}`} />
+              <input id={`svc-${id}-v${i}-name`} value={v.name} maxLength={100} onChange={(e) => setV(i, { name: e.target.value })} placeholder="z. B. 60 Minuten" className={`${inputCls} col-span-full sm:col-span-1`} data-testid={`input-variant-name-${i}`} />
               <label className="sr-only" htmlFor={`svc-${id}-v${i}-price`}>Variante {i + 1} Preis</label>
               <input id={`svc-${id}-v${i}-price`} inputMode="decimal" value={v.price} onChange={(e) => setV(i, { price: e.target.value })} placeholder="Euro" className={inputCls} data-testid={`input-variant-price-${i}`} />
               <label className="sr-only" htmlFor={`svc-${id}-v${i}-duration`}>Variante {i + 1} Dauer</label>
               <input id={`svc-${id}-v${i}-duration`} type="number" min={1} value={v.duration} onChange={(e) => setV(i, { duration: e.target.value })} placeholder="Min." className={inputCls} data-testid={`input-variant-duration-${i}`} />
               <button type="button" onClick={() => setF({ ...f, variants: f.variants.filter((_, j) => j !== i) })} className="rounded-full p-2 hover:bg-secondary" aria-label={`Variante ${i + 1} entfernen`} data-testid={`button-remove-variant-${i}`}><Trash2 className="h-4 w-4" /></button>
-              {touched && variantErr[i] && <p className="col-span-4 text-xs text-destructive">{variantErr[i]}</p>}
+              {touched && variantErr[i] && <p className="col-span-full text-xs text-destructive">{variantErr[i]}</p>}
             </div>
           ))}
           {f.variants.length < 30 && <button type="button" onClick={() => setF({ ...f, variants: [...f.variants, { name: '', price: f.price, duration: String(f.durationMinutes) }] })} className="inline-flex items-center gap-1 text-sm text-primary hover:underline" data-testid="button-add-variant"><Plus className="h-3.5 w-3.5" />Variante hinzufügen</button>}
@@ -443,7 +465,7 @@ function ServiceForm({ ws, perms, service, onDone }: Props & { service?: Managed
       </fieldset>
       <FormStatus error={err} />
       <div className="flex gap-2">
-        <PrimaryButton pending={create.isPending || save.isPending} disabled={!perms.canEdit} testId="button-save-service">{service ? 'Speichern' : 'Leistung anlegen'}</PrimaryButton>
+        <PrimaryButton pending={create.isPending || save.isPending} disabled={!perms.canEdit || createCat.isPending} testId="button-save-service">{service ? 'Speichern' : 'Leistung anlegen'}</PrimaryButton>
         <PrimaryButton type="button" variant="ghost" onClick={onDone} testId="button-cancel-service">Abbrechen</PrimaryButton>
       </div>
     </form>

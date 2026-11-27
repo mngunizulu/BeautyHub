@@ -23,6 +23,7 @@ import foundationRouter from "./foundation";
 import accountRouter from "./account";
 import organizationsRouter from "./organizations";
 
+import { homepageGalleryRouter } from "./homepage-gallery";
 import { galleryRouter } from "./gallery";
 import { favoritesRouter } from "./favorites";
 
@@ -43,6 +44,7 @@ router.use(loyaltyRouter);
 router.use(packagesRouter);
 router.use(reviewsRouter);
 router.use(foundationRouter);
+router.use(homepageGalleryRouter);
 router.use(platformOverviewRouter);
 router.use(supportRouter);
 router.use(platformBusinessesRouter);

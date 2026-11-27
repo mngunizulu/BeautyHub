@@ -1,3 +1,4 @@
+import { OnlineSlots } from '@/components/online-slots';
 import { useState, type FormEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { BusinessWorkspace } from '@workspace/api-client-react';
@@ -129,7 +130,7 @@ type Settings = {
 export function BookingSettings({ workspace }: { workspace: BusinessWorkspace }) {
   const [selected, setSelected] = useState(workspace.locations[0]?.id ?? '');
   const location = workspace.locations.find((entry) => entry.id === selected);
-  return <Panel title="Sperrzeiten und Ressourcen">
+  return <Panel title="Online-Termine, Sperrzeiten und Ressourcen">
     <Field id="schedule-location" label="Standort">
       <select id="schedule-location" className={inputCls} value={selected} onChange={(event) => setSelected(event.target.value)}>
         {workspace.locations.map((entry) => <option value={entry.id} key={entry.id}>{entry.name}</option>)}
@@ -166,6 +167,7 @@ function LocationSettings({ workspace, locationId, timezone }: { workspace: Busi
     change.mutate({ url: '/resources', data: { name: fields.get('name'), serviceIds: fields.getAll('service') } }, { onSuccess: () => form.reset() });
   };
   return <div className="mt-5 space-y-6">
+    <OnlineSlots workspace={workspace} locationId={locationId} timezone={timezone} path={path + '/online-slots'} />
     <form className="space-y-3" onSubmit={block}>
       <h3 className="font-medium">Sperrzeit hinzufügen</h3>
       <div className="grid gap-3 sm:grid-cols-2">

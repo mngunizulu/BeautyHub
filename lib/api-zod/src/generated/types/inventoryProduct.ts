@@ -7,10 +7,12 @@
  */
 import type { InventoryProductInput } from './inventoryProductInput';
 
-export type InventoryProduct = InventoryProductInput & {
+export type InventoryProduct = InventoryProductInput & ({
   id: string;
   locationId: string;
   /** @minimum 0 */
   stock: number;
+  /** @nullable */
+  photoId?: string | null;
   archived: boolean;
-};
+});

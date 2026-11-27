@@ -9,6 +9,10 @@ import type { PublicServiceVariant } from './publicServiceVariant';
 
 export interface Service {
   /** @nullable */
+  photoId?: string | null;
+  /** @nullable */
+  photoAlt?: string | null;
+  /** @nullable */
   groupName?: string | null;
   onlineBooking?: boolean;
   id: string;

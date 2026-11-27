@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { randomUUID, createHash } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import request from "supertest";
@@ -5,7 +6,7 @@ import { and, eq, inArray } from "drizzle-orm";
 import {
   db, pool, users, organizations, memberships, locations, services, categories,
   employees, employeeServices, serviceVariants, cancellationPolicies, staffInvitations,
-  auditEvents, platformSettings, platformSettingChanges, saasChanges, supportCases, deletionRequestReviews, erasedTestIdentities, saasPlans, saasSubscriptions, customerPackages, packageUses, servicePackages, paymentReferences, serviceGroups, reservations, bookingResourceReservations, bookingStaffReservations, bookingReviewReports, bookingReviews, bookingNotifications, bookingEvents, appointmentPayments, appointmentRefunds, retailSales, retailRefunds, posVouchers, inventoryProducts, inventoryMovements, inventoryOrderReceipts, inventoryOrders, businessMarketingPreferences, marketingCampaigns, marketingCaptures, marketingCapturedRecipients, inventorySuppliers,
+  auditEvents, platformSettings, platformSettingChanges, saasChanges, supportCases, deletionRequestReviews, erasedTestIdentities, galleryPhotos, saasPlans, saasSubscriptions, customerPackages, packageUses, servicePackages, paymentReferences, serviceGroups, reservations, bookingResourceReservations, bookingStaffReservations, bookingReviewReports, bookingReviews, bookingNotifications, bookingEvents, appointmentPayments, appointmentRefunds, retailSales, retailRefunds, posVouchers, inventoryProducts, inventoryMovements, inventoryOrderReceipts, inventoryOrders, businessMarketingPreferences, marketingCampaigns, marketingCaptures, marketingCapturedRecipients, inventorySuppliers,
 } from "@workspace/db";
 import app from "../app";
 import { recordBookingEvent } from "../services/booking-notifications";
@@ -285,6 +286,24 @@ describe("Stage 2 persisted identities, onboarding and tenant boundaries", () =>
       const bookingPayload = { items, employeeId, paymentMethodId: method.body.id, acceptPolicy: true, startsAt: first.startsAt, idempotencyKey: randomUUID(),
         policyVersion: initial.policy.version, expectedPriceCents: initial.quote.priceCents };
       const reserve = (payload: typeof bookingPayload, user = owner) => authed("post", business + "/bookings", user).send(payload);
+      const slotPath = settings + "/online-slots";
+      const slotCall = (method: "post" | "put", actor = owner) =>
+        authed(method, slotPath, actor).set("X-Forwarded-For", "192.0.2.86");
+      const toggle = (enabled: boolean) => slotCall("put").send({ item: items[0], startsAt: first.startsAt, enabled });
+      expect((await slotCall("post", outsider).send({ item: items[0], date: day })).status).toBe(403);
+      expect((await slotCall("post").send({ item: items[0], date: day })).body)
+        .toContainEqual({ startsAt: first.startsAt, endsAt: [first.endsAt], enabled: true });
+      try {
+        expect((await toggle(false)).status).toBe(204);
+        expect((await toggle(false)).status).toBe(204);
+        expect((await slotCall("post").send({ item: items[0], date: day })).body)
+          .toContainEqual({ startsAt: first.startsAt, endsAt: [first.endsAt], enabled: false });
+        const visible = await request(app).post(business + "/availability").set("X-Forwarded-For", "192.0.2.86").send({ date: day, items });
+        expect(visible.body.slots.some((slot: { startsAt: string }) => slot.startsAt === first.startsAt)).toBe(false);
+        expect((await authed("post", business + "/bookings").set("X-Forwarded-For", "192.0.2.86").send(bookingPayload)).status).toBe(409);
+      } finally {
+        expect((await toggle(true)).status).toBe(204);
+      }
       expect((await reserve({ ...bookingPayload, paymentMethodId: otherMethod.body.id })).status).toBe(412);
       expect((await reserve({ ...bookingPayload, acceptPolicy: false })).status).toBe(400);
       expect((await reserve({ ...bookingPayload, expectedPriceCents: 1 })).status).toBe(409);
@@ -1407,35 +1426,74 @@ describe("Stage 2 persisted identities, onboarding and tenant boundaries", () =>
     const listing = (await authed("get", orgPath("/workspace"))).body.locations.find((entry: { id: string }) => entry.id === locationId);
     const manage = orgPath(`/locations/${locationId}/gallery`);
     const publicList = `/api/businesses/${listing.slug}/gallery`;
-    const image = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aB9sAAAAASUVORK5CYII=", "base64");
-    const upload = (bytes: Buffer, user = owner) => authed("post", manage, user)
+    const image = readFileSync(new URL("../../../../tests/fixtures/gallery-photo.png", import.meta.url));
+    const tiny = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aB9sAAAAASUVORK5CYII=", "base64");
+    const lookup = (path: string) => request(app).get(path).set("X-Forwarded-For", "192.0.2.85");
+    const call = (method: "get" | "post" | "put" | "delete", path: string, user = owner) =>
+      authed(method, path, user).set("X-Forwarded-For", "192.0.2.85");
+    const upload = (bytes: Buffer, user = owner) => call("post", manage, user)
       .query({ alt: "Eingang" }).set("Content-Type", "image/png").send(bytes);
     expect((await upload(image, outsider)).status).toBe(403);
     const otherWorkspace = await authed("get", `/api/organizations/${otherOrg}/workspace`, outsider);
     const otherLocation = otherWorkspace.body.locations[0].id;
     const crossTenant = `/api/organizations/${otherOrg}/locations/${locationId}/gallery`;
-    expect((await authed("get", crossTenant, outsider)).status).toBe(404);
+    expect((await call("get", crossTenant, outsider)).status).toBe(404);
     expect((await upload(Buffer.from("not an image"))).status).toBe(400);
-    expect((await upload(Buffer.alloc(768 * 1024 + 1))).status).toBe(413);
+    expect((await upload(tiny)).status).toBe(400);
+    expect((await upload(Buffer.alloc(3 * 1024 * 1024 + 1))).status).toBe(413);
     const created = await upload(image);
     expect(created.status).toBe(201);
     const photo = created.body;
     expect(photo).toEqual({ id: expect.any(String), alt: "Eingang" });
-    expect((await authed("get", manage)).body).toEqual([photo]);
-    expect((await request(app).get(publicList)).body).toEqual([photo]);
-    const imagePath = `/api/gallery/${photo.id}`;
-    const publicPhoto = await request(app).get(imagePath);
-    expect(publicPhoto.status).toBe(200);
-    expect(publicPhoto.headers["content-type"]).toBe("image/png");
-    expect(publicPhoto.body).toEqual(image);
-    expect((await authed("delete", `/api/organizations/${otherOrg}/locations/${otherLocation}/gallery/${photo.id}`, outsider)).status).toBe(404);
-    expect((await authed("put", orgPath("/publication")).send({ locationId, published: false })).status).toBe(200);
-    expect((await request(app).get(publicList)).status).toBe(404);
-    expect((await request(app).get(imagePath)).status).toBe(404);
-    expect((await authed("get", `${manage}/${photo.id}`)).body).toEqual(image);
-    expect((await authed("put", orgPath("/publication")).send({ locationId, published: true })).status).toBe(200);
-    expect((await authed("delete", `${manage}/${photo.id}`)).status).toBe(204);
-    expect((await request(app).get(imagePath)).status).toBe(404);
+    expect((await call("get", manage)).body).toEqual([photo]);
+    expect((await lookup(publicList)).body).toEqual([photo]);
+    const placements = manage + "/assignments";
+    const [product] = await db.insert(inventoryProducts).values({
+      locationId, sku: "GALLERY-QA", name: "Gallery QA product", unitCents: 250,
+    }).returning();
+    const assign = (kind: "cover" | "service" | "product", targetId?: string) =>
+      call("put", placements).send({ kind, photoId: photo.id, ...(targetId ? { targetId } : {}) });
+    try {
+      expect((await call("put", placements, outsider).send({ kind: "cover", photoId: photo.id })).status).toBe(403);
+      expect((await call("put", `/api/organizations/${otherOrg}/locations/${otherLocation}/gallery/assignments`, outsider)
+        .send({ kind: "cover", photoId: photo.id })).status).toBe(404);
+      expect((await assign("service", randomUUID())).status).toBe(404);
+      expect((await assign("cover")).status).toBe(204);
+      expect((await assign("service", serviceId)).status).toBe(204);
+      expect((await assign("product", product!.id)).status).toBe(204);
+      const state = await call("get", placements);
+      expect(state.body).toMatchObject({ coverPhotoId: photo.id, products: [{ id: product!.id, photoId: photo.id }] });
+      expect(state.body.services).toContainEqual(expect.objectContaining({ id: serviceId, photoId: photo.id }));
+      const detail = await lookup(`/api/businesses/${listing.slug}`);
+      expect(detail.body).toMatchObject({ coverPhotoId: photo.id, coverPhotoAlt: "Eingang" });
+      expect(detail.body.services).toContainEqual(expect.objectContaining({ id: serviceId, photoId: photo.id, photoAlt: "Eingang" }));
+      expect(await lookup("/api/businesses").then((response) => response.body))
+        .toContainEqual(expect.objectContaining({ id: locationId, coverPhotoId: photo.id }));
+
+      for (let i = 0; i < 8; i++) expect((await upload(image)).status).toBe(201);
+      const last = await Promise.all([upload(image), upload(image)]);
+      expect(last.map(({ status }) => status).sort()).toEqual([201, 409]);
+
+      const imagePath = `/api/gallery/${photo.id}`;
+      const publicPhoto = await lookup(imagePath);
+      expect(publicPhoto.status).toBe(200);
+      expect(publicPhoto.headers["content-type"]).toBe("image/png");
+      expect(publicPhoto.body).toEqual(image);
+      expect((await call("delete", `/api/organizations/${otherOrg}/locations/${otherLocation}/gallery/${photo.id}`, outsider)).status).toBe(404);
+      expect((await call("put", orgPath("/publication")).send({ locationId, published: false })).status).toBe(200);
+      expect((await lookup(publicList)).status).toBe(404);
+      expect((await lookup(imagePath)).status).toBe(404);
+      expect((await call("get", `${manage}/${photo.id}`)).body).toEqual(image);
+      expect((await call("put", orgPath("/publication")).send({ locationId, published: true })).status).toBe(200);
+      expect((await call("delete", `${manage}/${photo.id}`)).status).toBe(204);
+      expect((await lookup(imagePath)).status).toBe(404);
+      const cleared = await call("get", placements);
+      expect(cleared.body).toMatchObject({ coverPhotoId: null, products: [{ id: product!.id, photoId: null }] });
+      expect(cleared.body.services).toContainEqual(expect.objectContaining({ id: serviceId, photoId: null }));
+    } finally {
+      await db.delete(inventoryProducts).where(eq(inventoryProducts.id, product!.id));
+      await db.delete(galleryPhotos).where(eq(galleryPhotos.locationId, locationId));
+    }
   });
 
   it("keeps favorites account-scoped, idempotent and limited to public locations", async () => {
@@ -1567,6 +1625,42 @@ describe("Stage 2 persisted identities, onboarding and tenant boundaries", () =>
     expect(columns.rows.map((row: { column_name: string }) => row.column_name)).not.toContain("card_number");
     expect(columns.rows.map((row: { column_name: string }) => row.column_name)).not.toContain("cvv");
   });
+  it("publishes only administrator-assigned homepage photos and clears placements on deletion", async () => {
+    const path = "/api/admin/homepage-gallery";
+    const publicPath = "/api/marketplace/homepage-images";
+    const call = (method: "get" | "post" | "put" | "delete", route = path, actor = worker) =>
+      authed(method, route, actor).set("X-Forwarded-For", "192.0.2.87");
+    const read = (route: string) => request(app).get(route).set("X-Forwarded-For", "192.0.2.87");
+    const photo = readFileSync(new URL("../../../../tests/fixtures/gallery-photo.png", import.meta.url));
+    expect((await read(path)).status).toBe(401);
+    expect((await call("get", path, owner)).status).toBe(403);
+    await db.update(users).set({ isPlatformAdmin: true }).where(eq(users.id, workerId));
+    let photoId: string | undefined;
+    try {
+      const uploaded = await call("post").query({ alt: "Homepage QA" }).set("Content-Type", "image/png").send(photo);
+      expect(uploaded.status).toBe(201);
+      photoId = uploaded.body.id;
+      expect((await read(publicPath + "/" + photoId)).status).toBe(404);
+      expect((await call("get", path + "/" + photoId)).status).toBe(200);
+      expect((await call("put", path + "/placements/category:missing").send({ photoId })).status).toBe(404);
+      for (const target of ["hero", "category:friseur"]) {
+        expect((await call("put", path + "/placements/" + target).send({ photoId })).status).toBe(204);
+      }
+      expect((await read(publicPath)).body).toEqual(expect.arrayContaining([
+        { target: "hero", id: photoId, alt: "Homepage QA" },
+        { target: "category:friseur", id: photoId, alt: "Homepage QA" },
+      ]));
+      expect((await read(publicPath + "/" + photoId)).body).toEqual(photo);
+      expect((await call("delete", path + "/" + photoId)).status).toBe(204);
+      expect((await read(publicPath)).body).toEqual([]);
+      expect((await read(publicPath + "/" + photoId)).status).toBe(404);
+      photoId = undefined;
+    } finally {
+      if (photoId) await call("delete", path + "/" + photoId);
+      await db.update(users).set({ isPlatformAdmin: false }).where(eq(users.id, workerId));
+    }
+  });
+
   it("denies platform endpoints to guests, consumers and business owners", async () => {
     const headers = { "X-Forwarded-For": "192.0.2.82" };
     for (const path of ["/api/admin/platform-analytics", "/api/admin/customers", "/api/admin/platform-settings"]) {

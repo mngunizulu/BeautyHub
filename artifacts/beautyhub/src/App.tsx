@@ -14,6 +14,7 @@ import { Layout } from '@/components/site';
 import { PageMetadata } from '@/components/page-metadata';
 import { ClerkQueryClientCacheInvalidator, RequireAuth, SessionExpiryWatcher, basePath, clerkAppearance, clerkLocalization, stripBase } from '@/lib/auth';
 
+const PlatformHomepageGallery = lazy(() => import('@/pages/platform-homepage-gallery'));
 const PlatformOverview = lazy(() => import('@/pages/platform-overview'));
 const SupportPage = lazy(() => import('@/pages/support'));
 const PlatformCustomers = lazy(() => import('@/pages/platform-customers'));
@@ -64,6 +65,7 @@ function HomeRedirect() {
 }
 
 const CustomerSupport = () => <RequireAuth><SupportPage /></RequireAuth>;
+const AdminHomepageGallery = () => <RequireAuth><PlatformHomepageGallery /></RequireAuth>;
 const AdminOverview = () => <RequireAuth><PlatformOverview /></RequireAuth>;
 const AdminSupport = () => <RequireAuth><SupportPage admin /></RequireAuth>;
 const AdminCustomers = () => <RequireAuth><PlatformCustomers /></RequireAuth>;
@@ -90,6 +92,7 @@ function Router() {
             <Route path="/signin" component={AnmeldenRedirect} />
             <Route path="/konto/support" component={CustomerSupport} />
             <Route path="/admin/plattform" component={AdminOverview} />
+            <Route path="/admin/startseite" component={AdminHomepageGallery} />
             <Route path="/admin/support" component={AdminSupport} />
             <Route path="/admin/kunden" component={AdminCustomers} />
             <Route path="/admin/betriebe" component={AdminBusinesses} />
